@@ -1,22 +1,36 @@
-
-#include <OneWire.h>
-#include <DallasTemperature.h>
-#include <LCD5110_Basic.h>
-
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#else
+/* In the Arduino IDE, we enable the Nokia display by default. */
+#define WITH_LCD5110    1
+#define WITH_DS18B20    1
+#endif
 
 /* PIN DEFINITIONS */
 
-#define ONE_WIRE_BUS 2                                    // DS18B20 sensor data pin
-
 #define RELAY_GFA 12                                      // GFA relay pin
 #define RELAY_MOTOR 11                                    // motor relay pin
+
+#ifdef WITH_DS18B20
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+#define ONE_WIRE_BUS 2                                    // DS18B20 sensor data pin
+#endif
+
+#ifdef WITH_LCD5110
+#include <LCD5110_Basic.h>
 
 #define LCD_RST 6
 #define LCD_CE 7
 #define LCD_DC 5
 #define LCD_DIN 4
 #define LCD_CLK 3
+#endif
 
+#ifdef WITH_NTC
+#define TEMPERATURE_IN  0
+#endif
 
 /* CONSTANTS */
 
@@ -47,10 +61,14 @@ extern uint8_t test_position[];
 
 
 /* INITIALIZE INSTANCES */
-
+#ifdef WITH_DS18B20
 OneWire ourWire(ONE_WIRE_BUS);                            // initialize OneWire instance
 DallasTemperature sensors(&ourWire);                      // initialize DallasTemperature Library with OneWire instance
+#endif
+
+#ifdef WITH_LCD5110
 LCD5110 myGLCD(LCD_CLK, LCD_DIN, LCD_DC, LCD_RST, LCD_CE);// initialize Nokia 5110 gLCD instance
+#endif
 
 
 /* GLOBAL VARIABLES */
@@ -76,7 +94,8 @@ float start = 0;
 float ende  = 0;
 
 
-
+/* FORWARD DECLARATIONS */
+void resetTempSensor();
 
 
 void setup() 
@@ -90,16 +109,20 @@ void setup()
   pinMode(RELAY_GFA, OUTPUT);
   pinMode(RELAY_MOTOR, OUTPUT);
 
+#ifdef WITH_LCD5110
   myGLCD.InitLCD();
   myGLCD.setFont(SmallFont);
   myGLCD.print("Brewmeister0.3", CENTER, 0);
   myGLCD.print("Loading...", CENTER, 24);
+#endif
 
+#ifdef WITH_DS18B20
   sensors.begin(); 
   ourWire.reset_search();
   ourWire.search(tempSensorAddr);
   
   resetTempSensor();
+#endif
   
   noInterrupts();                                         // disable all interrupts
   TCCR1A = 0;
@@ -115,15 +138,19 @@ void setup()
   // TBA: possibly increase baud rate
   delay(1000);
   Serial.begin(9600);
-  
-  for(int i=1; i<6; i++) {
-    myGLCD.clrRow(i, 0, 83);
+
+#ifdef WITH_LCD5110
+  for(int i=1; i<6; i++) {
+      myGLCD.clrRow(i, 0, 83);
   }
+#endif
 }
 
 void loop() 
 {
   noInterrupts();
+
+#ifdef WITH_LCD5110
   myGLCD.clrRow(4,12,83);
   myGLCD.clrRow(5,12,83);
   
@@ -140,6 +167,8 @@ void loop()
     myGLCD.setFont(SmallFont);
     myGLCD.print("ERROR", 33, 40);
   }
+#endif
+
   interrupts();
 
   
@@ -163,11 +192,23 @@ void loop()
   delay(1000);
 }
 
+#ifdef WITH_NTC
+double readNTCTemperature()
+{
+    int adc;
+    double temp;
+
+    adc = analogRead(TEMPERATURE_IN);
+    temp = log(((10240000. / adc) - 10000));
+    temp = 1 / (0.001129148 + (0.000234125 * temp) + (0.0000000876741 * temp * temp * temp));
+    return temp - 273.15;
+}
+#endif
 
 ISR(TIMER1_COMPA_vect)                                  // timer compare interrupt service routine
 {
 //  start = millis();
-
+#ifdef WITH_DS18B20
   if(sensors.isConnected(tempSensorAddr) && tempSensorStatus) {
     Serial.print("T=");
     Serial.println(temperature);
@@ -179,6 +220,9 @@ ISR(TIMER1_COMPA_vect)                                  // timer compare interru
     ourWire.search(tempSensorAddr);
     resetTempSensor();
   }
+#elif WITH_NTC
+  temperature = readNTCTemperature();
+#endif
   
 //  ende = millis();
 //  Serial.print(ende - start);
@@ -188,6 +232,7 @@ ISR(TIMER1_COMPA_vect)                                  // timer compare interru
 /* reconfigures temperature sensor, neccessary after lost connection */
 
 void resetTempSensor() {
+#ifdef WITH_DS18B20
   if((tempSensorAddr[0] == 0x28) && sensors.validAddress(tempSensorAddr) && sensors.isConnected(tempSensorAddr)) {
     tempSensorStatus = true;
     sensors.setResolution(TEMP_RESOLUTION);
@@ -198,13 +243,14 @@ void resetTempSensor() {
   } else {
     tempSensorStatus = false;
   }
+#endif
 }
 
 void processSerialCommand() {
   switch(serialBuffer[0]) {
     case 0xF0:  //Serial.print(" GET ");
                 switch(serialBuffer[1]) {              // 
-                  case 0xF1: Serial.write((byte*) &temp_soll,sizeof(float));
+                  case 0xF1: Serial.write((byte*) &temperature,sizeof(float));
                              break;
                   case 0xF2: 
                   case 0xF3:

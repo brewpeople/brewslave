@@ -4,3 +4,5 @@ Brewslave/build-*
 Brewslave/Brewslave.hex
 Brewslave/Brewslave.o
 Brewslave/pictures.o
+Brewslave/.lib*
+Brewslave/.dep*

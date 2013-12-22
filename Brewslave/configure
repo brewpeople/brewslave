@@ -51,8 +51,6 @@ if __name__ == '__main__':
             metavar="PATH", default=None)
     args = parser.parse_args()
 
-    print args.arduinomk_dir
-
     os_name = guess_os_name()
 
     if os_name == 'Linux':

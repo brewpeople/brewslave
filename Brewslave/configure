@@ -46,17 +46,20 @@ if __name__ == '__main__':
                         help="Enable LCD5110")
     parser.add_argument('--with-ntc', action='store_true',
                         help="Enable NTC temperature sensor")
+    parser.add_argument('--arduinomk-dir', 
+            action='store', help="Path to Arduino Makefile directory",
+            metavar="PATH", default=None)
     args = parser.parse_args()
 
     os_name = guess_os_name()
 
     if os_name == 'Linux':
         ARDUINO_DIR = '/usr/share/arduino'
-        ARDMK_DIR = '/usr'
+        ARDMK_DIR = '/usr' if args.arduinomk_dir is None else args.arduinomk_dir
         AVR_TOOLS_DIR = '/usr'
     elif os_name == 'Darwin':
         ARDUINO_DIR = '/Applications/Arduino.app/Contents/'
-        ARDMK_DIR = '/usr/local'
+        ARDMK_DIR = '/usr/local' if args.arduinomk_dir is None else args.arduinomk_dir
         AVR_TOOLS_DIR = ''
     else:
         sys.exit("Unknown operating system")

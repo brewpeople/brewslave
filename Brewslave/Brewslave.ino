@@ -3,18 +3,20 @@
 #else
 /* In the Arduino IDE, we enable the Nokia display by default. */
 #define WITH_LCD5110    1
+#define WITH_DS18B20    1
 #endif
-
-#include <OneWire.h>
-#include <DallasTemperature.h>
-
 
 /* PIN DEFINITIONS */
 
-#define ONE_WIRE_BUS 2                                    // DS18B20 sensor data pin
-
 #define RELAY_GFA 12                                      // GFA relay pin
 #define RELAY_MOTOR 11                                    // motor relay pin
+
+#ifdef WITH_DS18B20
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+#define ONE_WIRE_BUS 2                                    // DS18B20 sensor data pin
+#endif
 
 #ifdef WITH_LCD5110
 #include <LCD5110_Basic.h>
@@ -24,6 +26,10 @@
 #define LCD_DC 5
 #define LCD_DIN 4
 #define LCD_CLK 3
+#endif
+
+#ifdef WITH_NTC
+#define TEMPERATURE_IN  0
 #endif
 
 /* CONSTANTS */
@@ -55,9 +61,10 @@ extern uint8_t test_position[];
 
 
 /* INITIALIZE INSTANCES */
-
+#ifdef WITH_DS18B20
 OneWire ourWire(ONE_WIRE_BUS);                            // initialize OneWire instance
 DallasTemperature sensors(&ourWire);                      // initialize DallasTemperature Library with OneWire instance
+#endif
 
 #ifdef WITH_LCD5110
 LCD5110 myGLCD(LCD_CLK, LCD_DIN, LCD_DC, LCD_RST, LCD_CE);// initialize Nokia 5110 gLCD instance
@@ -109,11 +116,13 @@ void setup()
   myGLCD.print("Loading...", CENTER, 24);
 #endif
 
+#ifdef WITH_DS18B20
   sensors.begin(); 
   ourWire.reset_search();
   ourWire.search(tempSensorAddr);
   
   resetTempSensor();
+#endif
   
   noInterrupts();                                         // disable all interrupts
   TCCR1A = 0;
@@ -183,11 +192,23 @@ void loop()
   delay(1000);
 }
 
+#ifdef WITH_NTC
+double readNTCTemperature()
+{
+    int adc;
+    double temp;
+
+    adc = analogRead(TEMPERATURE_IN);
+    temp = log(((10240000. / adc) - 10000));
+    temp = 1 / (0.001129148 + (0.000234125 * temp) + (0.0000000876741 * temp * temp * temp));
+    return temp - 273.15;
+}
+#endif
 
 ISR(TIMER1_COMPA_vect)                                  // timer compare interrupt service routine
 {
 //  start = millis();
-
+#ifdef WITH_DS18B20
   if(sensors.isConnected(tempSensorAddr) && tempSensorStatus) {
     Serial.print("T=");
     Serial.println(temperature);
@@ -199,6 +220,9 @@ ISR(TIMER1_COMPA_vect)                                  // timer compare interru
     ourWire.search(tempSensorAddr);
     resetTempSensor();
   }
+#elif WITH_NTC
+  temperature = readNTCTemperature();
+#endif
   
 //  ende = millis();
 //  Serial.print(ende - start);
@@ -208,6 +232,7 @@ ISR(TIMER1_COMPA_vect)                                  // timer compare interru
 /* reconfigures temperature sensor, neccessary after lost connection */
 
 void resetTempSensor() {
+#ifdef WITH_DS18B20
   if((tempSensorAddr[0] == 0x28) && sensors.validAddress(tempSensorAddr) && sensors.isConnected(tempSensorAddr)) {
     tempSensorStatus = true;
     sensors.setResolution(TEMP_RESOLUTION);
@@ -218,6 +243,7 @@ void resetTempSensor() {
   } else {
     tempSensorStatus = false;
   }
+#endif
 }
 
 void processSerialCommand() {

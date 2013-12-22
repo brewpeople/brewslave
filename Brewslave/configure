@@ -44,6 +44,8 @@ if __name__ == '__main__':
     parser.add_argument('board', choices=platforms, help="Name of the board")
     parser.add_argument('--with-lcd5110', action='store_true',
                         help="Enable LCD5110")
+    parser.add_argument('--with-ntc', action='store_true',
+                        help="Enable NTC temperature sensor")
     args = parser.parse_args()
 
     os_name = guess_os_name()
@@ -77,6 +79,9 @@ if __name__ == '__main__':
         config = ""
 
         if args.with_lcd5110:
-            config += "#define WITH_LCD5110  1"
+            config += "#define WITH_LCD5110 1"
+
+        if args.with_ntc:
+            config += "#define WITH_NTC     1"
 
         f.write(config)

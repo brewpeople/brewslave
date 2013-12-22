@@ -1,3 +1,6 @@
 Brewslave/Makefile
 Brewslave/config.h
 Brewslave/build-*
+Brewslave/Brewslave.hex
+Brewslave/Brewslave.o
+Brewslave/pictures.o

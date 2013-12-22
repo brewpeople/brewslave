@@ -69,7 +69,7 @@ if __name__ == '__main__':
         sys.exit("Unknown operating system")
 
     USER_LIB_PATH = os.path.abspath('../libraries')
-    ARDUINO_LIBS = 'LCD5110_Basic dallastemperaturecontrol OneWire MatrixMath'
+    ARDUINO_LIBS = 'LCD5110_Basic dallastemperaturecontrol OneWire MatrixMath TempKalman'
 
     ARDMK_LOCATION = ARDUINO_DIR if args.arduinomk_dir is None else os.path.join(args.arduinomk_dir, "arduino-mk")
 

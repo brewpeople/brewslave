@@ -69,9 +69,22 @@ if __name__ == '__main__':
         sys.exit("Unknown operating system")
 
     USER_LIB_PATH = os.path.abspath('../libraries')
+<<<<<<< HEAD
     ARDUINO_LIBS = 'LCD5110_Basic dallastemperaturecontrol OneWire MatrixMath TempKalman'
 
     ARDMK_LOCATION = ARDUINO_DIR if args.arduinomk_dir is None else os.path.join(args.arduinomk_dir, "arduino-mk")
+=======
+    ARDUINO_LIBS = 'dallastemperaturecontrol OneWire'
+    config = ""
+
+    if args.with_ntc:
+        config += "#define WITH_NTC     1\n"
+        ARDUINO_LIBS += ' ntc'
+
+    if args.with_lcd5110:
+        config += "#define WITH_LCD5110 1\n"
+        ARDUINO_LIBS += ' LCD5110_Basic'
+>>>>>>> upstream/master
 
     with open('Makefile', 'w') as f:
         template = string.Template(open('Makefile.in').read())
@@ -86,12 +99,4 @@ if __name__ == '__main__':
         f.write(template.safe_substitute(d))
 
     with open('config.h', 'w') as f:
-        config = ""
-
-        if args.with_lcd5110:
-            config += "#define WITH_LCD5110 1"
-
-        if args.with_ntc:
-            config += "#define WITH_NTC     1"
-
         f.write(config)

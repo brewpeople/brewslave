@@ -250,7 +250,7 @@ void processSerialCommand() {
   switch(serialBuffer[0]) {
     case 0xF0:  //Serial.print(" GET ");
                 switch(serialBuffer[1]) {              // 
-                  case 0xF1: Serial.write((byte*) &temp_soll,sizeof(float));
+                  case 0xF1: Serial.write((byte*) &temperature,sizeof(float));
                              break;
                   case 0xF2: 
                   case 0xF3:

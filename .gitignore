@@ -6,3 +6,4 @@ Brewslave/Brewslave.o
 Brewslave/pictures.o
 Brewslave/.lib*
 Brewslave/.dep*
+Brewslave/purgeOSXdata

@@ -67,6 +67,9 @@ if __name__ == '__main__':
     USER_LIB_PATH = os.path.abspath('../libraries')
     ARDUINO_LIBS = 'LCD5110_Basic dallastemperaturecontrol OneWire'
 
+    ARDMK_LOCATION = ARDUINO_DIR if args.arduinomk_dir is None else args.arduinomk_dir
+
+
     with open('Makefile', 'w') as f:
         template = string.Template(open('Makefile.in').read())
         d = dict(ARDUINO_DIR=ARDUINO_DIR,
@@ -75,6 +78,7 @@ if __name__ == '__main__':
                  ARDMK_DIR=ARDMK_DIR,
                  AVR_TOOLS_DIR=AVR_TOOLS_DIR,
                  BOARD_TAG=args.board,
+                 ARDMK_LOCATION=ARDMK_LOCATION,
                  USER_LIB_PATH=USER_LIB_PATH)
         f.write(template.safe_substitute(d))
 

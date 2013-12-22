@@ -101,6 +101,7 @@ boolean getGFA();
 boolean getMotor();
 void setGFA(boolean on);
 void setMotor(boolean on);
+void displayRefresh();
 
 
 void setup() 
@@ -155,6 +156,16 @@ void loop()
     noInterrupts();
     
     #ifdef WITH_LCD5110
+    displayRefresh();
+    #endif
+
+    interrupts();
+    
+    delay(1000);
+}
+
+#ifdef WITH_LCD5110
+void displayRefresh() {
     myGLCD.clrRow(4,12,83);
     myGLCD.clrRow(5,12,83);
     
@@ -171,24 +182,10 @@ void loop()
         myGLCD.setFont(SmallFont);
         myGLCD.print("ERROR", 33, 40);
     }
-    #endif
 
-    //interrupts();
-
-    //  noInterrupts();
-    //  myGLCD.drawBitmap(0,8, img_line, 84, 8);
-      myGLCD.drawBitmap(0, 8, test_position, 84,24);
-    //
-    //  //myGLCD.clrRow(5, 0, 15);
-    //  myGLCD.setFont(SmallFont);
-    //  myGLCD.print("--", LEFT, 40);
-      interrupts();
-    //String test = dtostrf(temp_soll,3,0,StrBuffer);
-    //myGLCD.print(StrBuffer, LEFT, 76);
-    
-    delay(1000);
+    myGLCD.drawBitmap(0, 8, test_position, 84,24);
 }
-
+#endif
 
 
 #ifdef WITH_NTC

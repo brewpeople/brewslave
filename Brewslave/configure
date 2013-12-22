@@ -49,6 +49,10 @@ if __name__ == '__main__':
     parser.add_argument('--arduinomk-dir', 
             action='store', help="Path to Arduino Makefile directory",
             metavar="PATH", default=None)
+
+    parser.add_argument('--device', action='store', help="Ardiuno-Device",
+            default="/dev/ttyUSB*", metavar="DEVICE")
+
     args = parser.parse_args()
 
     os_name = guess_os_name()
@@ -67,10 +71,12 @@ if __name__ == '__main__':
     USER_LIB_PATH = os.path.abspath('../libraries')
     ARDUINO_LIBS = 'LCD5110_Basic dallastemperaturecontrol OneWire'
 
+    ARDMK_LOCATION = ARDUINO_DIR if args.arduinomk_dir is None else os.path.join(args.arduinomk_dir, "arduino-mk")
+
     with open('Makefile', 'w') as f:
         template = string.Template(open('Makefile.in').read())
         d = dict(ARDUINO_DIR=ARDUINO_DIR,
-                 ARDUINO_PORT='/dev/ttyUSB*',
+                 ARDUINO_PORT=args.device,
                  ARDUINO_LIBS=ARDUINO_LIBS,
                  ARDMK_DIR=ARDMK_DIR,
                  AVR_TOOLS_DIR=AVR_TOOLS_DIR,

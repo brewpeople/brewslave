@@ -30,7 +30,7 @@
 #endif
 
 #ifdef WITH_NTC
-    #define TEMPERATURE_IN  0
+    #include "ntc.h"
 #endif
 
 
@@ -70,6 +70,10 @@ extern uint8_t test_position[];
 
 #ifdef WITH_LCD5110
     LCD5110 myGLCD(LCD_CLK, LCD_DIN, LCD_DC, LCD_RST, LCD_CE);  // initialize Nokia 5110 gLCD instance
+#endif
+
+#ifdef WITH_NTC
+    NTC ntc(0);
 #endif
 
 
@@ -187,20 +191,6 @@ void displayRefresh() {
 }
 #endif
 
-
-#ifdef WITH_NTC
-double readNTCTemperature()
-{
-    int adc;
-    double temp;
-
-    adc = analogRead(TEMPERATURE_IN);
-    temp = log(((10240000. / adc) - 10000));
-    temp = 1 / (0.001129148 + (0.000234125 * temp) + (0.0000000876741 * temp * temp * temp));
-    return temp - 273.15;
-}
-#endif
-
 ISR(TIMER1_COMPA_vect)                                      // timer compare interrupt service routine
 {
     //start = millis();
@@ -220,7 +210,7 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
         resetTempSensor();
     }
     #elif WITH_NTC
-    temperature = readNTCTemperature();
+    temperature = ntc.temperature();
     #endif
   
     //ende = millis();

@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import string
+import argparse
+import subprocess
+
+
+platforms = ['atmega8',
+             'atmega168',
+             'atmega328',
+             'bt328',
+             'bt',
+             'diecimila',
+             'esplora',
+             'ethernet',
+             'fio',
+             'leonardo',
+             'lilypad',
+             'lilypad328',
+             'LilyPadUSB',
+             'mega',
+             'mega2560',
+             'micro',
+             'mini',
+             'mini328',
+             'nano',
+             'nano328',
+             'pro',
+             'pro328',
+             'pro5v',
+             'pro5v328',
+             'uno']
+
+
+def guess_os_name():
+    return subprocess.check_output('uname').strip()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser() 
+
+    parser.add_argument('board', choices=platforms, help="Name of the board")
+    args = parser.parse_args()
+
+    os_name = guess_os_name()
+
+    if os_name == 'Linux':
+        ARDUINO_DIR = '/usr/share/arduino'
+        ARDMK_DIR = '/usr'
+        AVR_TOOLS_DIR = '/usr'
+    elif os_name == 'Darwin':
+        ARDUINO_DIR = '/Applications/Arduino.app/Contents/'
+        ARDMK_DIR = '/usr/local'
+        AVR_TOOLS_DIR = ''
+    else:
+        sys.exit("Unknown operating system")
+
+    USER_LIB_PATH = os.path.abspath('../libraries')
+    ARDUINO_LIBS = 'LCD5110_Basic dallastemperaturecontrol OneWire'
+
+    template = string.Template(open('Makefile.in').read())
+
+    with open('Makefile', 'w') as f:
+        d = dict(ARDUINO_DIR=ARDUINO_DIR,
+                 ARDUINO_PORT='/dev/ttyUSB*',
+                 ARDUINO_LIBS=ARDUINO_LIBS,
+                 ARDMK_DIR=ARDMK_DIR,
+                 AVR_TOOLS_DIR=AVR_TOOLS_DIR,
+                 BOARD_TAG=args.board,
+                 USER_LIB_PATH=USER_LIB_PATH)
+        f.write(template.safe_substitute(d))

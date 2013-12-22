@@ -42,6 +42,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser() 
 
     parser.add_argument('board', choices=platforms, help="Name of the board")
+    parser.add_argument('--with-lcd5110', action='store_true',
+                        help="Enable LCD5110")
     args = parser.parse_args()
 
     os_name = guess_os_name()
@@ -60,9 +62,8 @@ if __name__ == '__main__':
     USER_LIB_PATH = os.path.abspath('../libraries')
     ARDUINO_LIBS = 'LCD5110_Basic dallastemperaturecontrol OneWire'
 
-    template = string.Template(open('Makefile.in').read())
-
     with open('Makefile', 'w') as f:
+        template = string.Template(open('Makefile.in').read())
         d = dict(ARDUINO_DIR=ARDUINO_DIR,
                  ARDUINO_PORT='/dev/ttyUSB*',
                  ARDUINO_LIBS=ARDUINO_LIBS,
@@ -71,3 +72,11 @@ if __name__ == '__main__':
                  BOARD_TAG=args.board,
                  USER_LIB_PATH=USER_LIB_PATH)
         f.write(template.safe_substitute(d))
+
+    with open('config.h', 'w') as f:
+        config = ""
+
+        if args.with_lcd5110:
+            config += "#define WITH_LCD5110  1"
+
+        f.write(config)

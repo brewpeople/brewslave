@@ -1,7 +1,12 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#else
+/* In the Arduino IDE, we enable the Nokia display by default. */
+#define WITH_LCD5110    1
+#endif
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <LCD5110_Basic.h>
 
 
 /* PIN DEFINITIONS */
@@ -11,12 +16,15 @@
 #define RELAY_GFA 12                                      // GFA relay pin
 #define RELAY_MOTOR 11                                    // motor relay pin
 
+#ifdef WITH_LCD5110
+#include <LCD5110_Basic.h>
+
 #define LCD_RST 6
 #define LCD_CE 7
 #define LCD_DC 5
 #define LCD_DIN 4
 #define LCD_CLK 3
-
+#endif
 
 /* CONSTANTS */
 
@@ -50,7 +58,10 @@ extern uint8_t test_position[];
 
 OneWire ourWire(ONE_WIRE_BUS);                            // initialize OneWire instance
 DallasTemperature sensors(&ourWire);                      // initialize DallasTemperature Library with OneWire instance
+
+#ifdef WITH_LCD5110
 LCD5110 myGLCD(LCD_CLK, LCD_DIN, LCD_DC, LCD_RST, LCD_CE);// initialize Nokia 5110 gLCD instance
+#endif
 
 
 /* GLOBAL VARIABLES */
@@ -91,10 +102,12 @@ void setup()
   pinMode(RELAY_GFA, OUTPUT);
   pinMode(RELAY_MOTOR, OUTPUT);
 
+#ifdef WITH_LCD5110
   myGLCD.InitLCD();
   myGLCD.setFont(SmallFont);
   myGLCD.print("Brewmeister0.3", CENTER, 0);
   myGLCD.print("Loading...", CENTER, 24);
+#endif
 
   sensors.begin(); 
   ourWire.reset_search();
@@ -117,14 +130,18 @@ void setup()
   delay(1000);
   Serial.begin(9600);
 
+#ifdef WITH_LCD5110
   for(int i=1; i<6; i++) {
       myGLCD.clrRow(i, 0, 83);
   }
+#endif
 }
 
 void loop() 
 {
   noInterrupts();
+
+#ifdef WITH_LCD5110
   myGLCD.clrRow(4,12,83);
   myGLCD.clrRow(5,12,83);
   
@@ -141,6 +158,8 @@ void loop()
     myGLCD.setFont(SmallFont);
     myGLCD.print("ERROR", 33, 40);
   }
+#endif
+
   interrupts();
 
   

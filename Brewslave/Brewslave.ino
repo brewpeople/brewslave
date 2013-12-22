@@ -45,6 +45,10 @@ extern uint8_t BigNumbers[];
 
 extern uint8_t img_line[];
 extern uint8_t test_position[];
+extern uint8_t img_motor_off[];
+extern uint8_t img_motor_on[];
+extern uint8_t img_gfa_off[];
+extern uint8_t img_gfa_on[];
 
 #define DELTA_FIRST_LIMIT 5                                 // lower offset to set temperature [C] at which overshooting is considered (> DELTA_TEMP_FIRST)
 #define DELTA_TEMP_FIRST 1.5                                // lower offset to set temperature [C] at which heating stops to avoid overshooting (> DELTA_TEMP_LOW)
@@ -186,8 +190,20 @@ void displayRefresh() {
         myGLCD.setFont(SmallFont);
         myGLCD.print("ERROR", 33, 40);
     }
+    
+    if(getMotor()) {
+        myGLCD.drawBitmap(0, 8, img_motor_on, 42, 24);
+    } else {
+        myGLCD.drawBitmap(0, 8, img_motor_off, 42, 24);
+    }
+    
+    if(getGFA()) {
+        myGLCD.drawBitmap(42, 8, img_gfa_on, 42, 24);
+    } else {
+        myGLCD.drawBitmap(42, 8, img_gfa_off, 42, 24);
+    }
 
-    myGLCD.drawBitmap(0, 8, test_position, 84,24);
+    //myGLCD.drawBitmap(0, 8, test_position, 84, 24);
 }
 #endif
 

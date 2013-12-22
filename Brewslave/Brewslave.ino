@@ -76,7 +76,8 @@ float start = 0;
 float ende  = 0;
 
 
-
+/* FORWARD DECLARATIONS */
+void resetTempSensor();
 
 
 void setup() 
@@ -115,9 +116,9 @@ void setup()
   // TBA: possibly increase baud rate
   delay(1000);
   Serial.begin(9600);
-  
-  for(int i=1; i<6; i++) {
-    myGLCD.clrRow(i, 0, 83);
+
+  for(int i=1; i<6; i++) {
+      myGLCD.clrRow(i, 0, 83);
   }
 }
 

@@ -46,6 +46,8 @@ if __name__ == '__main__':
                         help="Enable LCD5110")
     parser.add_argument('--with-ntc', action='store_true',
                         help="Enable NTC temperature sensor")
+    parser.add_argument('--with-ds18b20', action='store_true',
+                        help="Enable DS18B20 temperature sensor")
     parser.add_argument('--arduinomk-dir', 
             action='store', help="Path to Arduino Makefile directory",
             metavar="PATH", default=None)
@@ -65,7 +67,7 @@ if __name__ == '__main__':
         sys.exit("Unknown operating system")
 
     USER_LIB_PATH = os.path.abspath('../libraries')
-    ARDUINO_LIBS = 'dallastemperaturecontrol OneWire'
+    ARDUINO_LIBS = ''
     config = ""
 
     if args.with_ntc:
@@ -75,6 +77,10 @@ if __name__ == '__main__':
     if args.with_lcd5110:
         config += "#define WITH_LCD5110 1\n"
         ARDUINO_LIBS += ' LCD5110_Basic'
+
+    if args.with_ds18b20:
+        config += "#define WITH_DS18B20 1\n"
+        ARDUINO_LIBS += ' OneWire DallasTemperature'
 
     with open('Makefile', 'w') as f:
         template = string.Template(open('Makefile.in').read())

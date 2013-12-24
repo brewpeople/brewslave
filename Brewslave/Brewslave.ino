@@ -62,6 +62,7 @@ extern uint8_t img_gfa_on[];
 
 #define TEMP_RESOLUTION 12
 //#define ONEWIRE_CRC8_TABLE 1                                // lookuptable for crc8 check, fastert but more memory nessessary
+#define ONEWIRE_CRC 1
 #define SERIAL_BUFFER_SIZE 6                                // define the size (amount of bytes) of the serial buffer
 
 

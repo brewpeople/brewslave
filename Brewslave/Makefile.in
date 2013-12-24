@@ -11,4 +11,4 @@ BOARD_TAG = ${BOARD_TAG}
 
 CFLAGS = -DHAVE_CONFIG_H=1
 CXXFLAGS = -DHAVE_CONFIG_H=1
-include ${ARDMK_DIR}/Arduino.mk
+include ${ARDMK_LOCATION}/Arduino.mk

@@ -6,6 +6,8 @@
     #define WITH_DS18B20    1
 #endif
 
+#include <TempKalman.h>
+
 
 /* PIN DEFINITIONS */
 
@@ -96,6 +98,9 @@ boolean overshooting = false;
 long timerGFA = -1000 * DELTA_TIME;
 
 boolean twoLevelControllerStatus = false;
+
+// Kalman filter instance with 20 deg initial temperature and an update frequency of 1 hz
+TempKalmanFilter temp_flt(20.0, 1.0);
 
 /* TEST VARIABLES */
 

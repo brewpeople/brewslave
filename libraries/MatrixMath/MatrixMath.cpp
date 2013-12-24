@@ -6,7 +6,7 @@
  *  
  */
 
-#include "MatrixMath.hpp"
+#include "MatrixMath.h"
 
 #define NR_END 1
 

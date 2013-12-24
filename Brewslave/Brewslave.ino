@@ -6,7 +6,10 @@
     #define WITH_DS18B20    1
 #endif
 
-#include <TempKalman.h>
+#ifdef WITH_KALMAN
+    #include <MatrixMath.h>
+    #include <TempKalman.h>
+#endif
 
 
 /* PIN DEFINITIONS */

@@ -48,10 +48,11 @@ if __name__ == '__main__':
                         help="Enable NTC temperature sensor")
     parser.add_argument('--with-ds18b20', action='store_true',
                         help="Enable DS18B20 temperature sensor")
+    parser.add_argument('--with-kalman', action='store_true',
+                        help="Enable Kalman Library")
     parser.add_argument('--arduinomk-dir', 
             action='store', help="Path to Arduino Makefile directory",
             metavar="PATH", default=None)
-
     parser.add_argument('--device', action='store', help="Ardiuno-Device",
             default="/dev/ttyUSB*", metavar="DEVICE")
 
@@ -72,8 +73,6 @@ if __name__ == '__main__':
 
     USER_LIB_PATH = os.path.abspath('../libraries')
     ARDUINO_LIBS = [
-            'MatrixMath', 
-            'TempKalman',
             ]
 
     ARDMK_LOCATION = ARDUINO_DIR if args.arduinomk_dir is None else os.path.join(args.arduinomk_dir, "arduino-mk")
@@ -91,6 +90,11 @@ if __name__ == '__main__':
         config += "#define WITH_DS18B20 1\n"
         ARDUINO_LIBS.append('OneWire')
         ARDUINO_LIBS.append('DallasTemperature')
+    
+    if args.with_kalman:
+        config += "#define WITH_KALMAN 1\n"
+        ARDUINO_LIBS.append('MatrixMath')
+        ARDUINO_LIBS.append('TempKalman')
 
     with open('Makefile', 'w') as f:
         template = string.Template(open('Makefile.in').read())

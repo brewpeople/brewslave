@@ -49,6 +49,10 @@ namespace bm = brewmeister;
 #define RELAY_ON 0
 #define RELAY_OFF 1
 
+#define STATUS_MANUAL 0x00
+#define STATUS_HEAT_CONTROL 0x01
+#define STATUS_COOLING_CONTROL 0x02
+
 extern uint8_t SmallFont[];
 extern uint8_t MediumNumbers[];
 extern uint8_t BigNumbers[];
@@ -94,6 +98,8 @@ extern uint8_t img_gfa_on[];
 
 /* GLOBAL VARIABLES */
 
+byte slaveStatus = STATUS_MANUAL;                           // defines t
+
 byte tempSensorAddr[8];                                     // cache for temperature sensor address
 boolean tempSensorStatus = false;
 
@@ -105,7 +111,7 @@ byte serialBuffer[SERIAL_BUFFER_SIZE];
 boolean overshooting = false;
 long timerGFA = -1000 * DELTA_TIME;
 
-boolean twoLevelControllerStatus = false;
+boolean twoLevelHeatControllerStatus = false;
 
 // Kalman filter instance with 20 deg initial temperature and an update frequency of 1 hz
 TempKalmanFilter temp_flt(20.0, 1.0);
@@ -124,6 +130,7 @@ boolean getMotor();
 void setGFA(boolean on);
 void setMotor(boolean on);
 void displayRefresh();
+void twoLevelHeatController();
 
 
 void setup() 
@@ -215,6 +222,14 @@ void displayRefresh() {
         myGLCD.drawBitmap(42, 8, img_gfa_on, 42, 24);
     } else {
         myGLCD.drawBitmap(42, 8, img_gfa_off, 42, 24);
+    }
+    
+    if(slaveStatus == STATUS_HEAT_CONTROL) {
+        myGLCD.setFont(MediumNumbers);
+        myGLCD.printNumF(temp_soll, 0, LEFT, 40);
+    } else {
+        myGLCD.setFont(SmallFont);
+        myGLCD.print("--", 0,40);
     }
 
     //myGLCD.drawBitmap(0, 8, test_position, 84, 24);
@@ -350,7 +365,7 @@ void setMotor(boolean on) {
     }
 }
 
-void twoLevelController() {
+void twoLevelHeatController() {
     if(temperature <= (temp_soll-DELTA_FIRST_LIMIT)) {      // if temperature is more than DELTA_FIRST_LIMIT below set temperature, overshooting protection will be enabled
         setGFA(true);
         overshooting = true;

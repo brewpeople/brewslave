@@ -4,6 +4,7 @@
     /* In the Arduino IDE, we enable the Nokia display by default. */
     #define WITH_LCD5110    1
     #define WITH_DS18B20    1
+    #define WITH_KALMAN     1
 #endif
 
 #ifdef WITH_KALMAN

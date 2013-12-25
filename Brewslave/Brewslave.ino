@@ -12,6 +12,10 @@
     #include <TempKalman.h>
 #endif
 
+#include "brew_control_protocol.h"
+
+namespace bm = brewmeister; 
+
 
 /* PIN DEFINITIONS */
 
@@ -243,7 +247,6 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
     //Serial.print(ende - start);
 }
 
-
 /* reconfigures temperature sensor, neccessary after lost connection */
 
 void resetTempSensor() {
@@ -261,33 +264,39 @@ void resetTempSensor() {
     #endif
 }
 
-
 // TBA possible crc8 verification
 void processSerialCommand() {
     switch(serialBuffer[0]) {
-        case 0xF0:  switch(serialBuffer[1]) {               // GET request by master
-                        case 0xF1:  Serial.write((byte*) &temperature, sizeof(float));
-                                    break;
-                        case 0xF2:  Serial.write(getGFA());
-                                    break;
-                        case 0xF3:  Serial.write(getMotor());
-                                    break;
-                        case 0xF4:  Serial.write(tempSensorStatus);
-                                    break;
-                        default:    break;
-                    }
-        case 0xF1:  //Serial.print(" SET ");
-                    //float * dataBuffer;
-                    //dataBuffer =  (float *) &(serialBuffer[2]);
-                    switch(serialBuffer[1]) {               // SET request by master
-                        case 0xF1:  temp_soll = *((float *) &(serialBuffer[2]));
-                                    break;
-                        case 0xF2:  setGFA(serialBuffer[2]);
-                                    break;
-                        case 0xF3:  setMotor(serialBuffer[2]);
-                                    break;
-                        default: break;
-                    }
+        case bm::READ:  
+            switch(serialBuffer[1]) {               // GET request by master
+                case bm::TEMP:  
+                    Serial.write((byte*) &temperature, sizeof(float));
+                    break;
+                case bm::HEAT:  
+                    Serial.write(getGFA());
+                    break;
+                case bm::STIR:  
+                    Serial.write(getMotor());
+                    break;
+                case 0xF4:  Serial.write(tempSensorStatus);
+                            break;
+                default:    break;
+            }
+            break;
+        case bm::WRITE:
+            switch(serialBuffer[1]) {               // SET request by master
+                case bm::TEMP:  
+                    temp_soll = *((float *) &(serialBuffer[2]));
+                    break;
+                case bm::HEAT:  
+                    setGFA(serialBuffer[2]);
+                    break;
+                case bm::STIR:  
+                    setMotor(serialBuffer[2]);
+                    break;
+                default: break;
+            }
+            break;
         default:    //Serial.print(" FAIL ");
                     break;
     }
@@ -306,13 +315,7 @@ void serialEvent() {
         serialBuffer[count] = 0;
         count++;
     }
-//  for(int i=0; i < SERIAL_BUFFER_SIZE; i++) {
-//    Serial.print(" 0x");
-//    Serial.print(serialBuffer[i], HEX);
-//  }
-    processSerialCommand();
-//  Serial.println();
-    
+    processSerialCommand();    
 }
 
 boolean getGFA() {
@@ -355,7 +358,6 @@ void twoLevelController() {
     
     if(getGFA() && overshooting && (temperature >= (temp_soll-DELTA_TEMP_FIRST))) {     // if overshooting protection is enabled and temperature is less than DELTA_TEMP_FIRST below set temperature, heating stops
         setGFA(false);
-//        overshooting = false;
         timerGFA = millis();
     }
     

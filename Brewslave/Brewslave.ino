@@ -95,10 +95,14 @@ extern uint8_t img_gfa_on[];
     NTC ntc(0);
 #endif
 
+#ifdef WITH_KALMAN
+    TempKalmanFilter temp_flt(20.0, 1.0);
+#endif
+
 
 /* GLOBAL VARIABLES */
 
-byte slaveState = STATUS_MANUAL;                           // defines t
+byte slaveState = STATE_MANUAL;                           // defines t
 
 byte tempSensorAddr[8];                                     // cache for temperature sensor address
 boolean tempSensorStatus = false;
@@ -111,8 +115,6 @@ byte serialBuffer[SERIAL_BUFFER_SIZE];
 boolean overshooting = false;
 long timerGFA = -1000 * DELTA_TIME;
 
-// Kalman filter instance with 20 deg initial temperature and an update frequency of 1 hz
-TempKalmanFilter temp_flt(20.0, 1.0);
 
 /* TEST VARIABLES */
 

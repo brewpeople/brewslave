@@ -54,17 +54,6 @@ namespace bm = brewmeister;
 #define STATE_HEAT_CONTROL      0x01
 #define STATE_COOLING_CONTROL   0x02
 
-extern uint8_t SmallFont[];
-extern uint8_t MediumNumbers[];
-extern uint8_t BigNumbers[];
-
-extern uint8_t img_line[];
-extern uint8_t test_position[];
-extern uint8_t img_motor_off[];
-extern uint8_t img_motor_on[];
-extern uint8_t img_gfa_off[];
-extern uint8_t img_gfa_on[];
-
 #define DELTA_FIRST_LIMIT       5       // lower offset to set temperature [C] at which overshooting is considered (> DELTA_TEMP_FIRST)
 #define DELTA_TEMP_FIRST        1.5     // lower offset to set temperature [C] at which heating stops to avoid overshooting (> DELTA_TEMP_LOW)
 #define DELTA_TIME_FIRST        60      // break time [s] to avoid overshooting
@@ -102,9 +91,20 @@ extern uint8_t img_gfa_on[];
 
 /* GLOBAL VARIABLES */
 
-byte slaveState = STATE_MANUAL;                           // defines t
+extern uint8_t SmallFont[];
+extern uint8_t MediumNumbers[];
+extern uint8_t BigNumbers[];
 
-byte tempSensorAddr[8];                                     // cache for temperature sensor address
+extern uint8_t img_line[];
+extern uint8_t test_position[];
+extern uint8_t img_motor_off[];
+extern uint8_t img_motor_on[];
+extern uint8_t img_gfa_off[];
+extern uint8_t img_gfa_on[];
+
+byte slaveState = STATE_MANUAL;         // defines t
+
+byte tempSensorAddr[8];                 // cache for temperature sensor address
 boolean tempSensorStatus = false;
 
 float temperature = -999.1337;
@@ -124,12 +124,18 @@ float ende  = 0;
 
 /* FORWARD DECLARATIONS */
 
+#ifdef WITH_DS18B20
 void resetTempSensor();
+#endif
+
+#ifdef WITH_LCD5110
+void displayRefresh();
+#endif
+
 boolean getGFA();
 boolean getMotor();
 void setGFA(boolean on);
 void setMotor(boolean on);
-void displayRefresh();
 void twoLevelHeatController();
 
 
@@ -199,6 +205,8 @@ void loop()
 
 #ifdef WITH_LCD5110
 void displayRefresh() {
+    uint8_t *image;
+
     myGLCD.clrRow(4,12,83);
     myGLCD.clrRow(5,12,83);
 
@@ -218,19 +226,11 @@ void displayRefresh() {
         myGLCD.print("ERROR", 33, 40);
     }
 
-    if (getMotor()) {
-        myGLCD.drawBitmap(0, 8, img_motor_on, 42, 24);
-    }
-    else {
-        myGLCD.drawBitmap(0, 8, img_motor_off, 42, 24);
-    }
+    image = getMotor() ? img_motor_on : img_motor_off;
+    myGLCD.drawBitmap(0, 8, image, 42, 24);
 
-    if (getGFA()) {
-        myGLCD.drawBitmap(42, 8, img_gfa_on, 42, 24);
-    }
-    else {
-        myGLCD.drawBitmap(42, 8, img_gfa_off, 42, 24);
-    }
+    image = getGFA() ? img_gfa_on : img_gfa_off;
+    myGLCD.drawBitmap(42, 8, image, 42, 24);
 
     if (slaveState == STATUS_HEAT_CONTROL) {
         myGLCD.setFont(MediumNumbers);
@@ -266,10 +266,10 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
     #endif
 }
 
-/* reconfigures temperature sensor, neccessary after lost connection */
 
+#ifdef WITH_DS18B20
+/* reconfigures temperature sensor, neccessary after lost connection */
 void resetTempSensor() {
-    #ifdef WITH_DS18B20
     if ((tempSensorAddr[0] == 0x28) && sensors.validAddress(tempSensorAddr) && sensors.isConnected(tempSensorAddr)) {
         tempSensorStatus = true;
         sensors.setResolution(TEMP_RESOLUTION);
@@ -281,8 +281,8 @@ void resetTempSensor() {
     else {
         tempSensorStatus = false;
     }
-    #endif
 }
+#endif
 
 // TBA possible crc8 verification
 void processSerialCommand() {
@@ -360,6 +360,8 @@ void setMotor(boolean on) {
 }
 
 void twoLevelHeatController() {
+    boolean gfa_delta_reached = millis() >= timerGFA + DELTA_TIME * 1000;
+
     // if temperature is more than DELTA_FIRST_LIMIT below set temperature, overshooting protection will be enabled
     if (temperature <= (temp_set-DELTA_FIRST_LIMIT)) {
         setGFA(true);
@@ -373,21 +375,21 @@ void twoLevelHeatController() {
     }
 
     // continues heating after DELTA_TIME_FIRST seconds for overshooting protection
-    if (!getGFA() && overshooting && (millis() >= timerGFA+DELTA_TIME_FIRST*1000)) {
+    if (!getGFA() && overshooting && (millis() >= timerGFA + DELTA_TIME_FIRST * 1000)) {
         setGFA(true);
         overshooting = false;
         timerGFA = millis();
     }
 
     // two-level-controller lower limit
-    if (!getGFA() && !overshooting && (temperature <= (temp_set-DELTA_TEMP_LOW)) && (millis() >= timerGFA+DELTA_TIME*1000)) {
+    if (!getGFA() && !overshooting && (temperature <= (temp_set-DELTA_TEMP_LOW)) && gfa_delta_reached) {
         setGFA(true);
         overshooting = false;
         timerGFA = millis();
     }
 
     // two-level-controller upper limit
-    if (getGFA() && (temperature >= (temp_set+DELTA_TEMP_HIGH)) && (millis() >= timerGFA+DELTA_TIME*1000))  {
+    if (getGFA() && (temperature >= (temp_set+DELTA_TEMP_HIGH)) && gfa_delta_reached) {
         setGFA(false);
         overshooting = false;
         timerGFA = millis();

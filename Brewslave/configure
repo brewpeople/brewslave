@@ -51,10 +51,10 @@ if __name__ == '__main__':
     parser.add_argument('--with-kalman', action='store_true',
                         help="Enable Kalman Library")
     parser.add_argument('--arduinomk-dir', 
-            action='store', help="Path to Arduino Makefile directory",
-            metavar="PATH", default=None)
+                        action='store', help="Path to Arduino Makefile directory",
+                        metavar="PATH", default=None)
     parser.add_argument('--device', action='store', help="Ardiuno-Device",
-            default="/dev/ttyUSB*", metavar="DEVICE")
+                        default="/dev/ttyUSB*", metavar="DEVICE")
 
     args = parser.parse_args()
 
@@ -72,8 +72,7 @@ if __name__ == '__main__':
         sys.exit("Unknown operating system")
 
     USER_LIB_PATH = os.path.abspath('../libraries')
-    ARDUINO_LIBS = [
-            ]
+    ARDUINO_LIBS = []
 
     ARDMK_LOCATION = ARDUINO_DIR if args.arduinomk_dir is None else os.path.join(args.arduinomk_dir, "arduino-mk")
     config = ""

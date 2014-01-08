@@ -233,7 +233,7 @@ void displayRefresh() {
     image = getGFA() ? img_gfa_on : img_gfa_off;
     myGLCD.drawBitmap(42, 8, image, 42, 24);
 
-    if (slaveState == STATUS_HEAT_CONTROL) {
+    if (slaveState == STATE_HEAT_CONTROL) {
         myGLCD.setFont(MediumNumbers);
         myGLCD.printNumF(temp_set, 0, LEFT, 40);
     }

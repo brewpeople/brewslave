@@ -75,6 +75,7 @@ extern uint8_t img_gfa_on[];
 /* SETTINGS */
 
 #define TEMP_RESOLUTION 12
+#define TEMP_EPSILON_ERROR 0.0001
 //#define ONEWIRE_CRC8_TABLE 1                                // lookuptable for crc8 check, fastert but more memory nessessary
 #define ONEWIRE_CRC 1
 #define SERIAL_BUFFER_SIZE 6                                // define the size (amount of bytes) of the serial buffer
@@ -98,7 +99,7 @@ extern uint8_t img_gfa_on[];
 
 /* GLOBAL VARIABLES */
 
-byte slaveState = STATUS_MANUAL;                           // defines t
+byte slaveState = STATE_MANUAL;                           // defines t
 
 byte tempSensorAddr[8];                                     // cache for temperature sensor address
 boolean tempSensorStatus = false;
@@ -201,10 +202,10 @@ void displayRefresh() {
     myGLCD.clrRow(5,12,83);
     
     // TBA: possibly add condition HIGH > 999.99
-    if(tempSensorStatus) {
-        if(temperature < 0) {
+    if (tempSensorStatus) {
+        if ((temperature < -99) || (temperature > 199)) {
             myGLCD.setFont(SmallFont);
-            myGLCD.print("LOW", 39, 40);
+            myGLCD.print("RANGE", 39, 40);
         } else {
             myGLCD.setFont(MediumNumbers);
             myGLCD.printNumF(temperature, 2, RIGHT, 32);
@@ -226,15 +227,13 @@ void displayRefresh() {
         myGLCD.drawBitmap(42, 8, img_gfa_off, 42, 24);
     }
     
-    if(slaveState == STATUS_HEAT_CONTROL) {
+    if(slaveState == STATE_HEAT_CONTROL) {
         myGLCD.setFont(MediumNumbers);
         myGLCD.printNumF(temp_set, 0, LEFT, 40);
     } else {
         myGLCD.setFont(SmallFont);
         myGLCD.print("--", 0,40);
     }
-
-    //myGLCD.drawBitmap(0, 8, test_position, 84, 24);
 }
 #endif
 
@@ -246,7 +245,7 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
         //Serial.print("T=");
         //Serial.println(temperature);
         temperature = sensors.getTempC(tempSensorAddr);     // get temperature from sensor
-        if ((temperature == -127.00) || (temperature == 0.00) || (temperature == 85.00)) {
+        if ((abs(temperature + 127.00) < TEMP_EPSILON_ERROR) || (abs(temperature - 0.00) < TEMP_EPSILON_ERROR) || (abs(temperature -85.00) < TEMP_EPSILON_ERROR)) {
             tempSensorStatus = false;
         }
         sensors.requestTemperatures();                      // request new temperature conversion

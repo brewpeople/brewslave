@@ -64,17 +64,10 @@ namespace bm = brewmeister;
 
 /* SETTINGS */
 
-<<<<<<< HEAD
-#define TEMP_RESOLUTION 12
-#define TEMP_EPSILON_ERROR 0.0001
-//#define ONEWIRE_CRC8_TABLE 1                                // lookuptable for crc8 check, fastert but more memory nessessary
-#define ONEWIRE_CRC 1
-#define SERIAL_BUFFER_SIZE 6                                // define the size (amount of bytes) of the serial buffer
-=======
 #define TEMP_RESOLUTION         12
+#define TEMP_EPSILON_ERROR      0.0001
 #define ONEWIRE_CRC             1
 #define SERIAL_BUFFER_SIZE      6       // define the size (amount of bytes) of the serial buffer
->>>>>>> 492b2d6224baa7b012d3b47c6251f38ccc201fa3
 
 
 /* INITIALIZE INSTANCES */
@@ -99,9 +92,6 @@ namespace bm = brewmeister;
 
 /* GLOBAL VARIABLES */
 
-<<<<<<< HEAD
-byte slaveState = STATE_MANUAL;                           // defines t
-=======
 extern uint8_t SmallFont[];
 extern uint8_t MediumNumbers[];
 extern uint8_t BigNumbers[];
@@ -113,8 +103,8 @@ extern uint8_t img_motor_on[];
 extern uint8_t img_gfa_off[];
 extern uint8_t img_gfa_on[];
 
-byte slaveState = STATE_MANUAL;         // defines t
->>>>>>> 492b2d6224baa7b012d3b47c6251f38ccc201fa3
+byte slaveState = STATE_MANUAL;         // stores the current brewslave state
+
 
 byte tempSensorAddr[8];                 // cache for temperature sensor address
 boolean tempSensorStatus = false;
@@ -224,18 +214,10 @@ void displayRefresh() {
 
     // TBA: possibly add condition HIGH > 999.99
     if (tempSensorStatus) {
-<<<<<<< HEAD
         if ((temperature < -99) || (temperature > 199)) {
             myGLCD.setFont(SmallFont);
             myGLCD.print("RANGE", 39, 40);
         } else {
-=======
-        if (temperature < 0) {
-            myGLCD.setFont(SmallFont);
-            myGLCD.print("LOW", 39, 40);
-        }
-        else {
->>>>>>> 492b2d6224baa7b012d3b47c6251f38ccc201fa3
             myGLCD.setFont(MediumNumbers);
             myGLCD.printNumF(temperature, 2, RIGHT, 32);
         }
@@ -244,22 +226,6 @@ void displayRefresh() {
         myGLCD.setFont(SmallFont);
         myGLCD.print("ERROR", 33, 40);
     }
-<<<<<<< HEAD
-    
-    if(getMotor()) {
-        myGLCD.drawBitmap(0, 8, img_motor_on, 42, 24);
-    } else {
-        myGLCD.drawBitmap(0, 8, img_motor_off, 42, 24);
-    }
-    
-    if(getGFA()) {
-        myGLCD.drawBitmap(42, 8, img_gfa_on, 42, 24);
-    } else {
-        myGLCD.drawBitmap(42, 8, img_gfa_off, 42, 24);
-    }
-    
-    if(slaveState == STATE_HEAT_CONTROL) {
-=======
 
     image = getMotor() ? img_motor_on : img_motor_off;
     myGLCD.drawBitmap(0, 8, image, 42, 24);
@@ -268,7 +234,6 @@ void displayRefresh() {
     myGLCD.drawBitmap(42, 8, image, 42, 24);
 
     if (slaveState == STATUS_HEAT_CONTROL) {
->>>>>>> 492b2d6224baa7b012d3b47c6251f38ccc201fa3
         myGLCD.setFont(MediumNumbers);
         myGLCD.printNumF(temp_set, 0, LEFT, 40);
     }

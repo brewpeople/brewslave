@@ -288,20 +288,32 @@ void resetTempSensor() {
 
 // TBA possible crc8 verification
 void processSerialCommand() {
+    byte commandBuffer[SERIAL_BUFFER_SIZE];
+    byte* b = (byte*) &temperature;
     switch (serialBuffer[0]) {
         case bm::READ:
             switch (serialBuffer[1]) {               // GET request by master
                 case bm::TEMP:
-                    Serial.write((byte*) &temperature, sizeof(float));
+                    commandBuffer[0] = bm::TEMP;
+                    commandBuffer[1] = (byte) tempSensorStatus;
+                    commandBuffer[2] = b[0];
+                    commandBuffer[3] = b[1];
+                    commandBuffer[4] = b[2];
+                    commandBuffer[5] = b[3];
+                    commandBuffer[6] = crcSlow(commandBuffer, SERIAL_BUFFER_SIZE-1);
+                    Serial.write(commandBuffer, SERIAL_BUFFER_SIZE);
                     break;
                 case bm::HEAT:
-                    Serial.write(getGFA());
+                    commandBuffer[0] = bm::HEAT;
+                    commandBuffer[1] = getGFA();
+                    commandBuffer[6] = crcSlow(commandBuffer, SERIAL_BUFFER_SIZE-1);
+                    Serial.write(commandBuffer, SERIAL_BUFFER_SIZE);
                     break;
                 case bm::STIR:
-                    Serial.write(getMotor());
-                    break;
-                case 0xF4:
-                    Serial.write(tempSensorStatus);
+                    commandBuffer[0] = bm::STIR;
+                    commandBuffer[1] = getMotor();
+                    commandBuffer[6] = crcSlow(commandBuffer, SERIAL_BUFFER_SIZE-1);
+                    Serial.write(commandBuffer, SERIAL_BUFFER_SIZE);
                     break;
                 default:
                     break;
@@ -311,12 +323,15 @@ void processSerialCommand() {
             switch (serialBuffer[1]) {               // SET request by master
                 case bm::TEMP:
                     temp_set = *((float *) &(serialBuffer[2]));
+                    Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
                     break;
                 case bm::HEAT:
                     setGFA(serialBuffer[2]);
+                    Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
                     break;
                 case bm::STIR:
                     setMotor(serialBuffer[2]);
+                    Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
                     break;
                 default:
                     break;
@@ -338,7 +353,6 @@ void serialEvent() {
     }
     
     if ((count == SERIAL_BUFFER_SIZE) && (crcSlow(serialBuffer, sizeof(serialBuffer)) == 0)) {
-        Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
         processSerialCommand();
     }
 }

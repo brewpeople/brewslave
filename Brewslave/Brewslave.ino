@@ -13,6 +13,7 @@
 #endif
 
 #include "brew_control_protocol.h"
+#include <crc.h>
 
 namespace bm = brewmeister;
 
@@ -67,7 +68,7 @@ namespace bm = brewmeister;
 #define TEMP_RESOLUTION         12
 #define TEMP_EPSILON_ERROR      0.0001
 #define ONEWIRE_CRC             1
-#define SERIAL_BUFFER_SIZE      6       // define the size (amount of bytes) of the serial buffer
+#define SERIAL_BUFFER_SIZE      7       // define the size (amount of bytes) of the serial buffer
 
 
 /* INITIALIZE INSTANCES */
@@ -179,7 +180,7 @@ void setup()
 
     // TBA: possibly increase baud rate
     delay(1000);
-    Serial.begin(9600);
+    Serial.begin(115200, SERIAL_8N1);
 
     #ifdef WITH_LCD5110
     for (int i=1; i<6; i++) {
@@ -335,13 +336,11 @@ void serialEvent() {
         serialBuffer[count] = Serial.read();
         count++;
     }
-
-    while (count < SERIAL_BUFFER_SIZE) {
-        serialBuffer[count] = 0;
-        count++;
+    
+    if ((count == SERIAL_BUFFER_SIZE) && (crcSlow(serialBuffer, sizeof(serialBuffer)) == 0)) {
+        Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
+        processSerialCommand();
     }
-
-    processSerialCommand();
 }
 
 boolean getGFA() {

@@ -109,6 +109,7 @@ byte slaveState = STATE_MANUAL;         // stores the current brewslave state
 
 byte tempSensorAddr[8];                 // cache for temperature sensor address
 boolean tempSensorStatus = false;
+boolean crc8Correct = true;
 
 float temperature = -999.1337;
 float temp_set = 42.4242;
@@ -179,7 +180,7 @@ void setup()
     interrupts();                                           // enable all interrupts
 
     // TBA: possibly increase baud rate
-    delay(1000);
+    delay(300);
     Serial.begin(115200, SERIAL_8N1);
 
     #ifdef WITH_LCD5110
@@ -213,7 +214,6 @@ void displayRefresh() {
     myGLCD.clrRow(4,12,83);
     myGLCD.clrRow(5,12,83);
 
-    // TBA: possibly add condition HIGH > 999.99
     if (tempSensorStatus) {
         if ((temperature < -99) || (temperature > 199)) {
             myGLCD.setFont(SmallFont);
@@ -233,6 +233,11 @@ void displayRefresh() {
 
     image = getGFA() ? img_gfa_on : img_gfa_off;
     myGLCD.drawBitmap(42, 8, image, 42, 24);
+    
+    if(!crc8Correct) {
+        myGLCD.setFont(SmallFont);
+        myGLCD.print("!",0, 16);
+    }
 
     if (slaveState == STATE_HEAT_CONTROL) {
         myGLCD.setFont(MediumNumbers);
@@ -286,7 +291,7 @@ void resetTempSensor() {
 }
 #endif
 
-// TBA possible crc8 verification
+
 void processSerialCommand() {
     byte commandBuffer[SERIAL_BUFFER_SIZE];
     byte* b = (byte*) &temperature;
@@ -340,6 +345,9 @@ void processSerialCommand() {
         default:
             break;
     }
+    for (int i=0; i < SERIAL_BUFFER_SIZE; i++) {
+        serialBuffer[i] = 0;
+    }
 }
 
 /* serialEvent() is an interrupt routine called when incoming serial data ist available */
@@ -352,17 +360,18 @@ void serialEvent() {
         count++;
     }
     
-    if ((count == SERIAL_BUFFER_SIZE) && (crcSlow(serialBuffer, sizeof(serialBuffer)) == 0)) {
+    crc8Correct = (crcSlow(serialBuffer, sizeof(serialBuffer)) == 0);
+    if ((count == SERIAL_BUFFER_SIZE) && crc8Correct) {
         processSerialCommand();
     }
 }
 
 boolean getGFA() {
-    return digitalRead(RELAY_GFA) != RELAY_OFF;
+    return digitalRead(RELAY_GFA) ? RELAY_ON : RELAY_OFF;
 }
 
 boolean getMotor() {
-    return digitalRead(RELAY_MOTOR) != RELAY_OFF;
+    return digitalRead(RELAY_MOTOR) ? RELAY_ON : RELAY_OFF;
 }
 
 void setGFA(boolean on) {

@@ -55,12 +55,15 @@ namespace bm = brewmeister;
 #define STATE_HEAT_CONTROL      0x01
 #define STATE_COOLING_CONTROL   0x02
 
+
+/* TWO-LEVEL CONTROLLER */
+
 #define DELTA_FIRST_LIMIT       5       // lower offset to set temperature [C] at which overshooting is considered (> DELTA_TEMP_FIRST)
-#define DELTA_TEMP_FIRST        1.5     // lower offset to set temperature [C] at which heating stops to avoid overshooting (> DELTA_TEMP_LOW)
-#define DELTA_TIME_FIRST        60      // break time [s] to avoid overshooting
-#define DELTA_TEMP_HIGH         0.5     // upper limit temperature offset [C] for two-level-controller
-#define DELTA_TEMP_LOW          0.5     // lower limit temperature offset [C] for two-level-controller
-#define DELTA_TIME              60      // delay time between two-level-controller switches
+#define DELTA_TEMP_FIRST        3       // lower offset to set temperature [C] at which heating stops to avoid overshooting (> DELTA_TEMP_LOW)
+#define DELTA_TIME_FIRST        30      // break time [s] to avoid overshooting
+#define DELTA_TEMP_HIGH         0.0     // upper limit temperature offset [C] for two-level-controller
+#define DELTA_TEMP_LOW          0.2     // lower limit temperature offset [C] for two-level-controller
+#define DELTA_TIME              30      // delay time between two-level-controller switches
 
 
 /* SETTINGS */
@@ -69,6 +72,7 @@ namespace bm = brewmeister;
 #define TEMP_EPSILON_ERROR      0.0001
 #define ONEWIRE_CRC             1
 #define SERIAL_BUFFER_SIZE      7       // define the size (amount of bytes) of the serial buffer
+#define TEMP_SENSOR_TIMEOUT     10      // seconds before heat control stops automatically
 
 
 /* INITIALIZE INSTANCES */
@@ -103,8 +107,11 @@ extern uint8_t img_motor_off[];
 extern uint8_t img_motor_on[];
 extern uint8_t img_gfa_off[];
 extern uint8_t img_gfa_on[];
+#ifdef DEBUG_DISPLAY
+extern uint8_t box16[];
+#endif
 
-byte slaveState = STATE_MANUAL;         // stores the current brewslave state
+byte slaveState = STATE_HEAT_CONTROL;         // stores the current brewslave state
 
 
 byte tempSensorAddr[8];                 // cache for temperature sensor address
@@ -112,13 +119,14 @@ boolean tempSensorStatus = false;
 boolean crc8Correct = true;
 
 float temperature = -999.1337;
-float temp_set = 42.4242;
+float temp_set = 35;
 
 byte serialBuffer[SERIAL_BUFFER_SIZE];
 
 boolean overshooting = false;
 long timerGFA = -1000 * DELTA_TIME;
 
+long timerTempSensorLastSeen = 0;
 
 /* TEST VARIABLES */
 
@@ -179,7 +187,6 @@ void setup()
     TIMSK1 |= (1 << OCIE1A);                                // enable timer compare interrupt
     interrupts();                                           // enable all interrupts
 
-    // TBA: possibly increase baud rate
     delay(300);
     Serial.begin(115200, SERIAL_8N1);
 
@@ -204,15 +211,19 @@ void loop()
         twoLevelHeatController();
     }
 
-    delay(1000);
+    delay(800);
 }
 
 #ifdef WITH_LCD5110
 void displayRefresh() {
+    // myGLCD.InitLCD();                                    // avoid blank display
+    
     uint8_t *image;
 
     myGLCD.clrRow(4,12,83);
     myGLCD.clrRow(5,12,83);
+    
+    // display temperature
 
     if (tempSensorStatus) {
         if ((temperature < -99) || (temperature > 199)) {
@@ -227,26 +238,53 @@ void displayRefresh() {
         myGLCD.setFont(SmallFont);
         myGLCD.print("ERROR", 33, 40);
     }
-
-    image = getMotor() ? img_motor_on : img_motor_off;
-    myGLCD.drawBitmap(0, 8, image, 42, 24);
-
-    image = getGFA() ? img_gfa_on : img_gfa_off;
-    myGLCD.drawBitmap(42, 8, image, 42, 24);
     
-    if(!crc8Correct) {
-        myGLCD.setFont(SmallFont);
-        myGLCD.print("!",0, 16);
-    }
-
+    // display set-temperature
+    
     if (slaveState == STATE_HEAT_CONTROL) {
-        myGLCD.setFont(MediumNumbers);
-        myGLCD.printNumF(temp_set, 0, LEFT, 40);
+        myGLCD.setFont(SmallFont);
+        myGLCD.printNumI(temp_set, 0, 40);
     }
     else {
         myGLCD.setFont(SmallFont);
         myGLCD.print("--", 0,40);
     }
+    
+#ifdef DEBUG_DISPLAY
+    
+    myGLCD.clrRow(0);
+    myGLCD.clrRow(1);
+    
+    myGLCD.drawBitmap(0,0, box16, 16, 16);
+    myGLCD.drawBitmap(16,0, box16, 16, 16);
+    myGLCD.drawBitmap(0,16, box16, 16, 16);
+    myGLCD.drawBitmap(16,16, box16, 16, 16);
+    
+    if (!crc8Correct) {
+        myGLCD.setFont(SmallFont);
+        myGLCD.print("!",0, 16);
+    }
+    
+    if (slaveState == STATE_HEAT_CONTROL) {
+        myGLCD.setFont(SmallFont);
+        if (overshooting) {
+            myGLCD.print("O",8,0);
+        }
+        
+        myGLCD.printNumI((millis()/1000),RIGHT,8);
+        myGLCD.printNumI((timerGFA/1000),RIGHT,16);
+    }
+    
+#else
+    
+    image = getMotor() ? img_motor_on : img_motor_off;
+    myGLCD.drawBitmap(0, 8, image, 42, 24);
+
+    image = getGFA() ? img_gfa_on : img_gfa_off;
+    myGLCD.drawBitmap(42, 8, image, 42, 24);
+
+#endif
+    
 }
 #endif
 
@@ -257,12 +295,13 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
         temperature = sensors.getTempC(tempSensorAddr);     // get temperature from sensor
         if ((abs(temperature + 127.00) < TEMP_EPSILON_ERROR) || (abs(temperature - 0.00) < TEMP_EPSILON_ERROR) || (abs(temperature -85.00) < TEMP_EPSILON_ERROR)) {
             tempSensorStatus = false;
+        } else {
+            timerTempSensorLastSeen = millis();
         }
 
         // request new temperature conversion
         sensors.requestTemperatures();
-    }
-    else {
+    } else {
         tempSensorStatus = false;
         ourWire.reset_search();
         ourWire.search(tempSensorAddr);
@@ -284,6 +323,7 @@ void resetTempSensor() {
         sensors.requestTemperatures();
         temperature = sensors.getTempC(tempSensorAddr);
         sensors.setWaitForConversion(false);
+        timerTempSensorLastSeen = millis();
     }
     else {
         tempSensorStatus = false;
@@ -328,6 +368,9 @@ void processSerialCommand() {
             switch (serialBuffer[1]) {               // SET request by master
                 case bm::TEMP:
                     temp_set = *((float *) &(serialBuffer[2]));
+                    if (millis() < (timerTempSensorLastSeen + TEMP_SENSOR_TIMEOUT * 1000)) {
+                        slaveState = STATE_HEAT_CONTROL;
+                    }
                     Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
                     break;
                 case bm::HEAT:
@@ -383,29 +426,35 @@ void setMotor(boolean on) {
 }
 
 void twoLevelHeatController() {
-    boolean gfa_delta_reached = millis() >= timerGFA + DELTA_TIME * 1000;
+    if (millis() >= (timerTempSensorLastSeen + TEMP_SENSOR_TIMEOUT * 1000)) {
+        slaveState = STATE_MANUAL;
+        setGFA(false);
+        return;
+    }
+    
+    boolean gfa_delta_reached = (millis() >= (timerGFA + (DELTA_TIME * 1000)));
 
     // if temperature is more than DELTA_FIRST_LIMIT below set temperature, overshooting protection will be enabled
-    if (temperature <= (temp_set-DELTA_FIRST_LIMIT)) {
+    if (temperature <= (temp_set - DELTA_FIRST_LIMIT)) {
         setGFA(true);
         overshooting = true;
     }
 
     // if overshooting protection is enabled and temperature is less than DELTA_TEMP_FIRST below set temperature, heating stops
-    if (getGFA() && overshooting && (temperature >= (temp_set-DELTA_TEMP_FIRST))) {
+    if (getGFA() && overshooting && (temperature >= (temp_set - DELTA_TEMP_FIRST))) {
         setGFA(false);
         timerGFA = millis();
     }
 
     // continues heating after DELTA_TIME_FIRST seconds for overshooting protection
-    if (!getGFA() && overshooting && (millis() >= timerGFA + DELTA_TIME_FIRST * 1000)) {
+    if (!getGFA() && overshooting && (millis() >= (timerGFA + DELTA_TIME_FIRST * 1000))) {
         setGFA(true);
         overshooting = false;
         timerGFA = millis();
     }
 
     // two-level-controller lower limit
-    if (!getGFA() && !overshooting && (temperature <= (temp_set-DELTA_TEMP_LOW)) && gfa_delta_reached) {
+    if (!getGFA() && !overshooting && (temperature <= (temp_set - DELTA_TEMP_LOW)) && gfa_delta_reached) {
         setGFA(true);
         overshooting = false;
         timerGFA = millis();

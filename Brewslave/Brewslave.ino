@@ -299,22 +299,21 @@ void displayRefresh() {
     }
     myGLCD.drawBitmap(16, 16, image, 16, 16);
     lastCommandState = 0;
-    /*
-    if (!crc8Correct) {
-        myGLCD.setFont(SmallFont);
-        myGLCD.print("!",0, 16);
-    }
     
+    
+    // debug heat control
+    /*
     if (slaveState == STATE_HEAT_CONTROL) {
         myGLCD.setFont(SmallFont);
         if (overshooting) {
-            myGLCD.print("O",8,0);
+            myGLCD.print("OS on",32,0);
         }
-        
-        myGLCD.printNumI((millis()/1000),RIGHT,8);
-        myGLCD.printNumI((timerGFA/1000),RIGHT,16);
+        myGLCD.print("TIME:",32,8);
+        myGLCD.printNumI((millis()/1000),66,8);
+        myGLCD.print("LAST:",32,16);
+        myGLCD.printNumI((timerGFA/1000),66,16);
     }
-     */
+    */
     
     // debug communication
     

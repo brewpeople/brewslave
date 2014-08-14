@@ -416,6 +416,16 @@ void processSerialCommand() {
                     commandBuffer[6] = crcSlow(commandBuffer, SERIAL_BUFFER_SIZE-1);
                     Serial.write(commandBuffer, SERIAL_BUFFER_SIZE);
                     break;
+                case bm::HEAT_CONTROL:
+                    commandBuffer[0] = bm::HEAT_CONTROL;
+                    if (slaveState == STATE_HEAT_CONTROL) {
+                        commandBuffer[1] = 1;
+                    } else {
+                        commandBuffer[1] = 0;
+                    }
+                    commandBuffer[6] = crcSlow(commandBuffer, SERIAL_BUFFER_SIZE-1);
+                    Serial.write(commandBuffer, SERIAL_BUFFER_SIZE);
+                    break;
                 default:
                     break;
             }

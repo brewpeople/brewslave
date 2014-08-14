@@ -12,7 +12,8 @@ namespace brewmeister
     {
         TEMP = 0xf1,
         HEAT = 0xf2,
-        STIR = 0xf3
+        STIR = 0xf3,
+        HEAT_CONTROL = 0xf4
     };
 
 }

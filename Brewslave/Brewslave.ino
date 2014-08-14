@@ -451,6 +451,11 @@ void processSerialCommand() {
                     setMotor(serialBuffer[2]);
                     Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
                     break;
+                case bm::HEAT_CONTROL:
+                    slaveState = STATE_MANUAL;
+                    setGFA(false);
+                    Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
+                    break;
                 default:
                     break;
             }

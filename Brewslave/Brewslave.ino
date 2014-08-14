@@ -118,7 +118,7 @@ extern uint8_t img_gfa_off[];
 extern uint8_t img_gfa_on[];
 #endif
 
-byte slaveState = STATE_HEAT_CONTROL;   // stores the current brewslave state
+byte slaveState = STATE_MANUAL;   // stores the current brewslave state
 
 byte tempSensorAddr[8];                 // cache for temperature sensor address
 boolean tempSensorStatus = false;

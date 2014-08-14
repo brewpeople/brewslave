@@ -130,9 +130,9 @@ float temp_set = 35;
 byte serialBuffer[SERIAL_BUFFER_SIZE];
 
 boolean overshooting = false;
-long timerGFA = -1000 * DELTA_TIME;
+unsigned long timerGFA = 0;
 
-long timerTempSensorLastSeen = 0;
+unsigned long timerTempSensorLastSeen = 0;
 
 #ifdef DEBUG_DISPLAY
 #define COMMAND_SET     1

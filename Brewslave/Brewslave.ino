@@ -140,6 +140,10 @@ long timerTempSensorLastSeen = 0;
 #define COMMAND_ERROR   3
 
 byte lastCommandState = 0;
+
+int com_error = 0;
+int com_set = 0;
+int com_get = 0;
 #endif
 
 /* TEST VARIABLES */
@@ -295,7 +299,7 @@ void displayRefresh() {
     }
     myGLCD.drawBitmap(16, 16, image, 16, 16);
     lastCommandState = 0;
-    
+    /*
     if (!crc8Correct) {
         myGLCD.setFont(SmallFont);
         myGLCD.print("!",0, 16);
@@ -310,6 +314,19 @@ void displayRefresh() {
         myGLCD.printNumI((millis()/1000),RIGHT,8);
         myGLCD.printNumI((timerGFA/1000),RIGHT,16);
     }
+     */
+    
+    // debug communication
+    
+    myGLCD.setFont(SmallFont);
+    myGLCD.print("SERIAL",38,0);
+    myGLCD.print("GET:",32,8);
+    myGLCD.printNumI(com_get,60,8);
+    myGLCD.print("SET:",32,16);
+    myGLCD.printNumI(com_set,60,16);
+    myGLCD.print("ERR:",32,24);
+    myGLCD.printNumI(com_error,60,24);
+    
     
 #else
     
@@ -375,6 +392,7 @@ void processSerialCommand() {
         case bm::READ:
 #ifdef DEBUG_DISPLAY
             lastCommandState = COMMAND_GET;
+            com_get++;
 #endif
             switch (serialBuffer[1]) {               // GET request by master
                 case bm::TEMP:
@@ -406,6 +424,7 @@ void processSerialCommand() {
         case bm::WRITE:
 #ifdef DEBUG_DISPLAY
             lastCommandState = COMMAND_SET;
+            com_set++;
 #endif
             switch (serialBuffer[1]) {               // SET request by master
                 case bm::TEMP:
@@ -452,6 +471,7 @@ void serialEvent() {
 #ifdef DEBUG_DISPLAY
     else {
         lastCommandState = COMMAND_ERROR;
+        com_error++;
     }
 #endif
 }

@@ -102,17 +102,23 @@ extern uint8_t MediumNumbers[];
 extern uint8_t BigNumbers[];
 
 extern uint8_t img_line[];
-extern uint8_t test_position[];
+#ifdef DEBUG_DISPLAY
+extern uint8_t box16[];
+extern uint8_t box16_up[];
+extern uint8_t box16_down[];
+extern uint8_t box16_cross[];
+extern uint8_t box16_heat[];
+extern uint8_t box16_heat_inv[];
+extern uint8_t box16_stir[];
+extern uint8_t box16_stir_inv[];
+#else
 extern uint8_t img_motor_off[];
 extern uint8_t img_motor_on[];
 extern uint8_t img_gfa_off[];
 extern uint8_t img_gfa_on[];
-#ifdef DEBUG_DISPLAY
-extern uint8_t box16[];
 #endif
 
-byte slaveState = STATE_HEAT_CONTROL;         // stores the current brewslave state
-
+byte slaveState = STATE_HEAT_CONTROL;   // stores the current brewslave state
 
 byte tempSensorAddr[8];                 // cache for temperature sensor address
 boolean tempSensorStatus = false;
@@ -127,6 +133,14 @@ boolean overshooting = false;
 long timerGFA = -1000 * DELTA_TIME;
 
 long timerTempSensorLastSeen = 0;
+
+#ifdef DEBUG_DISPLAY
+#define COMMAND_SET     1
+#define COMMAND_GET     2
+#define COMMAND_ERROR   3
+
+byte lastCommandState = 0;
+#endif
 
 /* TEST VARIABLES */
 
@@ -150,10 +164,11 @@ void setGFA(boolean on);
 void setMotor(boolean on);
 void twoLevelHeatController();
 
+/* SETUP FUNCTION */
 
 void setup()
 {
-    noInterrupts();                                         // disable all interrupts
+    noInterrupts();                     // disable all interrupts
 
     /* disable relays at startup */
 
@@ -254,11 +269,32 @@ void displayRefresh() {
     
     myGLCD.clrRow(0);
     myGLCD.clrRow(1);
+    myGLCD.clrRow(2);
+    myGLCD.clrRow(3);
     
-    myGLCD.drawBitmap(0,0, box16, 16, 16);
-    myGLCD.drawBitmap(16,0, box16, 16, 16);
-    myGLCD.drawBitmap(0,16, box16, 16, 16);
-    myGLCD.drawBitmap(16,16, box16, 16, 16);
+    image = getMotor() ? box16_stir_inv : box16_stir;
+    myGLCD.drawBitmap(0, 0, image, 16, 16);
+    
+    image = getGFA() ? box16_heat_inv : box16_heat;
+    myGLCD.drawBitmap(0, 16, image, 16, 16);
+    
+    switch (lastCommandState) {
+        case COMMAND_ERROR:
+            image = box16_cross;
+            break;
+        case COMMAND_SET:
+            image = box16_down;
+            break;
+        case COMMAND_GET:
+            image = box16_up;
+            break;
+            
+        default:
+            image = box16;
+            break;
+    }
+    myGLCD.drawBitmap(16, 16, image, 16, 16);
+    lastCommandState = 0;
     
     if (!crc8Correct) {
         myGLCD.setFont(SmallFont);
@@ -337,6 +373,9 @@ void processSerialCommand() {
     byte* b = (byte*) &temperature;
     switch (serialBuffer[0]) {
         case bm::READ:
+#ifdef DEBUG_DISPLAY
+            lastCommandState = COMMAND_GET;
+#endif
             switch (serialBuffer[1]) {               // GET request by master
                 case bm::TEMP:
                     commandBuffer[0] = bm::TEMP;
@@ -365,6 +404,9 @@ void processSerialCommand() {
             }
             break;
         case bm::WRITE:
+#ifdef DEBUG_DISPLAY
+            lastCommandState = COMMAND_SET;
+#endif
             switch (serialBuffer[1]) {               // SET request by master
                 case bm::TEMP:
                     temp_set = *((float *) &(serialBuffer[2]));
@@ -407,6 +449,11 @@ void serialEvent() {
     if ((count == SERIAL_BUFFER_SIZE) && crc8Correct) {
         processSerialCommand();
     }
+#ifdef DEBUG_DISPLAY
+    else {
+        lastCommandState = COMMAND_ERROR;
+    }
+#endif
 }
 
 boolean getGFA() {

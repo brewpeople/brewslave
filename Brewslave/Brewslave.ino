@@ -184,8 +184,8 @@ void setup()
     #ifdef WITH_LCD5110
         myGLCD.InitLCD();
         myGLCD.setFont(SmallFont);
-        myGLCD.print("Brewslave v0.3", CENTER, 0);
-        myGLCD.print("Loading...", CENTER, 24);
+        myGLCD.print((char*)"Brewslave v0.3", CENTER, 0);
+        myGLCD.print((char*)"Loading...", CENTER, 24);
     #endif
 
     #ifdef WITH_DS18B20
@@ -247,7 +247,7 @@ void displayRefresh() {
     if (tempSensorStatus) {
         if ((temperature < -99) || (temperature > 199)) {
             myGLCD.setFont(SmallFont);
-            myGLCD.print("RANGE", 39, 40);
+            myGLCD.print((char*)"RANGE", 39, 40);
         } else {
             myGLCD.setFont(MediumNumbers);
             myGLCD.printNumF(temperature, 2, RIGHT, 32);
@@ -255,7 +255,7 @@ void displayRefresh() {
     }
     else {
         myGLCD.setFont(SmallFont);
-        myGLCD.print("ERROR", 33, 40);
+        myGLCD.print((char*)"ERROR", 33, 40);
     }
     
     // display set-temperature
@@ -266,7 +266,7 @@ void displayRefresh() {
     }
     else {
         myGLCD.setFont(SmallFont);
-        myGLCD.print("--", 0,40);
+        myGLCD.print((char*)"--", 0,40);
     }
     
 #ifdef DEBUG_DISPLAY
@@ -318,12 +318,12 @@ void displayRefresh() {
     // debug communication
     
     myGLCD.setFont(SmallFont);
-    myGLCD.print("SERIAL",38,0);
-    myGLCD.print("GET:",32,8);
+    myGLCD.print((char*)"SERIAL",38,0);
+    myGLCD.print((char*)"GET:",32,8);
     myGLCD.printNumI(com_get,60,8);
-    myGLCD.print("SET:",32,16);
+    myGLCD.print((char*)"SET:",32,16);
     myGLCD.printNumI(com_set,60,16);
-    myGLCD.print("ERR:",32,24);
+    myGLCD.print((char*)"ERR:",32,24);
     myGLCD.printNumI(com_error,60,24);
     
     

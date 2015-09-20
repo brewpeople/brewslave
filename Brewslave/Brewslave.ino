@@ -72,7 +72,7 @@ namespace bm = brewmeister;
 #define TEMP_EPSILON_ERROR      0.0001
 #define ONEWIRE_CRC             1
 #define SERIAL_BUFFER_SIZE      7       // define the size (amount of bytes) of the serial buffer
-#define TEMP_SENSOR_TIMEOUT     10      // seconds before heat control stops automatically
+#define TEMP_SENSOR_TIMEOUT     60      // seconds before heat control stops automatically
 
 
 /* INITIALIZE INSTANCES */

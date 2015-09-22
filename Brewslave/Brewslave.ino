@@ -110,7 +110,7 @@ extern uint8_t MediumNumbers[];
 extern uint8_t BigNumbers[];
 
 extern uint8_t img_line[];
-#ifdef DEBUG_DISPLAY
+#ifdef DEBUG_SERIAL
 extern uint8_t box16[];
 extern uint8_t box16_up[];
 extern uint8_t box16_down[];
@@ -148,7 +148,7 @@ unsigned long timerGFA = 0;
 
 unsigned long timerTempSensorLastSeen = 0;
 
-#ifdef DEBUG_DISPLAY
+#ifdef DEBUG_SERIAL
 #define COMMAND_SET     1
 #define COMMAND_GET     2
 #define COMMAND_ERROR   3
@@ -294,7 +294,7 @@ void displayRefresh() {
         myGLCD.print((char*)"--", 0,40);
     }
     
-#ifdef DEBUG_DISPLAY
+#ifdef DEBUG_SERIAL
     
     myGLCD.clrRow(0);
     myGLCD.clrRow(1);
@@ -414,7 +414,7 @@ void processSerialCommand() {
     byte* b = (byte*) &temperature;
     switch (serialBuffer[0]) {
         case bm::READ:
-#ifdef DEBUG_DISPLAY
+#ifdef DEBUG_SERIAL
             lastCommandState = COMMAND_GET;
             com_get++;
 #endif
@@ -456,7 +456,7 @@ void processSerialCommand() {
             }
             break;
         case bm::WRITE:
-#ifdef DEBUG_DISPLAY
+#ifdef DEBUG_SERIAL
             lastCommandState = COMMAND_SET;
             com_set++;
 #endif
@@ -507,7 +507,7 @@ void serialEvent() {
     if ((count == SERIAL_BUFFER_SIZE) && crc8Correct) {
         processSerialCommand();
     }
-#ifdef DEBUG_DISPLAY
+#ifdef DEBUG_SERIAL
     else {
         lastCommandState = COMMAND_ERROR;
         com_error++;

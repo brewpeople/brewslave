@@ -7,3 +7,4 @@ Brewslave/pictures.o
 Brewslave/.lib*
 Brewslave/.dep*
 Brewslave/purgeOSXdata
+.DS_Store

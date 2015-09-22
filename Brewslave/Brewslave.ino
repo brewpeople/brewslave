@@ -525,16 +525,16 @@ boolean getMotor() {
 
 void setGFA(boolean on) {
     digitalWrite(RELAY_GFA, on ? RELAY_ON : RELAY_OFF);
-    if(getGFA()) {
-        setMotor(true);
-    }
+//    if(getGFA()) {
+//        setMotor(true);
+//    }
 }
 
 void setMotor(boolean on) {
     digitalWrite(RELAY_MOTOR, on ? RELAY_ON : RELAY_OFF);
-    if(!getMotor()) {
-        setGFA(false);
-    }
+//    if(!getMotor()) {
+//        setGFA(false);
+//    }
 }
 
 void switchMotor() {

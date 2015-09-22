@@ -27,7 +27,11 @@ namespace bm = brewmeister;
     #include <OneWire.h>
     #include <DallasTemperature.h>
 
-    #define ONE_WIRE_BUS    2   // DS18B20 sensor data pin
+    #ifdef WITH_BUTTONS
+        #define ONE_WIRE_BUS    9   // DS18B20 sensor data pin
+    #else
+        #define ONE_WIRE_BUS    2   // DS18B20 sensor data pin
+    #endif
 #endif
 
 #ifdef WITH_LCD5110
@@ -37,7 +41,11 @@ namespace bm = brewmeister;
     #define LCD_CE          7
     #define LCD_DC          5
     #define LCD_DIN         4
-    #define LCD_CLK         3
+    #ifdef WITH_BUTTONS
+        #define LCD_CLK         8
+    #else
+        #define LCD_CLK         3
+    #endif
 #endif
 
 #ifdef WITH_NTC
@@ -129,6 +137,12 @@ float temp_set = 35;
 
 byte serialBuffer[SERIAL_BUFFER_SIZE];
 
+#ifdef WITH_BUTTONS
+unsigned long timerSwitchMotor = 0;
+unsigned long timerSwitchGFA = 0;
+unsigned long timerDebounce = 1000;
+#endif
+
 boolean overshooting = false;
 unsigned long timerGFA = 0;
 
@@ -166,6 +180,10 @@ boolean getGFA();
 boolean getMotor();
 void setGFA(boolean on);
 void setMotor(boolean on);
+#ifdef WITH_BUTTONS
+void switchMotor();
+void switchGFA();
+#endif
 void twoLevelHeatController();
 
 /* SETUP FUNCTION */
@@ -214,6 +232,11 @@ void setup()
         myGLCD.clrRow(i, 0, 83);
     }
     #endif
+    
+    #ifdef WITH_BUTTONS
+        attachInterrupt(0, switchMotor, HIGH);                // pin interrupt for manual override button Motor
+        attachInterrupt(1, switchGFA, RISING);                  // pin interrupt for manual override button Motor
+    #endif
 }
 
 void loop()
@@ -232,6 +255,8 @@ void loop()
 
     delay(800);
 }
+
+
 
 #ifdef WITH_LCD5110
 void displayRefresh() {
@@ -500,10 +525,30 @@ boolean getMotor() {
 
 void setGFA(boolean on) {
     digitalWrite(RELAY_GFA, on ? RELAY_ON : RELAY_OFF);
+//    if(getGFA()) {
+//        setMotor(true);
+//    }
 }
 
 void setMotor(boolean on) {
     digitalWrite(RELAY_MOTOR, on ? RELAY_ON : RELAY_OFF);
+//    if(!getMotor()) {
+//        setGFA(false);
+//    }
+}
+
+void switchMotor() {
+    if((millis() - timerSwitchMotor) > timerDebounce) {
+        setMotor(!getMotor());
+        timerSwitchMotor = millis();
+    }
+}
+
+void switchGFA() {
+    if((millis() - timerSwitchGFA) > timerDebounce) {
+        setGFA(!getGFA());
+        timerSwitchGFA = millis();
+    }
 }
 
 void twoLevelHeatController() {

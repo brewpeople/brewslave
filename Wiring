@@ -1,0 +1,36 @@
+Using Arduino Nano328
+
+----
+
+TX1 --- X
+RX0
+RST
+GND --- GND (Nokai5110 Display)
+D2  ---   A (Button 2) --- 10k (Pulldown) --- GND
+D3  ---   A (Button 1) --- 10k (Pulldown) --- GND
+D4  --- DIN (Nokai5110 Display)
+D5  ---  DC (Nokai5110 Display)
+D6  --- RST (Nokai5110 Display)
+D7  ---  CE (Nokai5110 Display)
+D8  --- CLK (Nokai5110 Display)
+D9  ---  DQ (DS18B20) --- 1,0k (Pullup) --- 5V
+D10 ---   X
+D11 --- IN3 & IN4 (Relay Module)
+D12 --- IN1 & IN2 (Relay Module)
+
+
+D13 --- X
+3V3 --- X
+REF --- X
+A0  --- X
+A1  --- X
+A2  --- X
+A3  --- X
+A4  --- X
+A5  --- X
+A6  --- X
+A7  --- X
+5V
+RST --- X
+GND
+VIN --- X

@@ -4,7 +4,6 @@
     /* In the Arduino IDE, we enable the Nokia display by default. */
     #define WITH_LCD5110    1
     #define WITH_DS18B20    1
-    #define WITH_KALMAN     1
 #endif
 
 #ifdef WITH_KALMAN
@@ -24,6 +23,11 @@ namespace bm = brewmeister;
 #define RELAY_MOTOR         11  // motor relay pin
 
 #ifdef WITH_DS18B20
+    #define ONEWIRE_SEARCH 1
+    #define ONEWIRE_CRC 1
+    #define ONEWIRE_CRC8_TABLE 0
+    #define ONEWIRE_CRC16 0
+
     #include <OneWire.h>
     #include <DallasTemperature.h>
 
@@ -78,7 +82,6 @@ namespace bm = brewmeister;
 
 #define TEMP_RESOLUTION         12
 #define TEMP_EPSILON_ERROR      0.0001
-#define ONEWIRE_CRC             1
 #define SERIAL_BUFFER_SIZE      7       // define the size (amount of bytes) of the serial buffer
 #define TEMP_SENSOR_TIMEOUT     60      // seconds before heat control stops automatically
 
@@ -120,10 +123,17 @@ extern uint8_t box16_heat_inv[];
 extern uint8_t box16_stir[];
 extern uint8_t box16_stir_inv[];
 #else
+#ifdef DEBUG_STATES
+extern uint8_t box16_heat[];
+extern uint8_t box16_heat_inv[];
+extern uint8_t box16_stir[];
+extern uint8_t box16_stir_inv[];
+#else
 extern uint8_t img_motor_off[];
 extern uint8_t img_motor_on[];
 extern uint8_t img_gfa_off[];
 extern uint8_t img_gfa_on[];
+#endif
 #endif
 
 byte slaveState = STATE_MANUAL;   // stores the current brewslave state
@@ -158,6 +168,14 @@ byte lastCommandState = 0;
 int com_error = 0;
 int com_set = 0;
 int com_get = 0;
+#else
+#ifdef DEBUG_STATES
+#define DEBUG_STATES_STRING_LENGTH 3
+//char debug_string1[DEBUG_STATES_STRING_LENGTH] = "001";
+char *debug_strings[] = {"   ", "   ", "   ", "   ", "   ", "   ", "   ", "   ", "   "};
+
+
+#endif
 #endif
 
 /* TEST VARIABLES */
@@ -185,6 +203,7 @@ void switchMotor();
 void switchGFA();
 #endif
 void twoLevelHeatController();
+void debug_state_add(char* msg);
 
 /* SETUP FUNCTION */
 
@@ -204,6 +223,17 @@ void setup()
         myGLCD.setFont(SmallFont);
         myGLCD.print((char*)"Brewslave v0.3", CENTER, 0);
         myGLCD.print((char*)"Loading...", CENTER, 24);
+        #ifdef DEBUG_SERIAL
+        myGLCD.print((char*)"Debug Serial", CENTER, 32);
+        #else
+        #ifdef DEBUG_STATES
+        myGLCD.print((char*)"Debug States", CENTER, 32);
+        debug_state_add("Ini");
+        #endif
+        #endif
+        #ifdef DEBUG_DS18B20
+        myGLCD.print((char*)"Debug DS18B20", CENTER, 40);
+        #endif
     #endif
 
     #ifdef WITH_DS18B20
@@ -268,7 +298,15 @@ void displayRefresh() {
     myGLCD.clrRow(5,12,83);
     
     // display temperature
-
+    #ifdef DEBUG_DS18B20
+    myGLCD.setFont(SmallFont);
+    if (tempSensorStatus) {
+        myGLCD.print((char*)"OK",18,32);
+    } else {
+        myGLCD.print((char*)"ERR",18,32);
+    }
+    myGLCD.printNumF(temperature, 3, RIGHT, 32);
+    #else
     if (tempSensorStatus) {
         if ((temperature < -99) || (temperature > 199)) {
             myGLCD.setFont(SmallFont);
@@ -282,6 +320,7 @@ void displayRefresh() {
         myGLCD.setFont(SmallFont);
         myGLCD.print((char*)"ERROR", 33, 40);
     }
+    #endif
     
     // display set-temperature
     
@@ -301,10 +340,10 @@ void displayRefresh() {
     myGLCD.clrRow(2);
     myGLCD.clrRow(3);
     
-    image = getMotor() ? box16_stir_inv : box16_stir;
+    image = getMotor() ? box16_stir : box16_stir_inv;
     myGLCD.drawBitmap(0, 0, image, 16, 16);
     
-    image = getGFA() ? box16_heat_inv : box16_heat;
+    image = getGFA() ? box16_heat : box16_heat_inv;
     myGLCD.drawBitmap(0, 16, image, 16, 16);
     
     switch (lastCommandState) {
@@ -353,6 +392,42 @@ void displayRefresh() {
     
     
 #else
+#ifdef DEBUG_STATES
+    
+    myGLCD.clrRow(0);
+    myGLCD.clrRow(1);
+    myGLCD.clrRow(2);
+    myGLCD.clrRow(3);
+    
+    image = getMotor() ? box16_stir : box16_stir_inv;
+    myGLCD.drawBitmap(0, 0, image, 16, 16);
+    
+    image = getGFA() ? box16_heat : box16_heat_inv;
+    myGLCD.drawBitmap(0, 16, image, 16, 16);
+    
+    myGLCD.setFont(SmallFont);
+    //myGLCD.invertFont(true);
+    //myGLCD.print((char*)"ABC EFG IJK",18,0);
+    myGLCD.invertText(true);
+    myGLCD.print((char*)"   STATES  ",18,0);
+    myGLCD.invertText(false);
+    //myGLCD.invertFont(false);
+    myGLCD.print(debug_strings[8],18,8);
+    myGLCD.print(debug_strings[7],18,16);
+    myGLCD.print(debug_strings[6],18,24);
+    
+    myGLCD.print(debug_strings[5],42,8);
+    myGLCD.print(debug_strings[4],42,16);
+    myGLCD.print(debug_strings[3],42,24);
+    
+    myGLCD.print(debug_strings[2],66,8);
+    myGLCD.print(debug_strings[1],66,16);
+    
+    myGLCD.invertText(true);
+    myGLCD.print(debug_strings[0],66,24);
+    myGLCD.invertText(false);
+  
+#else
     
     image = getMotor() ? img_motor_on : img_motor_off;
     myGLCD.drawBitmap(0, 8, image, 42, 24);
@@ -360,6 +435,7 @@ void displayRefresh() {
     image = getGFA() ? img_gfa_on : img_gfa_off;
     myGLCD.drawBitmap(42, 8, image, 42, 24);
 
+#endif
 #endif
     
 }
@@ -370,10 +446,16 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
     #ifdef WITH_DS18B20
     if (sensors.isConnected(tempSensorAddr) && tempSensorStatus) {
         temperature = sensors.getTempC(tempSensorAddr);     // get temperature from sensor
-        if ((abs(temperature + 127.00) < TEMP_EPSILON_ERROR) || (abs(temperature - 0.00) < TEMP_EPSILON_ERROR) || (abs(temperature -85.00) < TEMP_EPSILON_ERROR)) {
+        if ((abs(temperature + 127.00) < TEMP_EPSILON_ERROR) || (abs(temperature - 0.00) < TEMP_EPSILON_ERROR) || (abs(temperature - 85.00) < TEMP_EPSILON_ERROR)) {
             tempSensorStatus = false;
+            #ifdef DEBUG_STATES
+            debug_state_add("Trr");
+            #endif
         } else {
             timerTempSensorLastSeen = millis();
+            #ifdef DEBUG_STATES
+            debug_state_add("Tok");
+            #endif
         }
 
         // request new temperature conversion
@@ -383,11 +465,25 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
         ourWire.reset_search();
         ourWire.search(tempSensorAddr);
         resetTempSensor();
+        #ifdef DEBUG_STATES
+        debug_state_add("Tnc");
+        #endif
     }
     #elif WITH_NTC
     temperature = ntc.temperature();
     #endif
 }
+
+#ifdef DEBUG_STATES
+/* adds new debug message and drops last message in stack */
+void debug_state_add(char *msg) {
+    int size = sizeof(debug_strings)/sizeof(char*);
+    for (int i=size; i>=0; --i) {
+        debug_strings[i] = debug_strings[i-1];
+    }
+    debug_strings[0] = msg;
+}
+#endif
 
 
 #ifdef WITH_DS18B20
@@ -401,9 +497,15 @@ void resetTempSensor() {
         temperature = sensors.getTempC(tempSensorAddr);
         sensors.setWaitForConversion(false);
         timerTempSensorLastSeen = millis();
+        #ifdef DEBUG_STATES
+        debug_state_add("Trc");
+        #endif
     }
     else {
         tempSensorStatus = false;
+        #ifdef DEBUG_STATES
+        debug_state_add("Tcf");
+        #endif
     }
 }
 #endif
@@ -516,22 +618,22 @@ void serialEvent() {
 }
 
 boolean getGFA() {
-    return digitalRead(RELAY_GFA) ? RELAY_ON : RELAY_OFF;
+    return digitalRead(RELAY_GFA) ? RELAY_OFF : RELAY_ON;
 }
 
 boolean getMotor() {
-    return digitalRead(RELAY_MOTOR) ? RELAY_ON : RELAY_OFF;
+    return digitalRead(RELAY_MOTOR) ? RELAY_OFF : RELAY_ON;
 }
 
 void setGFA(boolean on) {
-    digitalWrite(RELAY_GFA, on ? RELAY_ON : RELAY_OFF);
+    digitalWrite(RELAY_GFA, on ? RELAY_OFF : RELAY_ON);
 //    if(getGFA()) {
 //        setMotor(true);
 //    }
 }
 
 void setMotor(boolean on) {
-    digitalWrite(RELAY_MOTOR, on ? RELAY_ON : RELAY_OFF);
+    digitalWrite(RELAY_MOTOR, on ? RELAY_OFF : RELAY_ON);
 //    if(!getMotor()) {
 //        setGFA(false);
 //    }
@@ -541,6 +643,13 @@ void switchMotor() {
     if((millis() - timerSwitchMotor) > timerDebounce) {
         setMotor(!getMotor());
         timerSwitchMotor = millis();
+#ifdef DEBUG_STATES
+        if (getMotor() == RELAY_ON) {
+            debug_state_add("BM1");
+        } else {
+            debug_state_add("BM0");
+        }
+#endif
     }
 }
 
@@ -548,13 +657,26 @@ void switchGFA() {
     if((millis() - timerSwitchGFA) > timerDebounce) {
         setGFA(!getGFA());
         timerSwitchGFA = millis();
+#ifdef DEBUG_STATES
+        if (getGFA() == RELAY_ON) {
+            debug_state_add("BH1");
+        } else {
+            debug_state_add("BH0");
+        }
+#endif
     }
 }
 
 void twoLevelHeatController() {
+    #ifdef DEBUG_STATES
+    debug_state_add("Con");
+    #endif
     if (millis() >= (timerTempSensorLastSeen + TEMP_SENSOR_TIMEOUT * 1000)) {
         slaveState = STATE_MANUAL;
         setGFA(false);
+        #ifdef DEBUG_STATES
+        debug_state_add("tOT");
+        #endif
         return;
     }
     

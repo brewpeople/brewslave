@@ -50,7 +50,9 @@ if __name__ == '__main__':
                         help="Enable DS18B20 temperature sensor")
     parser.add_argument('--with-kalman', action='store_true',
                         help="Enable Kalman Library")
-    parser.add_argument('--arduinomk-dir', 
+    parser.add_argument('--with-buttons', action='store_true', help="Physical buttons available")
+    parser.add_argument('--debug-display', action='store', help="0: off, 1: serial, 2: state machine", default="0")
+    parser.add_argument('--arduinomk-dir',
                         action='store', help="Path to Arduino Makefile directory",
                         metavar="PATH", default=None)
     parser.add_argument('--device', action='store', help="Ardiuno-Device",
@@ -65,7 +67,7 @@ if __name__ == '__main__':
         ARDMK_DIR = '/usr' if args.arduinomk_dir is None else args.arduinomk_dir
         AVR_TOOLS_DIR = '/usr'
     elif os_name == 'Darwin':
-        ARDUINO_DIR = '/Applications/Arduino.app/Contents/'
+        ARDUINO_DIR = '/Applications/Arduino.app/Contents/Java'
         ARDMK_DIR = '/usr/local' if args.arduinomk_dir is None else args.arduinomk_dir
         AVR_TOOLS_DIR = ''
     else:
@@ -74,7 +76,7 @@ if __name__ == '__main__':
     USER_LIB_PATH = os.path.abspath('../libraries')
     ARDUINO_LIBS = []
 
-    ARDMK_LOCATION = ARDUINO_DIR if args.arduinomk_dir is None else os.path.join(args.arduinomk_dir, "arduino-mk")
+    ARDMK_LOCATION = ARDUINO_DIR if args.arduinomk_dir is None else os.path.join(args.arduinomk_dir, "Arduino.mk")
     config = ""
 
     if args.with_ntc:

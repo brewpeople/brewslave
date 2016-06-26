@@ -24,7 +24,7 @@ DallasTemperature::DallasTemperature(OneWire* _oneWire)
 {
   _wire = _oneWire;
   devices = 0;
-  parasite = false;
+  parasite = true;
   bitResolution = 9;
   waitForConversion = true;
   checkForConversion = true;

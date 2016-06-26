@@ -4,6 +4,9 @@
     /* In the Arduino IDE, we enable the Nokia display by default. */
     #define WITH_LCD5110    1
     #define WITH_DS18B20    1
+    #define WITH_BUTTONS
+    #define DEBUG_STATES
+    #define DEBUG_DS18B20
 #endif
 
 #ifdef WITH_KALMAN
@@ -31,11 +34,7 @@ namespace bm = brewmeister;
     #include <OneWire.h>
     #include <DallasTemperature.h>
 
-    #ifdef WITH_BUTTONS
-        #define ONE_WIRE_BUS    9   // DS18B20 sensor data pin
-    #else
-        #define ONE_WIRE_BUS    2   // DS18B20 sensor data pin
-    #endif
+    #define ONE_WIRE_BUS    9   // DS18B20 sensor data pin
 #endif
 
 #ifdef WITH_LCD5110
@@ -45,16 +44,18 @@ namespace bm = brewmeister;
     #define LCD_CE          7
     #define LCD_DC          5
     #define LCD_DIN         4
-    #ifdef WITH_BUTTONS
-        #define LCD_CLK         8
-    #else
-        #define LCD_CLK         3
-    #endif
+    #define LCD_CLK         8
+
 #endif
 
 #ifdef WITH_NTC
     #include "ntc.h"
     #define NTC_PIN         0
+#endif
+
+#ifdef WITH_BUTTONS
+    #define BUTTON_MOTOR    2
+    #define BUTTON_GFA      3
 #endif
 
 
@@ -107,6 +108,9 @@ namespace bm = brewmeister;
 
 
 /* GLOBAL VARIABLES */
+
+boolean stateGFA = false;
+boolean stateMotor = false;
 
 extern uint8_t SmallFont[];
 extern uint8_t MediumNumbers[];
@@ -217,6 +221,11 @@ void setup()
     digitalWrite(RELAY_MOTOR, RELAY_OFF);
     pinMode(RELAY_GFA, OUTPUT);
     pinMode(RELAY_MOTOR, OUTPUT);
+    
+    #ifdef DEBUG_BUTTONS
+    pinMode(BUTTON_MOTOR, INPUT_PULLUP);
+    pinMode(BUTTON_GFA, INPUT_PULLUP);
+    #endif
 
     #ifdef WITH_LCD5110
         myGLCD.InitLCD();
@@ -264,8 +273,8 @@ void setup()
     #endif
     
     #ifdef WITH_BUTTONS
-        attachInterrupt(0, switchMotor, HIGH);                // pin interrupt for manual override button Motor
-        attachInterrupt(1, switchGFA, RISING);                  // pin interrupt for manual override button Motor
+        attachInterrupt(digitalPinToInterrupt(BUTTON_MOTOR), switchMotor, FALLING);                // pin interrupt for manual override button Motor
+        attachInterrupt(digitalPinToInterrupt(BUTTON_GFA), switchGFA, FALLING);                  // pin interrupt for manual override button Motor
     #endif
 }
 
@@ -340,10 +349,10 @@ void displayRefresh() {
     myGLCD.clrRow(2);
     myGLCD.clrRow(3);
     
-    image = getMotor() ? box16_stir : box16_stir_inv;
+    image = getMotor() ? box16_stir_inv : box16_stir;
     myGLCD.drawBitmap(0, 0, image, 16, 16);
     
-    image = getGFA() ? box16_heat : box16_heat_inv;
+    image = getGFA() ? box16_heat_inv : box16_heat;
     myGLCD.drawBitmap(0, 16, image, 16, 16);
     
     switch (lastCommandState) {
@@ -399,10 +408,10 @@ void displayRefresh() {
     myGLCD.clrRow(2);
     myGLCD.clrRow(3);
     
-    image = getMotor() ? box16_stir : box16_stir_inv;
+    image = getMotor() ? box16_stir_inv : box16_stir;
     myGLCD.drawBitmap(0, 0, image, 16, 16);
     
-    image = getGFA() ? box16_heat : box16_heat_inv;
+    image = getGFA() ? box16_heat_inv : box16_heat;
     myGLCD.drawBitmap(0, 16, image, 16, 16);
     
     myGLCD.setFont(SmallFont);
@@ -454,7 +463,7 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
         } else {
             timerTempSensorLastSeen = millis();
             #ifdef DEBUG_STATES
-            debug_state_add("Tok");
+            //debug_state_add("Tok");
             #endif
         }
 
@@ -465,9 +474,6 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
         ourWire.reset_search();
         ourWire.search(tempSensorAddr);
         resetTempSensor();
-        #ifdef DEBUG_STATES
-        debug_state_add("Tnc");
-        #endif
     }
     #elif WITH_NTC
     temperature = ntc.temperature();
@@ -618,52 +624,72 @@ void serialEvent() {
 }
 
 boolean getGFA() {
-    return digitalRead(RELAY_GFA) ? RELAY_OFF : RELAY_ON;
+//    return digitalRead(RELAY_GFA) ? RELAY_OFF : RELAY_ON;
+    #ifdef DEBUG_STATES
+    if ((stateGFA == true && digitalRead(RELAY_GFA) == RELAY_OFF) | (stateGFA == false && digitalRead(RELAY_GFA) == RELAY_ON)) {
+        debug_state_add("Her");
+    }
+    #endif
+    return stateGFA;
 }
 
 boolean getMotor() {
-    return digitalRead(RELAY_MOTOR) ? RELAY_OFF : RELAY_ON;
+//    return digitalRead(RELAY_MOTOR) ? RELAY_OFF : RELAY_ON;
+    #ifdef DEBUG_STATES
+    if ((stateMotor == true && digitalRead(RELAY_MOTOR) == RELAY_OFF) | (stateMotor == false && digitalRead(RELAY_MOTOR) == RELAY_ON)) {
+        debug_state_add("Ser");
+    }
+    #endif
+    return stateMotor;
 }
 
 void setGFA(boolean on) {
-    digitalWrite(RELAY_GFA, on ? RELAY_OFF : RELAY_ON);
+    stateGFA = on;
+    digitalWrite(RELAY_GFA, on ? RELAY_ON : RELAY_OFF);
 //    if(getGFA()) {
 //        setMotor(true);
 //    }
 }
 
 void setMotor(boolean on) {
-    digitalWrite(RELAY_MOTOR, on ? RELAY_OFF : RELAY_ON);
+    stateMotor = on;
+    digitalWrite(RELAY_MOTOR, on ? RELAY_ON : RELAY_OFF);
 //    if(!getMotor()) {
 //        setGFA(false);
 //    }
 }
 
 void switchMotor() {
-    if((millis() - timerSwitchMotor) > timerDebounce) {
+    unsigned long time = millis();
+    if((time - timerSwitchMotor) > timerDebounce) {
+        if (digitalRead(BUTTON_MOTOR) == 0) {
         setMotor(!getMotor());
-        timerSwitchMotor = millis();
+        timerSwitchMotor = time;
 #ifdef DEBUG_STATES
-        if (getMotor() == RELAY_ON) {
+        if (getMotor() == true) {
             debug_state_add("BM1");
         } else {
             debug_state_add("BM0");
         }
 #endif
+        }
     }
 }
 
 void switchGFA() {
-    if((millis() - timerSwitchGFA) > timerDebounce) {
+    unsigned long time = millis();
+    if((time - timerSwitchGFA) > timerDebounce) {
+        if (digitalRead(BUTTON_GFA) == 0) {
         setGFA(!getGFA());
-        timerSwitchGFA = millis();
+        timerSwitchGFA = time;
 #ifdef DEBUG_STATES
-        if (getGFA() == RELAY_ON) {
+        if (getGFA() == true) {
             debug_state_add("BH1");
         } else {
             debug_state_add("BH0");
         }
 #endif
+        }
     }
 }
 

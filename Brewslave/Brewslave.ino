@@ -659,6 +659,7 @@ void setMotor(boolean on) {
 //    }
 }
 
+#ifdef WITH_BUTTONS
 void switchMotor() {
     unsigned long time = millis();
     if((time - timerSwitchMotor) > timerDebounce) {
@@ -675,7 +676,9 @@ void switchMotor() {
         }
     }
 }
+#endif
 
+#ifdef WITH_BUTTONS
 void switchGFA() {
     unsigned long time = millis();
     if((time - timerSwitchGFA) > timerDebounce) {
@@ -692,6 +695,7 @@ void switchGFA() {
         }
     }
 }
+#endif
 
 void twoLevelHeatController() {
     #ifdef DEBUG_STATES

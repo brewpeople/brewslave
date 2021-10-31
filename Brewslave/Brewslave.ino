@@ -22,8 +22,8 @@ namespace bm = brewmeister;
 
 /* PIN DEFINITIONS */
 
-#define RELAY_GFA           12  // GFA relay pin
-#define RELAY_MOTOR         11  // motor relay pin
+#define RELAY_GFA           A1  // GFA relay pin
+#define RELAY_MOTOR         A2  // motor relay pin
 
 #ifdef WITH_DS18B20
     #define ONEWIRE_SEARCH 1
@@ -40,10 +40,10 @@ namespace bm = brewmeister;
 #ifdef WITH_LCD5110
     #include <LCD5110_Basic.h>
 
-    #define LCD_RST         6
-    #define LCD_CE          7
-    #define LCD_DC          5
-    #define LCD_DIN         4
+    #define LCD_RST         4
+    #define LCD_CE          5
+    #define LCD_DC          6
+    #define LCD_DIN         7
     #define LCD_CLK         8
 
 #endif
@@ -54,8 +54,8 @@ namespace bm = brewmeister;
 #endif
 
 #ifdef WITH_BUTTONS
-    #define BUTTON_MOTOR    2
-    #define BUTTON_GFA      3
+    #define BUTTON_MOTOR    3
+    #define BUTTON_GFA      2
 #endif
 
 

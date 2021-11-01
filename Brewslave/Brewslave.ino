@@ -118,27 +118,24 @@ extern uint8_t MediumNumbers[];
 extern uint8_t BigNumbers[];
 
 extern uint8_t img_line[];
+
+#if defined(DEBUG_SERIAL) || defined(DEBUG_STATES)
+extern uint8_t box16_heat[];
+extern uint8_t box16_heat_inv[];
+extern uint8_t box16_stir[];
+extern uint8_t box16_stir_inv[];
+#endif
+
 #ifdef DEBUG_SERIAL
 extern uint8_t box16[];
 extern uint8_t box16_up[];
 extern uint8_t box16_down[];
 extern uint8_t box16_cross[];
-extern uint8_t box16_heat[];
-extern uint8_t box16_heat_inv[];
-extern uint8_t box16_stir[];
-extern uint8_t box16_stir_inv[];
-#else
-#ifdef DEBUG_STATES
-extern uint8_t box16_heat[];
-extern uint8_t box16_heat_inv[];
-extern uint8_t box16_stir[];
-extern uint8_t box16_stir_inv[];
 #else
 extern uint8_t img_motor_off[];
 extern uint8_t img_motor_on[];
 extern uint8_t img_gfa_off[];
 extern uint8_t img_gfa_on[];
-#endif
 #endif
 
 byte slaveState = STATE_MANUAL;   // stores the current brewslave state

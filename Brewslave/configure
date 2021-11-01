@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -35,7 +35,7 @@ platforms = ['atmega8',
 
 
 def guess_os_name():
-    return subprocess.check_output('uname').strip()
+    return subprocess.getoutput('uname').strip()
 
 
 if __name__ == '__main__':
@@ -66,10 +66,12 @@ if __name__ == '__main__':
         ARDUINO_DIR = '/usr/share/arduino'
         ARDMK_DIR = '/usr' if args.arduinomk_dir is None else args.arduinomk_dir
         AVR_TOOLS_DIR = '/usr'
+        AVRDUDE_CONF = '/etc/avrdude.conf'
     elif os_name == 'Darwin':
         ARDUINO_DIR = '/Applications/Arduino.app/Contents/Java'
         ARDMK_DIR = '/usr/local' if args.arduinomk_dir is None else args.arduinomk_dir
         AVR_TOOLS_DIR = ''
+        AVRDUDE_CONF = f'{ARDUINO_DIR}/hardware/tools/avr/etc/avrdude.conf'
     else:
         sys.exit("Unknown operating system")
 
@@ -104,6 +106,7 @@ if __name__ == '__main__':
                  ARDUINO_LIBS=' '.join(ARDUINO_LIBS),
                  ARDMK_DIR=ARDMK_DIR,
                  AVR_TOOLS_DIR=AVR_TOOLS_DIR,
+                 AVRDUDE_CONF=AVRDUDE_CONF,
                  BOARD_TAG=args.board,
                  ARDMK_LOCATION=ARDMK_LOCATION,
                  USER_LIB_PATH=USER_LIB_PATH)

@@ -74,7 +74,7 @@ if __name__ == '__main__':
         sys.exit("Unknown operating system")
 
     USER_LIB_PATH = os.path.abspath('../libraries')
-    ARDUINO_LIBS = []
+    ARDUINO_LIBS = ['crc']
 
     ARDMK_LOCATION = ARDUINO_DIR if args.arduinomk_dir is None else os.path.join(args.arduinomk_dir, "Arduino.mk")
     config = ""
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         config += "#define WITH_DS18B20 1\n"
         ARDUINO_LIBS.append('OneWire')
         ARDUINO_LIBS.append('DallasTemperature')
-    
+
     if args.with_kalman:
         config += "#define WITH_KALMAN 1\n"
         ARDUINO_LIBS.append('MatrixMath')

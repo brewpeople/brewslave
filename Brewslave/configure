@@ -61,8 +61,6 @@ if __name__ == '__main__':
     parser.add_argument('--arduinomk-dir',
                         action='store', help="Path to Arduino Makefile directory",
                         metavar="PATH", default=None)
-    parser.add_argument('--device', action='store', help="Ardiuno-Device",
-                        default="/dev/ttyUSB*", metavar="DEVICE")
 
     args = parser.parse_args()
 
@@ -110,7 +108,6 @@ if __name__ == '__main__':
     with open('Makefile', 'w') as f:
         template = string.Template(open('Makefile.in').read())
         d = dict(ARDUINO_DIR=ARDUINO_DIR,
-                 ARDUINO_PORT=args.device,
                  ARDUINO_LIBS=' '.join(ARDUINO_LIBS),
                  ARDMK_DIR=ARDMK_DIR,
                  AVR_TOOLS_DIR=AVR_TOOLS_DIR,

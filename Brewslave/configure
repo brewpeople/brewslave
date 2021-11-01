@@ -38,6 +38,12 @@ def guess_os_name():
     return subprocess.getoutput('uname').strip()
 
 
+def git_hash():
+    """Return first four characters of the hash"""
+    hash = subprocess.getoutput('git rev-parse --short HEAD')
+    return hash[:4]
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser() 
 
@@ -98,6 +104,8 @@ if __name__ == '__main__':
         config += "#define WITH_KALMAN 1\n"
         ARDUINO_LIBS.append('MatrixMath')
         ARDUINO_LIBS.append('TempKalman')
+
+    config += f"#define GIT_COMMIT_HASH \"{git_hash()}\"\n"
 
     with open('Makefile', 'w') as f:
         template = string.Template(open('Makefile.in').read())

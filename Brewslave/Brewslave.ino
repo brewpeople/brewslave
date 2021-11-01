@@ -7,6 +7,7 @@
     #define WITH_BUTTONS
     #define DEBUG_STATES
     #define DEBUG_DS18B20
+    #define GIT_COMMIT_HASH "NONE"
 #endif
 
 #ifdef WITH_KALMAN
@@ -230,7 +231,7 @@ void setup()
     #ifdef WITH_LCD5110
         myGLCD.InitLCD();
         myGLCD.setFont(SmallFont);
-        myGLCD.print((char*)"Brewslave v0.3", CENTER, 0);
+        myGLCD.print((char*)"Brewslave " GIT_COMMIT_HASH, CENTER, 0);
         myGLCD.print((char*)"Loading...", CENTER, 24);
         #ifdef DEBUG_SERIAL
         myGLCD.print((char*)"Debug Serial", CENTER, 32);

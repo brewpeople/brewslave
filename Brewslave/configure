@@ -57,12 +57,17 @@ if __name__ == '__main__':
     parser.add_argument('--with-kalman', action='store_true',
                         help="Enable Kalman Library")
     parser.add_argument('--with-buttons', action='store_true', help="Physical buttons available")
-    parser.add_argument('--debug-display', action='store', help="0: off, 1: serial, 2: state machine", default="0")
+    parser.add_argument('--debug-serial', action='store_true', help="Debug serial")
+    parser.add_argument('--debug-states', action='store_true', help="Debug state machine")
+    parser.add_argument('--debug-ds18b20', action='store_true', help="Debug DS18B20")
     parser.add_argument('--arduinomk-dir',
                         action='store', help="Path to Arduino Makefile directory",
                         metavar="PATH", default=None)
 
     args = parser.parse_args()
+
+    if args.debug_ds18b20 and not args.with_ds18b20:
+        parser.error("Cannot use --debug-ds18b20 without --with-ds18b20")
 
     os_name = guess_os_name()
 
@@ -102,6 +107,15 @@ if __name__ == '__main__':
         config += "#define WITH_KALMAN 1\n"
         ARDUINO_LIBS.append('MatrixMath')
         ARDUINO_LIBS.append('TempKalman')
+
+    if args.debug_ds18b20:
+        config += "#define DEBUG_DS18B20 1\n"
+
+    if args.debug_serial:
+        config += "#define DEBUG_SERIAL 1\n"
+
+    if args.debug_states:
+        config += "#define DEBUG_STATES 1\n"
 
     config += f"#define GIT_COMMIT_HASH \"{git_hash()}\"\n"
 

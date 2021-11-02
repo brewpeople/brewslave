@@ -109,9 +109,7 @@ namespace bm = brewmeister;
 
 
 /* GLOBAL VARIABLES */
-
 boolean stateGFA = false;
-boolean stateMotor = false;
 
 extern uint8_t SmallFont[];
 extern uint8_t MediumNumbers[];
@@ -190,15 +188,59 @@ void displayRefresh();
 #endif
 
 boolean getGFA();
-boolean getMotor();
 void setGFA(boolean on);
-void setMotor(boolean on);
 #ifdef WITH_BUTTONS
 void switchMotor();
 void switchGFA();
 #endif
 void twoLevelHeatController();
 void debug_state_add(const char* msg);
+
+class Motor {
+public:
+    Motor()
+    {
+        digitalWrite(RELAY_MOTOR, RELAY_OFF);
+        pinMode(RELAY_MOTOR, OUTPUT);
+    }
+
+    void turn_on(bool is_on)
+    {
+        m_on = is_on;
+        digitalWrite(RELAY_MOTOR, m_on ? RELAY_ON : RELAY_OFF);
+    }
+
+    void toggle()
+    {
+        turn_on(!m_on);
+    }
+
+    bool is_on() const
+    {
+#ifdef DEBUG_STATES
+        if ((m_on && digitalRead(RELAY_MOTOR) == RELAY_OFF) || (!m_on && digitalRead(RELAY_MOTOR) == RELAY_ON)) {
+            debug_state_add("Ser");
+        }
+#endif
+        return m_on;
+    }
+
+    uint8_t* box_image() const
+    {
+        return m_on ? box16_stir_inv : box16_stir;
+    }
+
+    uint8_t* image() const
+    {
+        return m_on ? img_motor_on : img_motor_off;
+    }
+
+private:
+    bool m_on{false};
+};
+
+Motor motor;
+
 
 /* SETUP FUNCTION */
 
@@ -209,9 +251,7 @@ void setup()
     /* disable relays at startup */
 
     digitalWrite(RELAY_GFA, RELAY_OFF);
-    digitalWrite(RELAY_MOTOR, RELAY_OFF);
     pinMode(RELAY_GFA, OUTPUT);
-    pinMode(RELAY_MOTOR, OUTPUT);
 
     #ifdef DEBUG_BUTTONS
     pinMode(BUTTON_MOTOR, INPUT_PULLUP);
@@ -340,8 +380,7 @@ void displayRefresh() {
     myGLCD.clrRow(2);
     myGLCD.clrRow(3);
 
-    image = getMotor() ? box16_stir_inv : box16_stir;
-    myGLCD.drawBitmap(0, 0, image, 16, 16);
+    myGLCD.drawBitmap(0, 0, motor.box_image(), 16, 16);
 
     image = getGFA() ? box16_heat_inv : box16_heat;
     myGLCD.drawBitmap(0, 16, image, 16, 16);
@@ -399,8 +438,7 @@ void displayRefresh() {
     myGLCD.clrRow(2);
     myGLCD.clrRow(3);
 
-    image = getMotor() ? box16_stir_inv : box16_stir;
-    myGLCD.drawBitmap(0, 0, image, 16, 16);
+    myGLCD.drawBitmap(0, 0, motor.box_image(), 16, 16);
 
     image = getGFA() ? box16_heat_inv : box16_heat;
     myGLCD.drawBitmap(0, 16, image, 16, 16);
@@ -429,8 +467,7 @@ void displayRefresh() {
 
 #else
 
-    image = getMotor() ? img_motor_on : img_motor_off;
-    myGLCD.drawBitmap(0, 8, image, 42, 24);
+    myGLCD.drawBitmap(0, 8, motor.image(), 42, 24);
 
     image = getGFA() ? img_gfa_on : img_gfa_off;
     myGLCD.drawBitmap(42, 8, image, 42, 24);
@@ -536,7 +573,7 @@ void processSerialCommand() {
                     break;
                 case bm::STIR:
                     commandBuffer[0] = bm::STIR;
-                    commandBuffer[1] = getMotor();
+                    commandBuffer[1] = motor.is_on();
                     commandBuffer[6] = crcSlow(commandBuffer, SERIAL_BUFFER_SIZE-1);
                     Serial.write(commandBuffer, SERIAL_BUFFER_SIZE);
                     break;
@@ -572,7 +609,7 @@ void processSerialCommand() {
                     Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
                     break;
                 case bm::STIR:
-                    setMotor(serialBuffer[2]);
+                    motor.turn_on(serialBuffer[2]);
                     Serial.write(serialBuffer[SERIAL_BUFFER_SIZE-1]);
                     break;
                 case bm::HEAT_CONTROL:
@@ -624,16 +661,6 @@ boolean getGFA() {
     return stateGFA;
 }
 
-boolean getMotor() {
-//    return digitalRead(RELAY_MOTOR) ? RELAY_OFF : RELAY_ON;
-    #ifdef DEBUG_STATES
-    if ((stateMotor == true && digitalRead(RELAY_MOTOR) == RELAY_OFF) | (stateMotor == false && digitalRead(RELAY_MOTOR) == RELAY_ON)) {
-        debug_state_add("Ser");
-    }
-    #endif
-    return stateMotor;
-}
-
 void setGFA(boolean on) {
     stateGFA = on;
     digitalWrite(RELAY_GFA, on ? RELAY_ON : RELAY_OFF);
@@ -642,27 +669,19 @@ void setGFA(boolean on) {
 //    }
 }
 
-void setMotor(boolean on) {
-    stateMotor = on;
-    digitalWrite(RELAY_MOTOR, on ? RELAY_ON : RELAY_OFF);
-//    if(!getMotor()) {
-//        setGFA(false);
-//    }
-}
-
 #ifdef WITH_BUTTONS
 void switchMotor() {
     unsigned long time = millis();
     if((time - timerSwitchMotor) > timerDebounce) {
         if (digitalRead(BUTTON_MOTOR) == 0) {
-        setMotor(!getMotor());
-        timerSwitchMotor = time;
+            motor.toggle();
+            timerSwitchMotor = time;
 #ifdef DEBUG_STATES
-        if (getMotor() == true) {
-            debug_state_add("BM1");
-        } else {
-            debug_state_add("BM0");
-        }
+            if (motor.is_on()) {
+                debug_state_add("BM1");
+            } else {
+                debug_state_add("BM0");
+            }
 #endif
         }
     }

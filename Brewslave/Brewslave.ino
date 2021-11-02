@@ -174,7 +174,7 @@ int com_get = 0;
 #ifdef DEBUG_STATES
 #define DEBUG_STATES_STRING_LENGTH 3
 //char debug_string1[DEBUG_STATES_STRING_LENGTH] = "001";
-char *debug_strings[] = {"   ", "   ", "   ", "   ", "   ", "   ", "   ", "   ", "   "};
+const char* debug_strings[] = {"   ", "   ", "   ", "   ", "   ", "   ", "   ", "   ", "   "};
 
 
 #endif
@@ -205,7 +205,7 @@ void switchMotor();
 void switchGFA();
 #endif
 void twoLevelHeatController();
-void debug_state_add(char* msg);
+void debug_state_add(const char* msg);
 
 /* SETUP FUNCTION */
 
@@ -419,19 +419,19 @@ void displayRefresh() {
     myGLCD.print((char*)"   STATES  ",18,0);
     myGLCD.invertText(false);
     //myGLCD.invertFont(false);
-    myGLCD.print(debug_strings[8],18,8);
-    myGLCD.print(debug_strings[7],18,16);
-    myGLCD.print(debug_strings[6],18,24);
+    myGLCD.print((char*) debug_strings[8], 18, 8);
+    myGLCD.print((char*) debug_strings[7], 18, 16);
+    myGLCD.print((char*) debug_strings[6], 18, 24);
 
-    myGLCD.print(debug_strings[5],42,8);
-    myGLCD.print(debug_strings[4],42,16);
-    myGLCD.print(debug_strings[3],42,24);
+    myGLCD.print((char*) debug_strings[5], 42, 8);
+    myGLCD.print((char*) debug_strings[4], 42, 16);
+    myGLCD.print((char*) debug_strings[3], 42, 24);
 
-    myGLCD.print(debug_strings[2],66,8);
-    myGLCD.print(debug_strings[1],66,16);
+    myGLCD.print((char*) debug_strings[2], 66, 8);
+    myGLCD.print((char*) debug_strings[1], 66, 16);
 
     myGLCD.invertText(true);
-    myGLCD.print(debug_strings[0],66,24);
+    myGLCD.print((char*) debug_strings[0], 66, 24);
     myGLCD.invertText(false);
 
 #else
@@ -480,9 +480,9 @@ ISR(TIMER1_COMPA_vect)                                      // timer compare int
 
 #ifdef DEBUG_STATES
 /* adds new debug message and drops last message in stack */
-void debug_state_add(char *msg) {
-    int size = sizeof(debug_strings)/sizeof(char*);
-    for (int i=size; i>=0; --i) {
+void debug_state_add(const char *msg) {
+    size_t size = sizeof(debug_strings)/sizeof(const char*);
+    for (size_t i = size - 1; i > 0; --i) {
         debug_strings[i] = debug_strings[i-1];
     }
     debug_strings[0] = msg;

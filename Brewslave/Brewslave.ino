@@ -142,7 +142,6 @@ byte slaveState = STATE_MANUAL;   // stores the current brewslave state
 
 byte tempSensorAddr[8];                 // cache for temperature sensor address
 boolean tempSensorStatus = false;
-boolean crc8Correct = true;
 
 float temperature = -999.1337;
 float temp_set = 35;
@@ -179,12 +178,6 @@ const char* debug_strings[] = {"   ", "   ", "   ", "   ", "   ", "   ", "   ", 
 
 #endif
 #endif
-
-/* TEST VARIABLES */
-
-float start = 0;
-float ende  = 0;
-
 
 /* FORWARD DECLARATIONS */
 
@@ -609,7 +602,7 @@ void serialEvent() {
         count++;
     }
 
-    crc8Correct = (crcSlow(serialBuffer, sizeof(serialBuffer)) == 0);
+    const bool crc8Correct = (crcSlow(serialBuffer, sizeof(serialBuffer)) == 0);
     if ((count == SERIAL_BUFFER_SIZE) && crc8Correct) {
         processSerialCommand();
     }

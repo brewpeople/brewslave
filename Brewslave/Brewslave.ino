@@ -219,7 +219,7 @@ void setup()
     digitalWrite(RELAY_MOTOR, RELAY_OFF);
     pinMode(RELAY_GFA, OUTPUT);
     pinMode(RELAY_MOTOR, OUTPUT);
-    
+
     #ifdef DEBUG_BUTTONS
     pinMode(BUTTON_MOTOR, INPUT_PULLUP);
     pinMode(BUTTON_GFA, INPUT_PULLUP);
@@ -269,7 +269,7 @@ void setup()
         myGLCD.clrRow(i, 0, 83);
     }
     #endif
-    
+
     #ifdef WITH_BUTTONS
         attachInterrupt(digitalPinToInterrupt(BUTTON_MOTOR), switchMotor, FALLING);                // pin interrupt for manual override button Motor
         attachInterrupt(digitalPinToInterrupt(BUTTON_GFA), switchGFA, FALLING);                  // pin interrupt for manual override button Motor
@@ -298,12 +298,12 @@ void loop()
 #ifdef WITH_LCD5110
 void displayRefresh() {
     // myGLCD.InitLCD();                                    // avoid blank display
-    
+
     uint8_t *image;
 
     myGLCD.clrRow(4,12,83);
     myGLCD.clrRow(5,12,83);
-    
+
     // display temperature
     #ifdef DEBUG_DS18B20
     myGLCD.setFont(SmallFont);
@@ -328,9 +328,9 @@ void displayRefresh() {
         myGLCD.print((char*)"ERROR", 33, 40);
     }
     #endif
-    
+
     // display set-temperature
-    
+
     if (slaveState == STATE_HEAT_CONTROL) {
         myGLCD.setFont(SmallFont);
         myGLCD.printNumI(temp_set, 0, 40);
@@ -339,20 +339,20 @@ void displayRefresh() {
         myGLCD.setFont(SmallFont);
         myGLCD.print((char*)"--", 0,40);
     }
-    
+
 #ifdef DEBUG_SERIAL
-    
+
     myGLCD.clrRow(0);
     myGLCD.clrRow(1);
     myGLCD.clrRow(2);
     myGLCD.clrRow(3);
-    
+
     image = getMotor() ? box16_stir_inv : box16_stir;
     myGLCD.drawBitmap(0, 0, image, 16, 16);
-    
+
     image = getGFA() ? box16_heat_inv : box16_heat;
     myGLCD.drawBitmap(0, 16, image, 16, 16);
-    
+
     switch (lastCommandState) {
         case COMMAND_ERROR:
             image = box16_cross;
@@ -363,15 +363,15 @@ void displayRefresh() {
         case COMMAND_GET:
             image = box16_up;
             break;
-            
+
         default:
             image = box16;
             break;
     }
     myGLCD.drawBitmap(16, 16, image, 16, 16);
     lastCommandState = 0;
-    
-    
+
+
     // debug heat control
     /*
     if (slaveState == STATE_HEAT_CONTROL) {
@@ -385,9 +385,9 @@ void displayRefresh() {
         myGLCD.printNumI((timerGFA/1000),66,16);
     }
     */
-    
+
     // debug communication
-    
+
     myGLCD.setFont(SmallFont);
     myGLCD.print((char*)"SERIAL",38,0);
     myGLCD.print((char*)"GET:",32,8);
@@ -396,22 +396,22 @@ void displayRefresh() {
     myGLCD.printNumI(com_set,60,16);
     myGLCD.print((char*)"ERR:",32,24);
     myGLCD.printNumI(com_error,60,24);
-    
-    
+
+
 #else
 #ifdef DEBUG_STATES
-    
+
     myGLCD.clrRow(0);
     myGLCD.clrRow(1);
     myGLCD.clrRow(2);
     myGLCD.clrRow(3);
-    
+
     image = getMotor() ? box16_stir_inv : box16_stir;
     myGLCD.drawBitmap(0, 0, image, 16, 16);
-    
+
     image = getGFA() ? box16_heat_inv : box16_heat;
     myGLCD.drawBitmap(0, 16, image, 16, 16);
-    
+
     myGLCD.setFont(SmallFont);
     //myGLCD.invertFont(true);
     //myGLCD.print((char*)"ABC EFG IJK",18,0);
@@ -422,20 +422,20 @@ void displayRefresh() {
     myGLCD.print(debug_strings[8],18,8);
     myGLCD.print(debug_strings[7],18,16);
     myGLCD.print(debug_strings[6],18,24);
-    
+
     myGLCD.print(debug_strings[5],42,8);
     myGLCD.print(debug_strings[4],42,16);
     myGLCD.print(debug_strings[3],42,24);
-    
+
     myGLCD.print(debug_strings[2],66,8);
     myGLCD.print(debug_strings[1],66,16);
-    
+
     myGLCD.invertText(true);
     myGLCD.print(debug_strings[0],66,24);
     myGLCD.invertText(false);
-  
+
 #else
-    
+
     image = getMotor() ? img_motor_on : img_motor_off;
     myGLCD.drawBitmap(0, 8, image, 42, 24);
 
@@ -444,7 +444,7 @@ void displayRefresh() {
 
 #endif
 #endif
-    
+
 }
 #endif
 
@@ -608,7 +608,7 @@ void serialEvent() {
         serialBuffer[count] = Serial.read();
         count++;
     }
-    
+
     crc8Correct = (crcSlow(serialBuffer, sizeof(serialBuffer)) == 0);
     if ((count == SERIAL_BUFFER_SIZE) && crc8Correct) {
         processSerialCommand();
@@ -707,7 +707,7 @@ void twoLevelHeatController() {
         #endif
         return;
     }
-    
+
     boolean gfa_delta_reached = (millis() >= (timerGFA + (DELTA_TIME * 1000)));
 
     // if temperature is more than DELTA_FIRST_LIMIT below set temperature, overshooting protection will be enabled

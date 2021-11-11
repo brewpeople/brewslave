@@ -24,7 +24,7 @@ if __name__ == "__main__":
             default=Path("/usr/share/arduino"),
             help="Root of the Arduino distribution")
     parser.add_argument("--ardmk-dir", type=Path,
-            default=Path("/usr/share/arduino"),
+            default=Path("./libs/Arduino-Makefile").absolute(),
             help="Path to the location of Arduino.mk")
     parser.add_argument("--avr-tools-dir", type=Path,
             default=Path("/usr"),

@@ -25,22 +25,20 @@ if __name__ == "__main__":
             help="Root of the Arduino distribution")
     parser.add_argument("--ardmk-dir", type=Path,
             default=Path("/usr/share/arduino"),
-            help="Root of the Arduino distribution")
+            help="Path to the location of Arduino.mk")
     parser.add_argument("--avr-tools-dir", type=Path,
             default=Path("/usr"),
-            help="Root of the Arduino distribution")
+            help="Path to the AVR tools directory")
+    parser.add_argument("--user-lib-path", type=Path,
+            default=Path("./libs").absolute(),
+            help="Path to the user libs dir")
     parser.add_argument("--with-ds18b20", type=int,
             help="Use DS18B20 temperature sensor at the given pin")
     parser.add_argument("board", choices=platforms, help="Name of the board")
 
     args = parser.parse_args()
 
-    USER_LIB_PATH = Path("./libs").absolute()
-    ARDUINO_DIR = args.arduino_dir
-    ARDMK_DIR = args.ardmk_dir
-    AVR_TOOLS_DIR = args.avr_tools_dir
     AVRDUDE_CONF = Path("/etc/avrdude.conf")
-    ARDMK_LOCATION = ARDMK_DIR / "Arduino.mk"
     VERSION_STRING = git_hash()
     BOARD_SUB = "atmega328" if args.board == "nano" else ""
 
@@ -56,15 +54,15 @@ if __name__ == "__main__":
     with Path("Makefile").open("w") as f:
         template = string.Template(open("Makefile.in").read())
 
-        d = dict(ARDUINO_DIR=ARDUINO_DIR,
+        d = dict(ARDUINO_DIR=args.arduino_dir,
                  ARDUINO_LIBS=" ".join(ARDUINO_LIBS),
-                 ARDMK_DIR=ARDMK_DIR,
-                 AVR_TOOLS_DIR=AVR_TOOLS_DIR,
+                 ARDMK_DIR=args.ardmk_dir,
+                 AVR_TOOLS_DIR=args.avr_tools_dir,
                  AVRDUDE_CONF=AVRDUDE_CONF,
                  BOARD_TAG=args.board,
                  BOARD_SUB=BOARD_SUB,
-                 ARDMK_LOCATION=ARDMK_LOCATION,
-                 USER_LIB_PATH=USER_LIB_PATH)
+                 ARDMK_LOCATION=args.ardmk_dir / "Arduino.mk",
+                 USER_LIB_PATH=args.user_lib_path)
 
         f.write(template.safe_substitute(d))
 

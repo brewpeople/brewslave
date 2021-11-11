@@ -18,17 +18,26 @@ def git_hash():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser() 
+    parser = argparse.ArgumentParser()
 
+    parser.add_argument("--arduino-dir", type=Path,
+            default=Path("/usr/share/arduino"),
+            help="Root of the Arduino distribution")
+    parser.add_argument("--ardmk-dir", type=Path,
+            default=Path("/usr/share/arduino"),
+            help="Root of the Arduino distribution")
+    parser.add_argument("--avr-tools-dir", type=Path,
+            default=Path("/usr"),
+            help="Root of the Arduino distribution")
     parser.add_argument("--with-mock-controller", action="store_true", help="Use mock controller")
     parser.add_argument("board", choices=platforms, help="Name of the board")
 
     args = parser.parse_args()
 
     USER_LIB_PATH = Path("./libs").absolute()
-    ARDUINO_DIR = Path("/usr/share/arduino")
-    ARDMK_DIR = ARDUINO_DIR
-    AVR_TOOLS_DIR = Path("/usr")
+    ARDUINO_DIR = args.arduino_dir
+    ARDMK_DIR = args.ardmk_dir
+    AVR_TOOLS_DIR = args.avr_tools_dir
     AVRDUDE_CONF = Path("/etc/avrdude.conf")
     ARDMK_LOCATION = ARDMK_DIR / "Arduino.mk"
     ARDUINO_LIBS = []
@@ -45,8 +54,7 @@ if __name__ == "__main__":
                  AVRDUDE_CONF=AVRDUDE_CONF,
                  BOARD_TAG=args.board,
                  ARDMK_LOCATION=ARDMK_LOCATION,
-                 USER_LIB_PATH=USER_LIB_PATH,
-                 )
+                 USER_LIB_PATH=USER_LIB_PATH)
 
         f.write(template.safe_substitute(d))
 

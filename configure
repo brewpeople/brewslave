@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import string
+import argparse
+import subprocess
+from pathlib import Path
+
+
+platforms = ["nano", "nano328", "uno"]
+
+
+def git_hash():
+    """Return first four characters of the hash"""
+    hash = subprocess.getoutput("git rev-parse --short HEAD")
+    return hash[:4]
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser() 
+
+    parser.add_argument("--with-mock-controller", action="store_true", help="Use mock controller")
+    parser.add_argument("board", choices=platforms, help="Name of the board")
+
+    args = parser.parse_args()
+
+    USER_LIB_PATH = Path("./libs").absolute()
+    ARDUINO_DIR = Path("/usr/share/arduino")
+    ARDMK_DIR = ARDUINO_DIR
+    AVR_TOOLS_DIR = Path("/usr")
+    AVRDUDE_CONF = Path("/etc/avrdude.conf")
+    ARDMK_LOCATION = ARDMK_DIR / "Arduino.mk"
+    ARDUINO_LIBS = []
+
+    VERSION_STRING = git_hash()
+
+    with Path("Makefile").open("w") as f:
+        template = string.Template(open("Makefile.in").read())
+
+        d = dict(ARDUINO_DIR=ARDUINO_DIR,
+                 ARDUINO_LIBS=" ".join(ARDUINO_LIBS),
+                 ARDMK_DIR=ARDMK_DIR,
+                 AVR_TOOLS_DIR=AVR_TOOLS_DIR,
+                 AVRDUDE_CONF=AVRDUDE_CONF,
+                 BOARD_TAG=args.board,
+                 ARDMK_LOCATION=ARDMK_LOCATION,
+                 USER_LIB_PATH=USER_LIB_PATH,
+                 )
+
+        f.write(template.safe_substitute(d))
+
+    with Path("config.h").open("w") as f:
+        template = string.Template(open("config.h.in").read())
+        d = dict(VERSION_STRING=VERSION_STRING)
+        f.write(template.safe_substitute(d))
+
+        if args.with_mock_controller:
+            f.writelines(["#define WITH_MOCK_CONTROLLER 1"])
+
+        f.write("\n")

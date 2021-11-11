@@ -7,6 +7,11 @@ development and comes with NO WARRANTY.
 
 ## Build
 
+Initialize and update required library submodules with
+
+    $ git submodule init
+    $ git submodule update
+
 Configure the source tree with
 
     $ ./configure [--with-mock-controller] [uno|nano]

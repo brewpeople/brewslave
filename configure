@@ -29,7 +29,8 @@ if __name__ == "__main__":
     parser.add_argument("--avr-tools-dir", type=Path,
             default=Path("/usr"),
             help="Root of the Arduino distribution")
-    parser.add_argument("--with-mock-controller", action="store_true", help="Use mock controller")
+    parser.add_argument("--with-ds18b20", type=int,
+            help="Use DS18B20 temperature sensor at the given pin")
     parser.add_argument("board", choices=platforms, help="Name of the board")
 
     args = parser.parse_args()
@@ -40,9 +41,16 @@ if __name__ == "__main__":
     AVR_TOOLS_DIR = args.avr_tools_dir
     AVRDUDE_CONF = Path("/etc/avrdude.conf")
     ARDMK_LOCATION = ARDMK_DIR / "Arduino.mk"
-    ARDUINO_LIBS = []
-
     VERSION_STRING = git_hash()
+
+    ARDUINO_LIBS = []
+    CONFIG = []
+
+    if args.with_ds18b20 is not None:
+        ARDUINO_LIBS.append("OneWire")
+        ARDUINO_LIBS.append("DallasTemperature")
+        CONFIG.append("#define WITH_DS18B20 1")
+        CONFIG.append(f"#define DS18B20_PIN {args.with_ds18b20}")
 
     with Path("Makefile").open("w") as f:
         template = string.Template(open("Makefile.in").read())
@@ -62,8 +70,5 @@ if __name__ == "__main__":
         template = string.Template(open("config.h.in").read())
         d = dict(VERSION_STRING=VERSION_STRING)
         f.write(template.safe_substitute(d))
-
-        if args.with_mock_controller:
-            f.writelines(["#define WITH_MOCK_CONTROLLER 1"])
-
+        f.write("\n".join(CONFIG))
         f.write("\n")

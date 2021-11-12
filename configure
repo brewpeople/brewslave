@@ -7,26 +7,32 @@ import string
 import argparse
 import subprocess
 import re
+from collections import defaultdict
 from pathlib import Path
 
 
 def get_valid_boards(arduino_dir):
-    boardstxt_path = glob.glob(str(arduino_dir) + '/**/hardware/arduino/avr/boards.txt', recursive=True)[0]
-    
-    boards_dict = dict()
-    for line in open(boardstxt_path, "r"):
-        board_tag = re.findall("^([a-zA-Z0-9_\-]+).name.*\n", line)
-        if board_tag and board_tag[0] not in boards_dict.keys():
-            boards_dict[board_tag[0]] = []
+    boardstxt_path = next(arduino_dir.glob("**/hardware/arduino/avr/boards.txt"))
+    bt = defaultdict(list)
 
-        board_sub = re.findall(r"([a-zA-Z0-9_\-]+).menu.(?:cpu|chip).([a-zA-Z0-9_\-]+)=.*\n", line)
-        if board_sub:
-            if board_sub[0][0] not in boards_dict.keys():
-                boards_dict[board_sub[0][0]] = [board_sub[0][1]]
-            else:
-                boards_dict[board_sub[0][0]] += [board_sub[0][1]]
+    name_expression = re.compile(r"^([\w\d_\-]+)\.name.*$")
+    sub_expression = re.compile(r"^([\w\d_\-]+)\.menu\.(?:cpu|chip)\.([\w\d_\-]+)=.*$")
 
-    return boards_dict
+    for line in boardstxt_path.open():
+        name_match = name_expression.match(line)
+        sub_match = sub_expression.match(line)
+
+        if name_match is not None:
+            board = name_match.group(1)
+
+            if not board in bt:
+                bt[board] = []
+
+        if sub_match is not None:
+            board, sub = (sub_match.group(1), sub_match.group(2))
+            bt[board].append(sub)
+
+    return bt
 
 
 def git_hash():
@@ -61,25 +67,26 @@ if __name__ == "__main__":
 
     AVRDUDE_CONF = args.avrdude_conf
     VERSION_STRING = git_hash()
-    
+
     boards_dict = get_valid_boards(args.arduino_dir)
     board = args.board.split('.', 1)
-    
-    if board[0] in boards_dict.keys():
-        BOARD_TAG = board[0]
-    else:
-        raise ValueError("Unknown board '{}'.\nValid boards: {} ".format(board[0],", ".join(boards_dict.keys())))
-    
-    if len(board) == 2:
-        if len(boards_dict[BOARD_TAG]) == 0:
-            raise ValueError("Board '{}' has no subtypes.".format(BOARD_TAG))
-        BOARD_SUB = board[1]
-        if not BOARD_SUB in boards_dict[BOARD_TAG]:
-            raise ValueError("Unknown board subtype '{}'.\nValid subtypes for '{}': {}".format(BOARD_SUB, BOARD_TAG, None if len(boards_dict[BOARD_TAG]) == 0 else ", ".join(boards_dict[BOARD_TAG])))
-    else:
-        BOARD_SUB = ""
-        if len(boards_dict[BOARD_TAG]) > 0:
-            raise ValueError("Board '{}' has subtypes. Use <BOARD_TAG>.<BOARD_SUB> with valid subtype: {}".format(BOARD_TAG, ", ".join(boards_dict[BOARD_TAG])))
+    BOARD_TAG, *rest = args.board.split(".")
+    BOARD_SUB = rest[0] if rest else ""
+
+    if not BOARD_TAG in boards_dict:
+        raise ValueError(f"Unknown board '{BOARD_TAG}'.\nValid boards: {', '.join(boards_dict.keys())}")
+
+    subs = boards_dict[BOARD_TAG]
+
+    if subs and not BOARD_SUB:
+        raise ValueError(f"Board '{BOARD_TAG}' has subtypes. Use <BOARD_TAG>.<BOARD_SUB> with valid subtype: {', '.join(subs)}")
+
+    if BOARD_SUB:
+        if not subs:
+            raise ValueError(f"Board '{BOARD_TAG}' has no subtypes.")
+
+        if not BOARD_SUB in subs:
+            raise ValueError(f"Unknown board subtype '{BOARD_SUB}'.\nValid subtypes for '{BOARD_TAG}': {', '.join(subs)}")
 
     ARDUINO_LIBS = []
     CONFIG = []

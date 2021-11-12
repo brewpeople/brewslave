@@ -29,6 +29,9 @@ if __name__ == "__main__":
     parser.add_argument("--avr-tools-dir", type=Path,
             default=Path("/usr"),
             help="Path to the AVR tools directory")
+    parser.add_argument("--avrdude-conf", type=Path,
+            default=Path("/etc/avrdude.conf"),
+            help="Path to avrdude.conf")
     parser.add_argument("--user-lib-path", type=Path,
             default=Path("./libs").absolute(),
             help="Path to the user libs dir")
@@ -38,9 +41,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    AVRDUDE_CONF = Path("/etc/avrdude.conf")
+    AVRDUDE_CONF = args.avrdude_conf
     VERSION_STRING = git_hash()
-    BOARD_SUB = "atmega328" if args.board == "nano" else ""
+    BOARD_SUB = "atmega328old" if args.board == "nano" else ""
 
     ARDUINO_LIBS = []
     CONFIG = []

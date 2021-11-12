@@ -2,13 +2,31 @@
 
 import os
 import sys
+import glob
 import string
 import argparse
 import subprocess
+import re
 from pathlib import Path
 
 
-platforms = ["nano", "uno"]
+def get_valid_boards(arduino_dir):
+    boardstxt_path = glob.glob(str(arduino_dir) + '/**/hardware/arduino/avr/boards.txt', recursive=True)[0]
+    
+    boards_dict = dict()
+    for line in open(boardstxt_path, "r"):
+        board_tag = re.findall("^([a-zA-Z0-9_\-]+).name.*\n", line)
+        if board_tag and board_tag[0] not in boards_dict.keys():
+            boards_dict[board_tag[0]] = []
+
+        board_sub = re.findall(r"([a-zA-Z0-9_\-]+).menu.(?:cpu|chip).([a-zA-Z0-9_\-]+)=.*\n", line)
+        if board_sub:
+            if board_sub[0][0] not in boards_dict.keys():
+                boards_dict[board_sub[0][0]] = [board_sub[0][1]]
+            else:
+                boards_dict[board_sub[0][0]] += [board_sub[0][1]]
+
+    return boards_dict
 
 
 def git_hash():
@@ -37,13 +55,31 @@ if __name__ == "__main__":
             help="Path to the user libs dir")
     parser.add_argument("--with-ds18b20", type=int,
             help="Use DS18B20 temperature sensor at the given pin")
-    parser.add_argument("board", choices=platforms, help="Name of the board")
+    parser.add_argument("board", help="Name of the board")
 
     args = parser.parse_args()
 
     AVRDUDE_CONF = args.avrdude_conf
     VERSION_STRING = git_hash()
-    BOARD_SUB = "atmega328old" if args.board == "nano" else ""
+    
+    boards_dict = get_valid_boards(args.arduino_dir)
+    board = args.board.split('.', 1)
+    
+    if board[0] in boards_dict.keys():
+        BOARD_TAG = board[0]
+    else:
+        raise ValueError("Unknown board '{}'.\nValid boards: {} ".format(board[0],", ".join(boards_dict.keys())))
+    
+    if len(board) == 2:
+        if len(boards_dict[BOARD_TAG]) == 0:
+            raise ValueError("Board '{}' has no subtypes.".format(BOARD_TAG))
+        BOARD_SUB = board[1]
+        if not BOARD_SUB in boards_dict[BOARD_TAG]:
+            raise ValueError("Unknown board subtype '{}'.\nValid subtypes for '{}': {}".format(BOARD_SUB, BOARD_TAG, None if len(boards_dict[BOARD_TAG]) == 0 else ", ".join(boards_dict[BOARD_TAG])))
+    else:
+        BOARD_SUB = ""
+        if len(boards_dict[BOARD_TAG]) > 0:
+            raise ValueError("Board '{}' has subtypes. Use <BOARD_TAG>.<BOARD_SUB> with valid subtype: {}".format(BOARD_TAG, ", ".join(boards_dict[BOARD_TAG])))
 
     ARDUINO_LIBS = []
     CONFIG = []
@@ -62,7 +98,7 @@ if __name__ == "__main__":
                  ARDMK_DIR=args.ardmk_dir,
                  AVR_TOOLS_DIR=args.avr_tools_dir,
                  AVRDUDE_CONF=AVRDUDE_CONF,
-                 BOARD_TAG=args.board,
+                 BOARD_TAG=BOARD_TAG,
                  BOARD_SUB=BOARD_SUB,
                  ARDMK_LOCATION=args.ardmk_dir / "Arduino.mk",
                  USER_LIB_PATH=args.user_lib_path)

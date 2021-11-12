@@ -14,7 +14,7 @@ Initialize and update required library submodules with
 
 Configure the source tree with
 
-    $ ./configure [--with-mock-controller] [uno|nano]
+    $ ./configure [--with-mock-controller] <BOARD_TAG>[.<BOARD_SUB>]
 
 and compile and flash with
 

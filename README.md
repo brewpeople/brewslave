@@ -7,9 +7,14 @@ development and comes with NO WARRANTY.
 
 ## Build
 
+Initialize and update required library submodules with
+
+    $ git submodule init
+    $ git submodule update
+
 Configure the source tree with
 
-    $ ./configure [--with-mock-controller] [uno|nano]
+    $ ./configure [--with-ds18b20 <PIN>] <BOARD_TAG>[.<BOARD_SUB>]
 
 and compile and flash with
 

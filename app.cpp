@@ -1,16 +1,18 @@
-#include <Arduino.h>
 #include "config.h"
+
+#include <Arduino.h>
+
 #include "comm.h"
 #include "controller.h"
+#include "sensor.h"
 
-#if WITH_MOCK_CONTROLLER
-MockController controller;
+#if WITH_DS18B20
+Ds18b20 sensor{DS18B20_PIN};
 #else
-NonExistingDisplay display;
-// This should not only take the display but also the state machine, input
-// devices etc.
-NonExistingController controller{display};
-#endif
+MockTemperatureSensor sensor;
+#endif  // WITH_DS18B20
+
+MockController controller{sensor};
 
 Comm comm{controller};
 

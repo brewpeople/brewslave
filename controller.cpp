@@ -1,13 +1,17 @@
 #include "controller.h"
 
+MockController::MockController(TemperatureSensor& sensor)
+: m_sensor{sensor}
+{}
+
 void MockController::set_temperature(float temperature)
 {
-    m_temperature = temperature;
+    m_target_temperature = temperature;
 }
 
 float MockController::temperature()
 {
-    return m_temperature;
+    return m_sensor.temperature();
 }
 
 void MockController::set_stirrer_on(bool is_on)

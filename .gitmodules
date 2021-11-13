@@ -1,0 +1,9 @@
+[submodule "libs/DallasTemperature"]
+	path = libs/DallasTemperature
+	url = https://github.com/milesburton/Arduino-Temperature-Control-Library
+[submodule "libs/OneWire"]
+	path = libs/OneWire
+	url = https://github.com/adafruit/MAX31850_OneWire
+[submodule "libs/Arduino-Makefile"]
+	path = libs/Arduino-Makefile
+	url = https://github.com/sudar/Arduino-Makefile

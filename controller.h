@@ -1,5 +1,7 @@
 #pragma once
 
+#include "sensor.h"
+
 /**
  * Controller interface.
  */
@@ -53,10 +55,13 @@ public:
 /**
  * A software mock controller that does not access any real hardware.
  *
- * All values are set and returned immediately, i.e there is simulation of a
+ * All values are set immediately, i.e there is simulation of a
  * heating curve.
  */
 class MockController : public Controller {
+public:
+    MockController(TemperatureSensor& sensor);
+
     void set_temperature(float temperature) final;
 
     float temperature() final;
@@ -70,7 +75,8 @@ class MockController : public Controller {
     bool heater_is_on() final;
 
 private:
-    float m_temperature{20.0f};
+    TemperatureSensor& m_sensor;
+    float m_target_temperature{20.0f};
     bool m_stirrer_on{false};
     bool m_heater_on{false};
 };

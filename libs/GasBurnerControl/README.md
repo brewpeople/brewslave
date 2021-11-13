@@ -60,6 +60,16 @@ powering up the relay of the remote reset for a short time. Similar to the
 `GBC_STARTING` state, I was not sure how long it takes to unlock/dejam, a
 small delay after each dejam attempt is included in the code.
 
+This state is somewhat a linear state machine on its own realized in the
+private function `_dejam(unsigned int delay_s)`.
+* Wait pre dejam time (0 s after power-up, 60 s after failed ignition,
+or 10 s for conescutive dejam attempts)
+* Press reset button
+* Wait for `DEJAM_DURATION`
+* Release reset button
+* Wait for `POST_DEJAM_DELAY`
+I refrained from naming these substates.
+
 If this dejam attempt was not successful as well as if the lock/jam occured
 after ignition was running for some time, the next dejam attempt occurs only
 after "approx. 60 s" in line with the datasheet information. If unsuccessful,

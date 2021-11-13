@@ -68,6 +68,7 @@ or 10 s for conescutive dejam attempts)
 * Wait for `DEJAM_DURATION`
 * Release reset button
 * Wait for `POST_DEJAM_DELAY`
+
 I refrained from naming these substates.
 
 If this dejam attempt was not successful as well as if the lock/jam occured

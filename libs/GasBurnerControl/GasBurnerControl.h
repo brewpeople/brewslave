@@ -6,19 +6,7 @@
 
 
 /* OPTIONS */
-#define GBC_HIGH 0                  // logical high (0: GND, 1: VCC)
-#define GBC_LOW 1                   // logical low (0: GND, 1: VCC)
-
 //#define GBC_SERIAL_DEBUG            // if uncommented every update will also send a message over serial
-
-
-/* STATE REPRESENTATIONS (must be unique) */
-#define GBC_IDLE 0
-#define GBC_STARTING 1
-#define GBC_IGNITION 2
-#define GBC_RUNNING 3
-#define GBC_DEJAM 4
-#define GBC_ERROR 5
 
 
 struct gbc_settings {

@@ -1,22 +1,12 @@
 #include "GasBurnerControl.h"
-#include "Arduino.h"
 
-
-
-
-// GasBurnerControl::GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings settings)
-// : m_settings{settings}
-// {
-    // m_settings = settings;
-    // GasBurnerControl(powerPin, dejamPin, jammedPin, valvePin, ignitionPin);
-// };
 
 GasBurnerControl::GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings settings = {})
-: _powerPin{powerPin}
-, _dejamPin{dejamPin}
-, _jammedPin{jammedPin}
-, _valvePin{valvePin}
-, _ignitionPin{ignitionPin}
+: m_powerPin{powerPin}
+, m_dejamPin{dejamPin}
+, m_jammedPin{jammedPin}
+, m_valvePin{valvePin}
+, m_ignitionPin{ignitionPin}
 , m_settings{settings}
 {
     pinMode(powerPin, OUTPUT);
@@ -30,14 +20,17 @@ GasBurnerControl::GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin,
     stop();
 }
 
-// GasBurnerControl::getSettings() {
-    // return m_settings;
-// }
 
-// GasBurnerControl::setSettings(gbc_settings settings) {
+gbc_settings GasBurnerControl::getSettings() {
+    return m_settings;
+}
+
+void GasBurnerControl::setSettings(gbc_settings new_settings) {
     // TODO: plausiblity check here?
-    // m_settings = settings;
-// };
+    m_settings = new_settings;
+    Serial.print("updated settings");
+    Serial.println(m_settings.startDelay);
+}
 
 
 
@@ -59,19 +52,19 @@ void GasBurnerControl::_dejam(unsigned int delay_s) {
         #ifdef GBC_SERIAL_DEBUG
         Serial.println("|--Dejamming now");
         #endif
-        bool dejamRead = digitalRead(_dejamPin);
+        bool dejamRead = digitalRead(m_dejamPin);
         if((dejamRead == GBC_LOW) & (_dejamTimer == 0)) {
             #ifdef GBC_SERIAL_DEBUG
             Serial.println("|---Press dejam button now");
             #endif
-            digitalWrite(_dejamPin, GBC_HIGH);  // press dejam button
+            digitalWrite(m_dejamPin, GBC_HIGH);  // press dejam button
             _dejamTimer = millis();
         } else if(dejamRead == GBC_HIGH) {
-            if(millis() - _dejamTimer >= GBC_DEJAM_DURATION) {
+            if(millis() - _dejamTimer >= m_settings.dejamDuration) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|---Release dejam button now");
                 #endif
-                digitalWrite(_dejamPin, GBC_LOW);
+                digitalWrite(m_dejamPin, GBC_LOW);
                 _dejamTimer = millis(); 
             } else {
                 // wait for dejam press duration to pass
@@ -83,7 +76,7 @@ void GasBurnerControl::_dejam(unsigned int delay_s) {
             #ifdef GBC_SERIAL_DEBUG
             Serial.println("|---Post dejam delay");
             #endif
-            if(millis() - _dejamTimer >= GBC_POST_DEJAM_DELAY) {
+            if(millis() - _dejamTimer >= m_settings.postDejamDelay) {
                 // dejam should be completed, reset dejam related timers
                 _dejamCounter += 1;
                 _dejamTimer = 0;
@@ -125,8 +118,8 @@ void GasBurnerControl::start() {
     _startTime = millis();
     _ignitionStartTime = 0;
     _state = GBC_STARTING;
-    digitalWrite(_dejamPin, GBC_LOW);
-    digitalWrite(_powerPin, GBC_HIGH);
+    digitalWrite(m_dejamPin, GBC_LOW);
+    digitalWrite(m_powerPin, GBC_HIGH);
 }
 
 
@@ -139,8 +132,8 @@ void GasBurnerControl::stop() {
     _startTime = 0;
     _ignitionStartTime = 0;
     _state = GBC_IDLE;
-    digitalWrite(_dejamPin, GBC_LOW);
-    digitalWrite(_powerPin, GBC_LOW);
+    digitalWrite(m_dejamPin, GBC_LOW);
+    digitalWrite(m_powerPin, GBC_LOW);
 }
 
 
@@ -149,18 +142,18 @@ void GasBurnerControl::update() {
     Serial.println(m_settings.startDelay);
     
     // TODO: do I have to store these as class variables? maybe not necessary (can be local)
-    _valve = digitalRead(_valvePin);
-    _jammed = digitalRead(_jammedPin);
-    _ignition = digitalRead(_ignitionPin);
+    _valve = digitalRead(m_valvePin);
+    _jammed = digitalRead(m_jammedPin);
+    _ignition = digitalRead(m_ignitionPin);
   
     switch (_state) {
         case GBC_IDLE:
-            if(digitalRead(_powerPin) == GBC_LOW) {                 // state where Burner is regular off
+            if(digitalRead(m_powerPin) == GBC_LOW) {                 // state where Burner is regular off
                 // pass
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println(">Burner regular off");
                 #endif
-            } else if(digitalRead(_powerPin) == GBC_HIGH) {         // state where Burner was powered on outside of class
+            } else if(digitalRead(m_powerPin) == GBC_HIGH) {         // state where Burner was powered on outside of class
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println(">Burner external on");
                 #endif
@@ -173,7 +166,7 @@ void GasBurnerControl::update() {
             Serial.println(">Burner starting");
             #endif
             // wait some time after power on before checking the status
-            if(millis() - _startTime >= GBC_START_DELAY * 1000) {
+            if(millis() - _startTime >= m_settings.startDelay * 1000) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Burner start delay passed");
                 #endif
@@ -214,7 +207,7 @@ void GasBurnerControl::update() {
                 #endif
                 _state = GBC_DEJAM;
             } else if(_jammed == GBC_LOW) {
-                if(millis() - _ignitionStartTime >= GBC_IGNITION_DELAY * 1000) {     // * 20 s ignition valve still on --> state change to RUNNING
+                if(millis() - _ignitionStartTime >= m_settings.ignitionDuration * 1000) {     // * 20 s ignition valve still on --> state change to RUNNING
                     if((_jammed == GBC_LOW) & (_valve == GBC_HIGH)) {
                         _ignitionCounter = 0;
                         _dejamCounter = 1;
@@ -262,7 +255,7 @@ void GasBurnerControl::update() {
             // * case ignitionCounter == 0 -> first dejam attempt right away, do not increase dejamCounter
             // * case ignitionCounter > 0 -> wait 60+X s before first dejam attempt
     
-            if((_ignitionCounter >= GBC_N_IGNITION_ATTEMPTS) | (_dejamCounter > GBC_N_DEJAM_ATTEMPTS)) {
+            if((_ignitionCounter >= m_settings.nIgnitionAttempts) | (_dejamCounter > m_settings.nDejamAttempts)) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Exceeded ignition or dejam attempts: DEJAM -> ERROR");
                 #endif
@@ -276,12 +269,12 @@ void GasBurnerControl::update() {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Dejam after first delay (65ish s?)");
                 #endif
-                _dejam(GBC_DEJAM_DELAY);
+                _dejam(m_settings.dejamDelay1);
             } else if(_dejamCounter > 1) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Dejam secondary attempt 10s delay");
                 #endif
-                _dejam(GBC_DEJAM_DELAY2);
+                _dejam(m_settings.dejamDelay2);
             } else {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Unknown Dejam state error: DEJAM -> ERROR");
@@ -295,8 +288,8 @@ void GasBurnerControl::update() {
             Serial.println(">Burner error state");
             #endif
             // power down but stay in this state
-            digitalWrite(_powerPin, GBC_LOW);
-            digitalWrite(_dejamPin, GBC_LOW);
+            digitalWrite(m_powerPin, GBC_LOW);
+            digitalWrite(m_dejamPin, GBC_LOW);
             break;
         
         

@@ -1,13 +1,13 @@
 #include "GasBurnerControl.h"
 
-
+#ifdef WITH_GBC
 GasBurnerControl::GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings settings)
 : m_powerPin{powerPin}
 , m_dejamPin{dejamPin}
 , m_jammedPin{jammedPin}
 , m_valvePin{valvePin}
 , m_ignitionPin{ignitionPin}
-, m_settings{settings}
+, m_settings{settings}          // TODO: plausibility check similar to 'setSettings'
 {
     pinMode(powerPin, OUTPUT);
     pinMode(dejamPin, OUTPUT);
@@ -327,3 +327,4 @@ GasBurnerControlState GasBurnerControl::getState() {
 unsigned int GasBurnerControl::getFullState() {
     return (unsigned int) m_state * 100 + _ignitionCounter * 10 + _dejamCounter;
 }
+#endif

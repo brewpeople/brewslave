@@ -60,6 +60,7 @@ enum class GasBurnerControlState {
 };
 
 
+#ifdef WITH_GBC
 class GasBurnerControl
 {
     public:
@@ -99,4 +100,46 @@ class GasBurnerControl
 
         void _dejam(unsigned int delay_s);
 };
-#endif
+
+
+#else
+class GasBurnerControl{
+    public:
+        GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings={}) {};
+        void start() {};
+        void stop() {};
+        void update() {
+            if(millis() - _lastStateChangeTime >= 2000) {
+                _lastStateChangeTime = millis();
+                byte mock_main_state = rand() % 6;
+                byte mock_substate = 0;
+                if(mock_main_state == 4) {
+                    mock_substate = rand() % 4 + 1;
+                } else if(mock_main_state == 5) {
+                    mock_substate = rand() % 3 + 1;
+                }
+                m_state = static_cast<GasBurnerControlState> (mock_main_state * 10 + mock_substate);
+                if(mock_main_state > 0) {
+                    _ignitionCounter = rand() % 4;
+                    _dejamCounter = rand() % 4;
+                } else {
+                    _ignitionCounter = 0;
+                    _dejamCounter = 0;
+                }
+            }
+        };
+        GasBurnerControlState getState() {
+             return m_state;
+        };
+        unsigned int getFullState() {
+            return (unsigned int) m_state * 100 + _ignitionCounter * 10 + _dejamCounter;
+        };
+    private:
+        GasBurnerControlState m_state;
+        byte _ignitionCounter;
+        byte _dejamCounter;
+        unsigned long _lastStateChangeTime{0};
+};
+#endif // #ifdef WITH_GBC
+
+#endif // #ifnedf GasBurnerControl_h

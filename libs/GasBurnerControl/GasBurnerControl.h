@@ -9,7 +9,7 @@
 #define GBC_HIGH 0                  // logical high (0: GND, 1: VCC)
 #define GBC_LOW 1                   // logical low (0: GND, 1: VCC)
 
-#define GBC_SERIAL_DEBUG            // if uncommented every update will also send a message over serial
+//#define GBC_SERIAL_DEBUG            // if uncommented every update will also send a message over serial
 
 
 /* STATE REPRESENTATIONS (must be unique) */
@@ -45,11 +45,18 @@ struct gbc_settings {
 
 enum class GasBurnerControlState {
     idle = 0,
-    starting = 1,
-    ignition = 2,
-    running = 3,
-    dejam = 4,
-    error = 5
+    starting = 10,
+    ignition = 20,
+    running = 30,
+    any_dejam = 4,
+    dejam_start = 41,
+    dejam_pre_delay = 42,
+    dejam_button_pressed = 43,
+    dejam_post_delay = 44,
+    any_error = 5,
+    error_start = 51,
+    error_ignition = 52,
+    error_other = 53
 };
 
 
@@ -59,11 +66,12 @@ class GasBurnerControl
         GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings={});
         // GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin);
         gbc_settings getSettings();
-        void setSettings(gbc_settings new_settings);
+        bool setSettings(gbc_settings new_settings);
         void start();
         void stop();
         void update();
         GasBurnerControlState getState();
+        unsigned int getFullState();
 
 
     private:

@@ -166,11 +166,11 @@ I left them in the code for now. Should be cleaned up after field test.
 
 
 ## Possible Enhancements
-- [ ] Differentiate between different error states? You may land ind `GBC_ERROR`
+- [x] Differentiate between different error states? You may land ind `GBC_ERROR`
 but there is no feedback as to why this state was reached.
-    - [ ] Error if ignition never started
-    - [ ] Error if ignition was attempted but unsuccessful
-    - [ ] Error if unplausible state was reached -> likely wrong wiringg
+    - [x] Error if ignition never started
+    - [x] Error if ignition was attempted but unsuccessful
+    - [x] Error if unplausible state was reached -> likely wrong wiringg
 - [ ] Make counter for dejam and ignition attempts readable from outside?
 
 

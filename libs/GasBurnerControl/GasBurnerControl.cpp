@@ -53,18 +53,18 @@ void GasBurnerControl::_dejam(unsigned int delay_s) {
         Serial.println("|--Dejamming now");
         #endif
         bool dejamRead = digitalRead(m_dejamPin);
-        if((dejamRead == GBC_LOW) & (_dejamTimer == 0)) {
+        if((dejamRead == m_settings.low()) & (_dejamTimer == 0)) {
             #ifdef GBC_SERIAL_DEBUG
             Serial.println("|---Press dejam button now");
             #endif
-            digitalWrite(m_dejamPin, GBC_HIGH);  // press dejam button
+            digitalWrite(m_dejamPin, m_settings.high());  // press dejam button
             _dejamTimer = millis();
-        } else if(dejamRead == GBC_HIGH) {
+        } else if(dejamRead == m_settings.high()) {
             if(millis() - _dejamTimer >= m_settings.dejamDuration) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|---Release dejam button now");
                 #endif
-                digitalWrite(m_dejamPin, GBC_LOW);
+                digitalWrite(m_dejamPin, m_settings.low());
                 _dejamTimer = millis(); 
             } else {
                 // wait for dejam press duration to pass
@@ -72,7 +72,7 @@ void GasBurnerControl::_dejam(unsigned int delay_s) {
                 Serial.println("|---Wait for dejam button release");
                 #endif
             }
-        } else if((dejamRead == GBC_LOW) & (_dejamTimer > 0)) {
+        } else if((dejamRead == m_settings.low()) & (_dejamTimer > 0)) {
             #ifdef GBC_SERIAL_DEBUG
             Serial.println("|---Post dejam delay");
             #endif
@@ -118,8 +118,8 @@ void GasBurnerControl::start() {
     _startTime = millis();
     _ignitionStartTime = 0;
     _state = GBC_STARTING;
-    digitalWrite(m_dejamPin, GBC_LOW);
-    digitalWrite(m_powerPin, GBC_HIGH);
+    digitalWrite(m_dejamPin, m_settings.low());
+    digitalWrite(m_powerPin, m_settings.high());
 }
 
 
@@ -132,8 +132,8 @@ void GasBurnerControl::stop() {
     _startTime = 0;
     _ignitionStartTime = 0;
     _state = GBC_IDLE;
-    digitalWrite(m_dejamPin, GBC_LOW);
-    digitalWrite(m_powerPin, GBC_LOW);
+    digitalWrite(m_dejamPin, m_settings.low());
+    digitalWrite(m_powerPin, m_settings.low());
 }
 
 
@@ -148,12 +148,12 @@ void GasBurnerControl::update() {
   
     switch (_state) {
         case GBC_IDLE:
-            if(digitalRead(m_powerPin) == GBC_LOW) {                 // state where Burner is regular off
+            if(digitalRead(m_powerPin) == m_settings.low()) {                 // state where Burner is regular off
                 // pass
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println(">Burner regular off");
                 #endif
-            } else if(digitalRead(m_powerPin) == GBC_HIGH) {         // state where Burner was powered on outside of class
+            } else if(digitalRead(m_powerPin) == m_settings.high()) {         // state where Burner was powered on outside of class
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println(">Burner external on");
                 #endif
@@ -170,7 +170,7 @@ void GasBurnerControl::update() {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Burner start delay passed");
                 #endif
-                if((_jammed == GBC_LOW) & ((_ignition == GBC_HIGH) | (_valve == GBC_HIGH))) {   // Burner is regular on and attempting ignition
+                if((_jammed == m_settings.low()) & ((_ignition == m_settings.high()) | (_valve == m_settings.high()))) {   // Burner is regular on and attempting ignition
                     #ifdef GBC_SERIAL_DEBUG
                     Serial.println(">State Change: STARTING -> IGNITION");
                     #endif
@@ -178,7 +178,7 @@ void GasBurnerControl::update() {
                     _ignitionStartTime = millis();
                     _ignitionCounter += 1;
                     _dejamCounter = 1;    // skips immediate dejam attempt
-                } else if((_jammed == GBC_HIGH) & (_ignition == GBC_LOW) & (_valve == GBC_LOW)) {
+                } else if((_jammed == m_settings.high()) & (_ignition == m_settings.low()) & (_valve == m_settings.low())) {
                     #ifdef GBC_SERIAL_DEBUG
                     Serial.println(">State Change: STARTING -> DEJAM");
                     #endif
@@ -201,14 +201,14 @@ void GasBurnerControl::update() {
             #ifdef GBC_SERIAL_DEBUG
             Serial.println(">Burner Ignition");
             #endif
-            if(_jammed == GBC_HIGH) {                                                       // * at any time if jammed is HIGH, state change to DEJAM
+            if(_jammed == m_settings.high()) {                                                       // * at any time if jammed is HIGH, state change to DEJAM
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println(">State Change: IGNITION -> DEJAM");
                 #endif
                 _state = GBC_DEJAM;
-            } else if(_jammed == GBC_LOW) {
+            } else if(_jammed == m_settings.low()) {
                 if(millis() - _ignitionStartTime >= m_settings.ignitionDuration * 1000) {     // * 20 s ignition valve still on --> state change to RUNNING
-                    if((_jammed == GBC_LOW) & (_valve == GBC_HIGH)) {
+                    if((_jammed == m_settings.low()) & (_valve == m_settings.high())) {
                         _ignitionCounter = 0;
                         _dejamCounter = 1;
                         _state = GBC_RUNNING;
@@ -238,7 +238,7 @@ void GasBurnerControl::update() {
             Serial.println(">Burner running");
             #endif
             // continue checking for error
-            if(_jammed == GBC_HIGH) {
+            if(_jammed == m_settings.high()) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println(">State change: RUNNING -> DEJAM");
                 #endif
@@ -288,8 +288,8 @@ void GasBurnerControl::update() {
             Serial.println(">Burner error state");
             #endif
             // power down but stay in this state
-            digitalWrite(m_powerPin, GBC_LOW);
-            digitalWrite(m_dejamPin, GBC_LOW);
+            digitalWrite(m_powerPin, m_settings.low());
+            digitalWrite(m_dejamPin, m_settings.low());
             break;
         
         

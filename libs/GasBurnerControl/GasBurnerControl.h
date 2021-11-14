@@ -31,6 +31,15 @@ struct gbc_settings {
     byte ignitionDuration{22};          // s, time after which ignition should be complete
     unsigned int dejamDuration{1000};   // ms, duration of button press during dejamming
     unsigned int postDejamDelay{1000};  // ms, delay after dejam button release
+    
+    bool invertLogicLevel{true};
+    
+    int high() {
+        return invertLogicLevel ? 0 : 1;
+    };
+    int low() {
+        return invertLogicLevel ? 1 : 0;
+    };
 };
 
 

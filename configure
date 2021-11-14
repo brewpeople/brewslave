@@ -70,6 +70,13 @@ class Config:
 
             self.with_ds18b20 = config.has_section("ds18b20")
             self.ds18b20_pin = config["ds18b20"].getint("pin") if self.with_ds18b20 else None
+
+            self.with_sh1106 = config.has_section("sh1106")
+            self.sh1106_rst = config["sh1106"].getint("rst") if self.with_sh1106 else None
+            self.sh1106_dc = config["sh1106"].getint("dc") if self.with_sh1106 else None
+            self.sh1106_cs = config["sh1106"].getint("cs") if self.with_sh1106 else None
+            self.sh1106_din = config["sh1106"].getint("din") if self.with_sh1106 else None
+            self.sh1106_clk = config["sh1106"].getint("clk") if self.with_sh1106 else None
         except KeyError as e:
             raise ValueError(f"Could not find configuration entry: {e}")
 
@@ -107,6 +114,16 @@ if __name__ == "__main__":
         ARDUINO_LIBS.append("DallasTemperature")
         CONFIG.append("#define WITH_DS18B20 1")
         CONFIG.append(f"#define DS18B20_PIN {config.ds18b20_pin}")
+
+    if config.with_sh1106:
+        ARDUINO_LIBS.append("SPI")
+        ARDUINO_LIBS.append("sh1106")
+        CONFIG.append("#define WITH_SH1106 1")
+        CONFIG.append(f"#define SH1106_RST {config.sh1106_rst}")
+        CONFIG.append(f"#define SH1106_DC {config.sh1106_dc}")
+        CONFIG.append(f"#define SH1106_CS {config.sh1106_cs}")
+        CONFIG.append(f"#define SH1106_DIN {config.sh1106_din}")
+        CONFIG.append(f"#define SH1106_CLK {config.sh1106_clk}")
 
     with Path("Makefile").open("w") as f:
         template = string.Template(open("Makefile.in").read())

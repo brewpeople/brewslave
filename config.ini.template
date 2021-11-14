@@ -1,0 +1,18 @@
+# Template for a `configure` configuration. The only required key is
+# [general].board. However, you will most likely want to adjust the
+# [general].arduino_dir path pointing to your Arduino distribution.
+
+[general]
+# arduino_dir =
+# avr_tools_dir =
+# avrdude_conf =
+board = nano
+# sub = atmega328
+
+# By default these point to the ./libs dir, so no need to adjust them. Change
+# only if you know what you are doing.
+# ardmk_dir =
+# user_lib_path =
+
+# [ds18b20]
+# pin = 2

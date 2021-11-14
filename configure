@@ -6,19 +6,24 @@ import glob
 import string
 import argparse
 import subprocess
+import configparser
 import re
 from collections import defaultdict
 from pathlib import Path
 
 
 def get_valid_boards(arduino_dir):
-    boardstxt_path = next(arduino_dir.glob("**/hardware/arduino/avr/boards.txt"))
+    path = arduino_dir / "hardware/arduino/avr/boards.txt"
+
+    if not path.exists():
+        raise RuntimeError(f"Could not find {path}")
+
     bt = defaultdict(list)
 
     name_expression = re.compile(r"^([\w\d_\-]+)\.name.*$")
     sub_expression = re.compile(r"^([\w\d_\-]+)\.menu\.(?:cpu|chip)\.([\w\d_\-]+)=.*$")
 
-    for line in boardstxt_path.open():
+    for line in path.open():
         name_match = name_expression.match(line)
         sub_match = sub_expression.match(line)
 
@@ -41,74 +46,80 @@ def git_hash():
     return hash[:4]
 
 
+class Config:
+    def __init__(self, path: Path):
+        config = configparser.ConfigParser()
+        config.read(path)
+
+        def get_path(section, option, default):
+            path = Path(config[section].get(option, default))
+
+            if not path.exists():
+                raise RuntimeError(f"{path} does not exist")
+
+            return path
+
+        try:
+            self.arduino_dir = get_path("general", "arduino_dir", "/usr/share/arduino")
+            self.ardmk_dir = get_path("general", "ardmk_dir", "./libs/Arduino-Makefile").absolute()
+            self.avr_tools_dir = get_path("general", "avr_tools_dir", "/usr")
+            self.avrdude_conf = get_path("general", "avrdude_conf", "/etc/avrdude.conf")
+            self.user_lib_path = get_path("general", "user_lib_path", "./libs").absolute()
+            self.board = config["general"].get("board")
+            self.sub = config["general"].get("sub", None)
+
+            self.with_ds18b20 = config.has_section("ds18b20")
+            self.ds18b20_pin = config["ds18b20"].getint("pin") if self.with_ds18b20 else None
+        except KeyError as e:
+            raise ValueError(f"Could not find configuration entry: {e}")
+
+        boards = get_valid_boards(self.arduino_dir)
+
+        if self.board not in boards:
+            raise ValueError(f"Unknown board '{self.board}', valid boards: {', '.join(boards.keys())}")
+
+        subs = boards[self.board]
+
+        if subs and not self.sub:
+            raise ValueError(f"Board '{self.board}' has subtypes, specify one of {', '.join(subs)}")
+
+        if self.sub and self.sub not in subs:
+            raise ValueError(f"Unknown board subtype '{self.sub}', valid subtypes for '{self.board}': {', '.join(subs)}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
-    parser.add_argument("--arduino-dir", type=Path,
-            default=Path("/usr/share/arduino"),
-            help="Root of the Arduino distribution")
-    parser.add_argument("--ardmk-dir", type=Path,
-            default=Path("./libs/Arduino-Makefile").absolute(),
-            help="Path to the location of Arduino.mk")
-    parser.add_argument("--avr-tools-dir", type=Path,
-            default=Path("/usr"),
-            help="Path to the AVR tools directory")
-    parser.add_argument("--avrdude-conf", type=Path,
-            default=Path("/etc/avrdude.conf"),
-            help="Path to avrdude.conf")
-    parser.add_argument("--user-lib-path", type=Path,
-            default=Path("./libs").absolute(),
-            help="Path to the user libs dir")
-    parser.add_argument("--with-ds18b20", type=int,
-            help="Use DS18B20 temperature sensor at the given pin")
-    parser.add_argument("board", help="Name of the board")
-
+    parser.add_argument("config", type=Path, help="Configuration file (see config.ini.template)")
     args = parser.parse_args()
 
-    AVRDUDE_CONF = args.avrdude_conf
+    try:
+        config = Config(args.config)
+    except ValueError as e:
+        sys.stderr.write(f"Error: {e}\n")
+        sys.exit(1)
+
     VERSION_STRING = git_hash()
-
-    boards_dict = get_valid_boards(args.arduino_dir)
-    board = args.board.split('.', 1)
-    BOARD_TAG, *rest = args.board.split(".")
-    BOARD_SUB = rest[0] if rest else ""
-
-    if not BOARD_TAG in boards_dict:
-        raise ValueError(f"Unknown board '{BOARD_TAG}'.\nValid boards: {', '.join(boards_dict.keys())}")
-
-    subs = boards_dict[BOARD_TAG]
-
-    if subs and not BOARD_SUB:
-        raise ValueError(f"Board '{BOARD_TAG}' has subtypes. Use <BOARD_TAG>.<BOARD_SUB> with valid subtype: {', '.join(subs)}")
-
-    if BOARD_SUB:
-        if not subs:
-            raise ValueError(f"Board '{BOARD_TAG}' has no subtypes.")
-
-        if not BOARD_SUB in subs:
-            raise ValueError(f"Unknown board subtype '{BOARD_SUB}'.\nValid subtypes for '{BOARD_TAG}': {', '.join(subs)}")
-
     ARDUINO_LIBS = []
     CONFIG = []
 
-    if args.with_ds18b20 is not None:
+    if config.with_ds18b20:
         ARDUINO_LIBS.append("OneWire")
         ARDUINO_LIBS.append("DallasTemperature")
         CONFIG.append("#define WITH_DS18B20 1")
-        CONFIG.append(f"#define DS18B20_PIN {args.with_ds18b20}")
+        CONFIG.append(f"#define DS18B20_PIN {config.ds18b20_pin}")
 
     with Path("Makefile").open("w") as f:
         template = string.Template(open("Makefile.in").read())
 
-        d = dict(ARDUINO_DIR=args.arduino_dir,
+        d = dict(ARDUINO_DIR=config.arduino_dir,
                  ARDUINO_LIBS=" ".join(ARDUINO_LIBS),
-                 ARDMK_DIR=args.ardmk_dir,
-                 AVR_TOOLS_DIR=args.avr_tools_dir,
-                 AVRDUDE_CONF=AVRDUDE_CONF,
-                 BOARD_TAG=BOARD_TAG,
-                 BOARD_SUB=BOARD_SUB,
-                 ARDMK_LOCATION=args.ardmk_dir / "Arduino.mk",
-                 USER_LIB_PATH=args.user_lib_path)
+                 ARDMK_DIR=config.ardmk_dir,
+                 AVR_TOOLS_DIR=config.avr_tools_dir,
+                 AVRDUDE_CONF=config.avrdude_conf,
+                 BOARD_TAG=config.board,
+                 BOARD_SUB=config.sub or "",
+                 ARDMK_LOCATION=config.ardmk_dir / "Arduino.mk",
+                 USER_LIB_PATH=config.user_lib_path)
 
         f.write(template.safe_substitute(d))
 

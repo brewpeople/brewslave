@@ -12,7 +12,7 @@
 #define GBC_HIGH 0                  // logical high (0: GND, 1: VCC)
 #define GBC_LOW 1                   // logical low (0: GND, 1: VCC)
 
-#define GBC_SERIAL_DEBUG            // if uncommented every update will also send a message over serial
+// #define GBC_SERIAL_DEBUG            // if uncommented every update will also send a message over serial
 
 
 /* TIMER SETTINGS */
@@ -33,10 +33,22 @@
 #define GBC_ERROR 5
 
 
+
+struct gbc_settings {
+    byte startDelay{2};                 // s, initial delay after powering the GBC
+    byte dejamDelay1{65};               // s, wait time until dejamming is possible
+    byte dejamDelay2{10};               // s, wait time between additional dejam attempts
+    byte ignitionDuration{22};          // s, time after which ignition should be complete
+    unsigned int dejamDuration{1000};   // ms, duration of button press during dejamming
+    unsigned int postDejamDelay{1000};  // ms, delay after dejam button release
+};
+
+
 class GasBurnerControl
 {
     public:
-        GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin);
+        GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings={});
+        // GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin);
         void start();
         void stop();
         void update();
@@ -49,6 +61,8 @@ class GasBurnerControl
         byte _jammedPin;
         byte _valvePin;
         byte _ignitionPin;
+        
+        gbc_settings m_settings;
     
         byte _ignitionCounter;
         byte _dejamCounter;

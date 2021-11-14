@@ -139,7 +139,7 @@ TBD
 
 ## ToDo
 - [ ] Let someone with programming skills review my code :D
-- [ ] Check if all the `this->` pointers to library variables are necessary.
+- [x] Check if all the `this->` pointers to library variables are necessary.
 - [ ] Add library and argument to `./configure` script. (Shall/can we pass all
 five required pins as argument similar to `--add-ds18b20`?
 - [ ] Test all states and transitions with hardware.
@@ -150,6 +150,9 @@ I left them in the code for now. Should be cleaned up after field test.
 ## Possible Enhancements
 - [ ] Differentiate between different error states? You may land ind `GBC_ERROR`
 but there is no feedback as to why this state was reached.
+    - [ ] Error if ignition never started
+    - [ ] Error if ignition was attempted but unsuccessful
+    - [ ] Error if unplausible state was reached -> likely wrong wiringg
 - [ ] Make counter for dejam and ignition attempts readable from outside?
 
 

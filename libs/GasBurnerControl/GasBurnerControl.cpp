@@ -1,7 +1,7 @@
 #include "GasBurnerControl.h"
 
 
-GasBurnerControl::GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings settings = {})
+GasBurnerControl::GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings settings)
 : m_powerPin{powerPin}
 , m_dejamPin{dejamPin}
 , m_jammedPin{jammedPin}
@@ -28,8 +28,6 @@ gbc_settings GasBurnerControl::getSettings() {
 void GasBurnerControl::setSettings(gbc_settings new_settings) {
     // TODO: plausiblity check here?
     m_settings = new_settings;
-    Serial.print("updated settings");
-    Serial.println(m_settings.startDelay);
 }
 
 
@@ -81,7 +79,7 @@ void GasBurnerControl::_dejam(unsigned int delay_s) {
                 _dejamCounter += 1;
                 _dejamTimer = 0;
                 _nextDejamAttemptTime = 0;
-                _state = GBC_STARTING;
+                m_state = GasBurnerControlState::starting;
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.print("|----Dejamming attempt ");
                 Serial.print(_dejamCounter);
@@ -98,7 +96,7 @@ void GasBurnerControl::_dejam(unsigned int delay_s) {
             Serial.println("|---Dejam attempt error");
             #endif
             // something went wrong
-            _state = GBC_ERROR;
+            m_state = GasBurnerControlState::error;
         }
     } else {
         // do nothing
@@ -117,7 +115,7 @@ void GasBurnerControl::start() {
     _dejamCounter = 0;
     _startTime = millis();
     _ignitionStartTime = 0;
-    _state = GBC_STARTING;
+    m_state = GasBurnerControlState::starting;
     digitalWrite(m_dejamPin, m_settings.low());
     digitalWrite(m_powerPin, m_settings.high());
 }
@@ -131,23 +129,20 @@ void GasBurnerControl::stop() {
     _dejamCounter = 0;
     _startTime = 0;
     _ignitionStartTime = 0;
-    _state = GBC_IDLE;
+    m_state = GasBurnerControlState::idle;
     digitalWrite(m_dejamPin, m_settings.low());
     digitalWrite(m_powerPin, m_settings.low());
 }
 
 
 void GasBurnerControl::update() {
-    // TODO: TESTSTUFF
-    Serial.println(m_settings.startDelay);
-    
     // TODO: do I have to store these as class variables? maybe not necessary (can be local)
     _valve = digitalRead(m_valvePin);
     _jammed = digitalRead(m_jammedPin);
     _ignition = digitalRead(m_ignitionPin);
   
-    switch (_state) {
-        case GBC_IDLE:
+    switch (m_state) {
+        case GasBurnerControlState::idle:
             if(digitalRead(m_powerPin) == m_settings.low()) {                 // state where Burner is regular off
                 // pass
                 #ifdef GBC_SERIAL_DEBUG
@@ -161,7 +156,7 @@ void GasBurnerControl::update() {
             }
             break;
         
-        case GBC_STARTING:                                          // state startup when Burner was powered on  
+        case GasBurnerControlState::starting:                                          // state startup when Burner was powered on  
             #ifdef GBC_SERIAL_DEBUG
             Serial.println(">Burner starting");
             #endif
@@ -174,20 +169,20 @@ void GasBurnerControl::update() {
                     #ifdef GBC_SERIAL_DEBUG
                     Serial.println(">State Change: STARTING -> IGNITION");
                     #endif
-                    _state = GBC_IGNITION;
                     _ignitionStartTime = millis();
                     _ignitionCounter += 1;
                     _dejamCounter = 1;    // skips immediate dejam attempt
+                    m_state = GasBurnerControlState::ignition;
                 } else if((_jammed == m_settings.high()) & (_ignition == m_settings.low()) & (_valve == m_settings.low())) {
                     #ifdef GBC_SERIAL_DEBUG
                     Serial.println(">State Change: STARTING -> DEJAM");
                     #endif
-                    _state = GBC_DEJAM;
+                    m_state = GasBurnerControlState::dejam;
                 } else {
                     #ifdef GBC_SERIAL_DEBUG
                     Serial.println(">State Change: STARTING -> ERROR");
                     #endif
-                    _state = GBC_ERROR;
+                    m_state = GasBurnerControlState::error;
                 }
             } else {
                 // pass; do nothing until Burner is powered up
@@ -197,7 +192,7 @@ void GasBurnerControl::update() {
             }
             break;
             
-        case GBC_IGNITION:
+        case GasBurnerControlState::ignition:
             #ifdef GBC_SERIAL_DEBUG
             Serial.println(">Burner Ignition");
             #endif
@@ -205,19 +200,20 @@ void GasBurnerControl::update() {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println(">State Change: IGNITION -> DEJAM");
                 #endif
-                _state = GBC_DEJAM;
+                m_state = GasBurnerControlState::dejam;
             } else if(_jammed == m_settings.low()) {
                 if(millis() - _ignitionStartTime >= m_settings.ignitionDuration * 1000) {     // * 20 s ignition valve still on --> state change to RUNNING
                     if((_jammed == m_settings.low()) & (_valve == m_settings.high())) {
                         _ignitionCounter = 0;
                         _dejamCounter = 1;
-                        _state = GBC_RUNNING;
+                        m_state = GasBurnerControlState::running;
+                        
                     } else {
                         #ifdef GBC_SERIAL_DEBUG
                         Serial.println("|-Ignition error A -> ERROR state");
                         #endif
                         // unknown error  ---> TODO: is this realy an error? --> should i ever land here, because jam was checked at beginnig of this state
-                        _state = GBC_ERROR;
+                        m_state = GasBurnerControlState::error;
                     }
                 } else {
                     // ignition in progress but not yet completed
@@ -230,10 +226,11 @@ void GasBurnerControl::update() {
                 Serial.println("|-Ignition error B -> ERROR state");
                 #endif
                 // unknown error
-                _state = GBC_ERROR; 
+                m_state = GasBurnerControlState::error; 
             }
             break;
-        case GBC_RUNNING:
+
+        case GasBurnerControlState::running:
             #ifdef GBC_SERIAL_DEBUG
             Serial.println(">Burner running");
             #endif
@@ -242,13 +239,13 @@ void GasBurnerControl::update() {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println(">State change: RUNNING -> DEJAM");
                 #endif
-                _state = GBC_DEJAM;
+                m_state = GasBurnerControlState::dejam;
             } else {
                 // pass; flame is burning
             }
             break;
         
-        case GBC_DEJAM:
+        case GasBurnerControlState::dejam:
             #ifdef GBC_SERIAL_DEBUG
             Serial.println(">Burner dejam state");
             #endif
@@ -259,7 +256,7 @@ void GasBurnerControl::update() {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Exceeded ignition or dejam attempts: DEJAM -> ERROR");
                 #endif
-                _state = GBC_ERROR;
+                m_state = GasBurnerControlState::error;
             } else if((_ignitionCounter == 0) & (_dejamCounter == 0)) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Dejam immediately at first start");
@@ -279,11 +276,11 @@ void GasBurnerControl::update() {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Unknown Dejam state error: DEJAM -> ERROR");
                 #endif
-                _state = GBC_ERROR;
+                m_state = GasBurnerControlState::error;
             }
             break;
         
-        case GBC_ERROR:
+        case GasBurnerControlState::error:
             #ifdef GBC_SERIAL_DEBUG
             Serial.println(">Burner error state");
             #endif
@@ -293,17 +290,17 @@ void GasBurnerControl::update() {
             break;
         
         
-        default:                                            // any other not defined state is changed to error state
+        default:                                            // any other not defined state is changed to error state, TODO: do i need this with enum class states?
             #ifdef GBC_SERIAL_DEBUG
             Serial.println(">Burner unknown state: ? -> ERROR");
             #endif
-            _state = GBC_ERROR;
+            m_state = GasBurnerControlState::error;
             break;
 
     }         // switch
 } // GasBurnerControl::update()
 
 
-byte GasBurnerControl::getState() {
-    return _state;
+GasBurnerControlState GasBurnerControl::getState() {
+    return m_state;
 }

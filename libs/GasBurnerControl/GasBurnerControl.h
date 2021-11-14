@@ -43,6 +43,16 @@ struct gbc_settings {
 };
 
 
+enum class GasBurnerControlState {
+    idle = 0,
+    starting = 1,
+    ignition = 2,
+    running = 3,
+    dejam = 4,
+    error = 5
+};
+
+
 class GasBurnerControl
 {
     public:
@@ -53,7 +63,7 @@ class GasBurnerControl
         void start();
         void stop();
         void update();
-        byte getState();
+        GasBurnerControlState getState();
 
 
     private:
@@ -73,7 +83,7 @@ class GasBurnerControl
         unsigned long _nextDejamAttemptTime;
         unsigned long _dejamTimer;
 
-        byte _state;
+        GasBurnerControlState m_state;
 
         bool _valve;
         bool _jammed;

@@ -13,4 +13,5 @@ public:
 private:
     OneWire m_wire;
     DallasTemperature m_sensors;
+    float m_last_temperature{20.0f};
 };

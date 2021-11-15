@@ -16,3 +16,10 @@ board = nano
 
 # [ds18b20]
 # pin = 2
+
+# [sh1106]
+# rst = 9
+# dc = 8
+# cs = 10
+# din = 11
+# clk = 13

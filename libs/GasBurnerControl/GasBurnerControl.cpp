@@ -1,5 +1,13 @@
 #include "GasBurnerControl.h"
 
+#ifdef GBC_SERIAL_DEBUG
+#define GBC_DEBUG(x)    Serial.print((x))
+#define GBC_DEBUGLN(x)  Serial.println((x))
+#else
+#define GBC_DEBUG(x)
+#define GBC_DEBUGLN(x)
+#endif
+
 int GasBurnerControl::Settings::high() const
 {
     return invert_logic_level ? 0 : 1;
@@ -23,9 +31,7 @@ GasBurnerControl::GasBurnerControl(uint8_t power_pin, uint8_t dejam_pin, uint8_t
     pinMode(valve_pin, INPUT);
     pinMode(ignition_pin, INPUT);
 
-#ifdef GBC_SERIAL_DEBUG
-    Serial.println(m_settings.start_delay);
-#endif
+    GBC_DEBUGLN(m_settings.start_delay);
 
     stop();
 }
@@ -51,53 +57,42 @@ bool GasBurnerControl::set_settings(GasBurnerControl::Settings new_settings)
 
 void GasBurnerControl::dejam(unsigned int delay_s)
 {
-    #ifdef GBC_SERIAL_DEBUG
-    Serial.print("|-Burner::_dejam(");
-    Serial.print(delay_s);
-    Serial.println(")");
-    #endif
+    GBC_DEBUG("|-Burner::_dejam(");
+    GBC_DEBUG(delay_s);
+    GBC_DEBUGLN(")");
+
     if (m_next_dejam_attempt_time == 0) {
         m_next_dejam_attempt_time = millis() + delay_s * 1000;
-        #ifdef GBC_SERIAL_DEBUG
-        Serial.print("|--Set next dejam attempt time to ");
-        Serial.print(m_next_dejam_attempt_time / 1000);
-        Serial.println(" s");
-        #endif
+        GBC_DEBUG("|--Set next dejam attempt time to ");
+        GBC_DEBUG(m_next_dejam_attempt_time / 1000);
+        GBC_DEBUGLN(" s");
         m_state = GasBurner::State::dejam_pre_delay;
     }
 
     if (millis() >= m_next_dejam_attempt_time) {
-        #ifdef GBC_SERIAL_DEBUG
-        Serial.println("|--Dejamming now");
-        #endif
+        GBC_DEBUGLN("|--Dejamming now");
         bool dejamRead = digitalRead(m_dejam_pin);
         if ((dejamRead == m_settings.low()) & (m_dejam_timer == 0)) {
-            #ifdef GBC_SERIAL_DEBUG
-            Serial.println("|---Press dejam button now");
-            #endif
+            GBC_DEBUGLN("|---Press dejam button now");
             digitalWrite(m_dejam_pin, m_settings.high());  // press dejam button
             m_dejam_timer = millis();
             m_state = GasBurner::State::dejam_button_pressed;
         }
         else if (dejamRead == m_settings.high()) {
             if(millis() - m_dejam_timer >= m_settings.dejam_duration) {
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|---Release dejam button now");
-                #endif
+                GBC_DEBUGLN("|---Release dejam button now");
                 digitalWrite(m_dejam_pin, m_settings.low());
                 m_dejam_timer = millis();
                 m_state = GasBurner::State::dejam_post_delay;
             }
             else {
                 // wait for dejam press duration to pass
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|---Wait for dejam button release");
-                #endif
+                GBC_DEBUGLN("|---Wait for dejam button release");
             }
         }
         else if ((dejamRead == m_settings.low()) & (m_dejam_timer > 0)) {
             #ifdef GBC_SERIAL_DEBUG
-            Serial.println("|---Post dejam delay");
+            GBC_DEBUGLN("|---Post dejam delay");
             #endif
             if (millis() - m_dejam_timer >= m_settings.post_dejam_delay) {
                 // dejam should be completed, reset dejam related timers
@@ -105,40 +100,30 @@ void GasBurnerControl::dejam(unsigned int delay_s)
                 m_dejam_timer = 0;
                 m_next_dejam_attempt_time = 0;
                 m_state = GasBurner::State::starting;
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.print("|----Dejamming attempt ");
-                Serial.print(m_dejam_counter);
-                Serial.println(" completed");
-                #endif
+                GBC_DEBUG("|----Dejamming attempt ");
+                GBC_DEBUG(m_dejam_counter);
+                GBC_DEBUGLN(" completed");
             }
             else {
                 // wait until POST_DEJAM_DELAY has passed
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|----Post dejam wait");
-                #endif
+                GBC_DEBUGLN("|----Post dejam wait");
             }
         }
         else {
-            #ifdef GBC_SERIAL_DEBUG
-            Serial.println("|---Dejam attempt error");
-            #endif
+            GBC_DEBUGLN("|---Dejam attempt error");
             // something went wrong
             m_state = GasBurner::State::error_other;
         }
     }
     else {
         // do nothing
-        #ifdef GBC_SERIAL_DEBUG
-        Serial.println("|--Pre dejam waiting");
-        #endif
+        GBC_DEBUGLN("|--Pre dejam waiting");
     }
 }
 
 void GasBurnerControl::begin()
 {
-    #ifdef GBC_SERIAL_DEBUG
-    Serial.println(">Start Burner");
-    #endif
+    GBC_DEBUGLN(">Start Burner");
     m_ignition_counter = 0;
     m_dejam_counter = 0;
     m_start_time = millis();
@@ -150,9 +135,7 @@ void GasBurnerControl::begin()
 
 void GasBurnerControl::stop()
 {
-    #ifdef GBC_SERIAL_DEBUG
-    Serial.println(">Stop Burner");
-    #endif
+    GBC_DEBUGLN(">Stop Burner");
     m_ignition_counter = 0;
     m_dejam_counter = 0;
     m_start_time = 0;
@@ -173,65 +156,45 @@ void GasBurnerControl::update()
         case GasBurner::State::idle:
             if (digitalRead(m_power_pin) == m_settings.low()) {                 // state where Burner is regular off
                 // pass
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println(">Burner regular off");
-                #endif
+                GBC_DEBUGLN(">Burner regular off");
             }
             else if (digitalRead(m_power_pin) == m_settings.high()) {         // state where Burner was powered on outside of class
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println(">Burner external on");
-                #endif
+                GBC_DEBUGLN(">Burner external on");
                 begin();
             }
             break;
 
         case GasBurner::State::starting:                                          // state startup when Burner was powered on
-            #ifdef GBC_SERIAL_DEBUG
-            Serial.println(">Burner starting");
-            #endif
+            GBC_DEBUGLN(">Burner starting");
             // wait some time after power on before checking the status
             if (millis() - m_start_time >= m_settings.start_delay * 1000) {
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|-Burner start delay passed");
-                #endif
+                GBC_DEBUGLN("|-Burner start delay passed");
                 if ((m_jammed == m_settings.low()) & ((m_ignition == m_settings.high()) | (m_valve == m_settings.high()))) {   // Burner is regular on and attempting ignition
-                    #ifdef GBC_SERIAL_DEBUG
-                    Serial.println(">State Change: STARTING -> IGNITION");
-                    #endif
+                    GBC_DEBUGLN(">State Change: STARTING -> IGNITION");
                     m_ignition_start_time = millis();
                     m_ignition_counter += 1;
                     m_dejam_counter = 1;    // skips immediate dejam attempt
                     m_state = GasBurner::State::ignition;
                 }
                 else if ((m_jammed == m_settings.high()) & (m_ignition == m_settings.low()) & (m_valve == m_settings.low())) {
-                    #ifdef GBC_SERIAL_DEBUG
-                    Serial.println(">State Change: STARTING -> DEJAM");
-                    #endif
+                    GBC_DEBUGLN(">State Change: STARTING -> DEJAM");
                     m_state = GasBurner::State::dejam_start;
                 }
                 else {
-                    #ifdef GBC_SERIAL_DEBUG
-                    Serial.println(">State Change: STARTING -> ERROR");
-                    #endif
+                    GBC_DEBUGLN(">State Change: STARTING -> ERROR");
                     m_state = GasBurner::State::error_other;
                 }
             }
             else {
                 // pass; do nothing until start_delay has passed
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|-Burner start waiting");
-                #endif
+                GBC_DEBUGLN("|-Burner start waiting");
             }
             break;
 
         case GasBurner::State::ignition:
-            #ifdef GBC_SERIAL_DEBUG
-            Serial.println(">Burner Ignition");
-            #endif
+            GBC_DEBUGLN(">Burner Ignition");
             if (m_jammed == m_settings.high()) {                                                       // * at any time if jammed is HIGH, state change to DEJAM
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println(">State Change: IGNITION -> DEJAM");
-                #endif
+                GBC_DEBUGLN(">State Change: IGNITION -> DEJAM");
                 m_state = GasBurner::State::dejam_start;
             }
             else if (m_jammed == m_settings.low()) {
@@ -242,38 +205,28 @@ void GasBurnerControl::update()
                         m_state = GasBurner::State::running;
                     }
                     else {
-                        #ifdef GBC_SERIAL_DEBUG
-                        Serial.println("|-Ignition error A -> ERROR state");
-                        #endif
+                        GBC_DEBUGLN("|-Ignition error A -> ERROR state");
                         // this can only be reached when hardware is not working properly / wiring issue
                         m_state = GasBurner::State::error_other;
                     }
                 }
                 else {
                     // ignition in progress but not yet completed
-                    #ifdef GBC_SERIAL_DEBUG
-                    Serial.println("|-Ignition running but not yet completed");
-                    #endif
+                    GBC_DEBUGLN("|-Ignition running but not yet completed");
                 }
             }
             else {
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|-Ignition error B -> ERROR state");
-                #endif
+                GBC_DEBUGLN("|-Ignition error B -> ERROR state");
                 // TODO: unused option? I should never land here because jammed indicator must be either high or low
                 m_state = GasBurner::State::error_other;
             }
             break;
 
         case GasBurner::State::running:
-            #ifdef GBC_SERIAL_DEBUG
-            Serial.println(">Burner running");
-            #endif
+            GBC_DEBUGLN(">Burner running");
             // continue checking for error
             if (m_jammed == m_settings.high()) {
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println(">State change: RUNNING -> DEJAM");
-                #endif
+                GBC_DEBUGLN(">State change: RUNNING -> DEJAM");
                 m_state = GasBurner::State::dejam_start;
             }
             else {
@@ -285,9 +238,7 @@ void GasBurnerControl::update()
         case GasBurner::State::dejam_pre_delay:
         case GasBurner::State::dejam_button_pressed:
         case GasBurner::State::dejam_post_delay:
-            #ifdef GBC_SERIAL_DEBUG
-            Serial.println(">Burner dejam state");
-            #endif
+            GBC_DEBUGLN(">Burner dejam state");
             // * case ignitionCounter == 0 -> first dejam attempt right away, do not increase dejamCounter
             // * case ignitionCounter > 0 -> wait 60+X s before first dejam attempt
 
@@ -307,27 +258,19 @@ void GasBurnerControl::update()
                 }
             }
             else if((m_ignition_counter == 0) & (m_dejam_counter == 0)) {
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|-Dejam immediately at first start");
-                #endif
+                GBC_DEBUGLN("|-Dejam immediately at first start");
                 dejam(0);
             }
             else if(m_dejam_counter == 1) {
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|-Dejam after first delay (65ish s?)");
-                #endif
+                GBC_DEBUGLN("|-Dejam after first delay (65ish s?)");
                 dejam(m_settings.dejam_delay_1);
             }
             else if(m_dejam_counter > 1) {
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|-Dejam secondary attempt 10s delay");
-                #endif
+                GBC_DEBUGLN("|-Dejam secondary attempt 10s delay");
                 dejam(m_settings.dejam_delay_2);
             }
             else {
-                #ifdef GBC_SERIAL_DEBUG
-                Serial.println("|-Unknown Dejam state error: DEJAM -> ERROR");
-                #endif
+                GBC_DEBUGLN("|-Unknown Dejam state error: DEJAM -> ERROR");
                 // should never be reached unless coding with ignition or dejam counter is faulty
                 // can only be reached when dejamCounter == 0 and ignitionCounter > 0
                 m_state = GasBurner::State::error_other;
@@ -337,18 +280,14 @@ void GasBurnerControl::update()
         case GasBurner::State::error_start:
         case GasBurner::State::error_ignition:
         case GasBurner::State::error_other:
-            #ifdef GBC_SERIAL_DEBUG
-            Serial.println(">Burner error state");
-            #endif
+            GBC_DEBUGLN(">Burner error state");
             // power down but stay in this state
             digitalWrite(m_power_pin, m_settings.low());
             digitalWrite(m_dejam_pin, m_settings.low());
             break;
 
         default:                                            // any other not defined state is changed to error state, TODO: do i need this with enum class states?
-            #ifdef GBC_SERIAL_DEBUG
-            Serial.println(">Burner unknown state: ? -> ERROR");
-            #endif
+            GBC_DEBUGLN(">Burner unknown state: ? -> ERROR");
             m_state = GasBurner::State::error_other;
             break;
     }         // switch

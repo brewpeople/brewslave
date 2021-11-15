@@ -62,7 +62,6 @@ class Config:
         try:
             self.arduino_dir = get_path("general", "arduino_dir", "/usr/share/arduino")
             self.ardmk_dir = get_path("general", "ardmk_dir", "./libs/Arduino-Makefile").absolute()
-            self.avr_tools_dir = get_path("general", "avr_tools_dir", "/usr")
             self.avrdude_conf = get_path("general", "avrdude_conf", "/etc/avrdude.conf")
             self.user_lib_path = get_path("general", "user_lib_path", "./libs").absolute()
             self.board = config["general"].get("board")
@@ -131,7 +130,6 @@ if __name__ == "__main__":
         d = dict(ARDUINO_DIR=config.arduino_dir,
                  ARDUINO_LIBS=" ".join(ARDUINO_LIBS),
                  ARDMK_DIR=config.ardmk_dir,
-                 AVR_TOOLS_DIR=config.avr_tools_dir,
                  AVRDUDE_CONF=config.avrdude_conf,
                  BOARD_TAG=config.board,
                  BOARD_SUB=config.sub or "",

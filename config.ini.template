@@ -4,7 +4,6 @@
 
 [general]
 # arduino_dir =
-# avr_tools_dir =
 # avrdude_conf =
 board = nano
 # sub = atmega328

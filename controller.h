@@ -8,21 +8,33 @@
  */
 class GasBurner {
 public:
-    enum class State {
+    enum class State : uint8_t {
         idle = 0,
-        starting = 10,
-        ignition = 20,
-        running = 30,
+        starting = 1,
+        ignition = 2,
+        running = 3,
         any_dejam = 4,
-        dejam_start = 41,
-        dejam_pre_delay = 42,
-        dejam_button_pressed = 43,
-        dejam_post_delay = 44,
-        any_error = 5,
-        error_start = 51,
-        error_ignition = 52,
-        error_other = 53
+        dejam_start = 5,
+        dejam_pre_delay = 6,
+        dejam_button_pressed = 7,
+        dejam_post_delay = 8,
+        any_error = 9,
+        error_start = 10,
+        error_ignition = 11,
+        error_other = 12,
+        // XXX: we use six bits for the state in order to encode dejam and
+        // ignition counts in the remaining ten bits, so never add a state
+        // larger than 63.
     };
+
+    /**
+     * Encode state and counter in a 16 bit value.
+     *
+     * @param state State encoded in the lower six bits.
+     * @param dejam_counter Counter encoded in the upper five bits.
+     * @param ignition_counter Counter encoded in the middle five bits.
+     */
+    static uint16_t encode_state(State state, uint8_t dejam_counter, uint8_t ignition_counter);
 
     /**
      * Start burner.
@@ -46,8 +58,11 @@ public:
 
     /**
      * Get current full state.
+     *
+     * @return Full state composed of 5 bits (maximum 31) for dejam count, 5
+     *  bits for ignition and 6 bits for State.
      */
-    virtual unsigned int full_state() = 0;
+    virtual uint16_t full_state() = 0;
 };
 
 class MockGasBurner : public GasBurner {

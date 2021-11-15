@@ -3,11 +3,7 @@
 #include <Arduino.h>
 #include "controller.h"
 
-
-/* OPTIONS */
 //#define GBC_SERIAL_DEBUG            // if uncommented every update will also send a message over serial
-
-
 
 class GasBurnerControl : public GasBurner
 {
@@ -35,6 +31,9 @@ public:
         // TODO: replace this with a template ASAP
         int high() const;
         int low() const;
+
+        static constexpr uint8_t max_dejam_attempts{31};
+        static constexpr uint8_t max_ignition_attempts{31};
     };
 
     GasBurnerControl(uint8_t power_pin, uint8_t dejam_pin, uint8_t jammed_pin, uint8_t valve_pin, uint8_t ignition_pin);

@@ -100,6 +100,11 @@ bool MockController::has_problem() const
     return m_current_temperature > 72.0f;
 }
 
+uint16_t GasBurner::encode_state(State state, uint8_t dejam_counter, uint8_t ignition_counter)
+{
+    return static_cast<uint8_t>(state) | ((dejam_counter & 0x1F) << 11) | ((ignition_counter & 0x1F) << 6);
+}
+
 void MockGasBurner::start()
 {
 }
@@ -144,5 +149,5 @@ GasBurner::State MockGasBurner::state()
 
 unsigned int MockGasBurner::full_state()
 {
-    return (unsigned int) m_state * 100 + m_ignition_counter * 10 + m_dejam_counter;
+    return GasBurner::encode_state(m_state, m_dejam_counter, m_ignition_counter);
 }

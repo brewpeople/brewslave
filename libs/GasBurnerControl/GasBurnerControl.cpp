@@ -45,10 +45,10 @@ bool GasBurnerControl::set_settings(GasBurnerControl::Settings new_settings)
 {
     // TODO: plausiblity check here? -> limit max. attempts to one digit
     // TODO: why make this a run-time decision? There is no way to react anyway.
-    if (new_settings.num_dejam_attempts > 9)
+    if (new_settings.num_dejam_attempts > Settings::max_dejam_attempts)
         return false;
 
-    if (new_settings.num_ignition_attempts > 9)
+    if (new_settings.num_ignition_attempts > Settings::max_ignition_attempts)
         return false;
 
     m_settings = new_settings;
@@ -298,7 +298,7 @@ GasBurner::State GasBurnerControl::state()
     return m_state;
 }
 
-unsigned int GasBurnerControl::full_state()
+uint16_t GasBurnerControl::full_state()
 {
-    return (unsigned int) m_state * 100 + m_ignition_counter * 10 + m_dejam_counter;
+    return GasBurner::encode_state(m_state, m_dejam_counter, m_ignition_counter);
 }

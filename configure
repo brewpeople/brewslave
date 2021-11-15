@@ -111,6 +111,7 @@ if __name__ == "__main__":
     if config.with_ds18b20:
         ARDUINO_LIBS.append("OneWire")
         ARDUINO_LIBS.append("DallasTemperature")
+        ARDUINO_LIBS.append("ds18b20")
         CONFIG.append("#define WITH_DS18B20 1")
         CONFIG.append(f"#define DS18B20_PIN {config.ds18b20_pin}")
 

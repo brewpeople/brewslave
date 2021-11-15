@@ -1,9 +1,73 @@
 #pragma once
 
+#include <Arduino.h>
 #include "sensor.h"
 
 /**
- * Controller interface.
+ * State-machine based gas burner interface.
+ */
+class GasBurner {
+public:
+    enum class State {
+        idle = 0,
+        starting = 10,
+        ignition = 20,
+        running = 30,
+        any_dejam = 4,
+        dejam_start = 41,
+        dejam_pre_delay = 42,
+        dejam_button_pressed = 43,
+        dejam_post_delay = 44,
+        any_error = 5,
+        error_start = 51,
+        error_ignition = 52,
+        error_other = 53
+    };
+
+    /**
+     * Start state machine.
+     */
+    virtual void begin() = 0;
+
+    /**
+     * Stop state machine and control loop.
+     */
+    virtual void stop() = 0;
+
+    /**
+     * Update states based on external pins.
+     */
+    virtual void update() = 0;
+
+    /**
+     * Get current state.
+     */
+    virtual State state() = 0;
+
+    /**
+     * Get current full state.
+     */
+    virtual unsigned int full_state() = 0;
+};
+
+class MockGasBurner : public GasBurner {
+public:
+    void begin() override;
+    void stop() override;
+    void update() override;
+    State state() override;
+    unsigned int full_state() override;
+
+private:
+    GasBurner::State m_state;
+    uint8_t m_ignition_counter;
+    uint8_t m_dejam_counter;
+    unsigned long m_last_state_change_time{0};
+};
+
+/**
+ * Main controller interface reading temperatures and trying to set the
+ * temperature in a control loop based on a burner control.
  */
 class Controller {
 public:

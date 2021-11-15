@@ -38,6 +38,8 @@ MockEncoder encoder{};
 #include <GasBurnerControl.h>
 
 GasBurnerControl gbc{GBC_POWER_PIN, GBC_DEJAM_PIN, GBC_JAMMED_PIN, GBC_VALVE_PIN, GBC_IGNITION_PIN};
+#else
+MockGasBurner gbc{};
 #endif
 
 #if defined(WITH_SH1106)
@@ -185,9 +187,7 @@ void setup()
 
     display.begin();
 
-#if defined(WITH_GBC)
-    gbc.start();
-#endif
+    gbc.begin();
 }
 
 void serialEvent()

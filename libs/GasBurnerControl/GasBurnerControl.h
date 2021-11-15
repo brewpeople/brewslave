@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "controller.h"
 
 
 /* OPTIONS */
@@ -8,13 +9,13 @@
 
 
 struct gbc_settings {
-    byte nDejamAttempts{3};             // number of unsuccessful dejam attempts before aborting permanently
-    byte nIgnitionAttempts{3};          // number of unsuccessful ignition attempts before aborting permanently
+    uint8_t nDejamAttempts{3};             // number of unsuccessful dejam attempts before aborting permanently
+    uint8_t nIgnitionAttempts{3};          // number of unsuccessful ignition attempts before aborting permanently
 
-    byte startDelay{2};                 // s, initial delay after powering the GBC
-    byte dejamDelay1{65};               // s, wait time until dejamming is possible
-    byte dejamDelay2{10};               // s, wait time between additional dejam attempts
-    byte ignitionDuration{22};          // s, time after which ignition should be complete
+    uint8_t startDelay{2};                 // s, initial delay after powering the GBC
+    uint8_t dejamDelay1{65};               // s, wait time until dejamming is possible
+    uint8_t dejamDelay2{10};               // s, wait time between additional dejam attempts
+    uint8_t ignitionDuration{22};          // s, time after which ignition should be complete
     unsigned int dejamDuration{1000};   // ms, duration of button press during dejamming
     unsigned int postDejamDelay{1000};  // ms, delay after dejam button release
 
@@ -28,97 +29,41 @@ struct gbc_settings {
     };
 };
 
-class GasBurnerControl
+class GasBurnerControl : public GasBurner
 {
 public:
-    enum class State {
-        idle = 0,
-        starting = 10,
-        ignition = 20,
-        running = 30,
-        any_dejam = 4,
-        dejam_start = 41,
-        dejam_pre_delay = 42,
-        dejam_button_pressed = 43,
-        dejam_post_delay = 44,
-        any_error = 5,
-        error_start = 51,
-        error_ignition = 52,
-        error_other = 53
-    };
-
-    GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings={});
+    GasBurnerControl(uint8_t powerPin, uint8_t dejamPin, uint8_t jammedPin, uint8_t valvePin, uint8_t ignitionPin, gbc_settings={});
     gbc_settings getSettings();
     bool setSettings(gbc_settings new_settings);
-    void start();
-    void stop();
-    void update();
-    State getState();
-    unsigned int getFullState();
+
+    void begin() override;
+    void stop() override;
+    void update() override;
+    State state() override;
+    unsigned int full_state() override;
 
 private:
-    byte m_powerPin;
-    byte m_dejamPin;
-    byte m_jammedPin;
-    byte m_valvePin;
-    byte m_ignitionPin;
+    uint8_t m_power_pin;
+    uint8_t m_dejam_pin;
+    uint8_t m_jammed_pin;
+    uint8_t m_valve_pin;
+    uint8_t m_ignition_pin;
 
     gbc_settings m_settings;
 
-    byte _ignitionCounter;
-    byte _dejamCounter;
+    uint8_t m_ignition_counter;
+    uint8_t m_dejam_counter;
 
-    unsigned long _startTime;
-    unsigned long _ignitionStartTime;
-    unsigned long _nextDejamAttemptTime;
-    unsigned long _dejamTimer;
+    unsigned long m_start_time;
+    unsigned long m_ignition_start_time;
+    unsigned long m_next_dejam_attempt_time;
+    unsigned long m_dejam_timer;
 
     State m_state;
 
-    bool _valve;
-    bool _jammed;
-    bool _ignition;
+    bool m_valve;
+    bool m_jammed;
+    bool m_ignition;
 
-    void _dejam(unsigned int delay_s);
+    void dejam(unsigned int delay_s);
 };
-
-
-#if 0
-class GasBurnerControl{
-    public:
-        GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings={}) {};
-        void start() {};
-        void stop() {};
-        void update() {
-            if(millis() - _lastStateChangeTime >= 2000) {
-                _lastStateChangeTime = millis();
-                byte mock_main_state = rand() % 6;
-                byte mock_substate = 0;
-                if(mock_main_state == 4) {
-                    mock_substate = rand() % 4 + 1;
-                } else if(mock_main_state == 5) {
-                    mock_substate = rand() % 3 + 1;
-                }
-                m_state = static_cast<GasBurnerControlState> (mock_main_state * 10 + mock_substate);
-                if(mock_main_state > 0) {
-                    _ignitionCounter = rand() % 4;
-                    _dejamCounter = rand() % 4;
-                } else {
-                    _ignitionCounter = 0;
-                    _dejamCounter = 0;
-                }
-            }
-        };
-        GasBurnerControlState getState() {
-             return m_state;
-        };
-        unsigned int getFullState() {
-            return (unsigned int) m_state * 100 + _ignitionCounter * 10 + _dejamCounter;
-        };
-    private:
-        GasBurnerControlState m_state;
-        byte _ignitionCounter;
-        byte _dejamCounter;
-        unsigned long _lastStateChangeTime{0};
-};
-#endif // #ifdef WITH_GBC

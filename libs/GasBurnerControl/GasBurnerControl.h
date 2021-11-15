@@ -8,33 +8,38 @@
 //#define GBC_SERIAL_DEBUG            // if uncommented every update will also send a message over serial
 
 
-struct gbc_settings {
-    uint8_t nDejamAttempts{3};             // number of unsuccessful dejam attempts before aborting permanently
-    uint8_t nIgnitionAttempts{3};          // number of unsuccessful ignition attempts before aborting permanently
-
-    uint8_t startDelay{2};                 // s, initial delay after powering the GBC
-    uint8_t dejamDelay1{65};               // s, wait time until dejamming is possible
-    uint8_t dejamDelay2{10};               // s, wait time between additional dejam attempts
-    uint8_t ignitionDuration{22};          // s, time after which ignition should be complete
-    unsigned int dejamDuration{1000};   // ms, duration of button press during dejamming
-    unsigned int postDejamDelay{1000};  // ms, delay after dejam button release
-
-    bool invertLogicLevel{true};
-
-    int high() {
-        return invertLogicLevel ? 0 : 1;
-    };
-    int low() {
-        return invertLogicLevel ? 1 : 0;
-    };
-};
 
 class GasBurnerControl : public GasBurner
 {
 public:
-    GasBurnerControl(uint8_t powerPin, uint8_t dejamPin, uint8_t jammedPin, uint8_t valvePin, uint8_t ignitionPin, gbc_settings={});
-    gbc_settings getSettings();
-    bool setSettings(gbc_settings new_settings);
+    struct Settings {
+        /// Number of unsuccessful dejam attempts before aborting permanently.
+        uint8_t num_dejam_attempts{3};
+        /// Number of unsuccessful ignition attempts before aborting permanently.
+        uint8_t num_ignition_attempts{3};
+        /// Initial delay in seconds after powering the GBC.
+        uint8_t start_delay{2};
+        /// Wait time in seconds until dejamming is possible.
+        uint8_t dejam_delay_1{65};
+        /// Wait time in seconds between additional dejam attempts.
+        uint8_t dejam_delay_2{10};
+        /// Time in seconds after which ignition should be complete.
+        uint8_t ignition_duration{22};
+        /// Duration of button press in milliseconds during dejamming.
+        unsigned int dejam_duration{1000};
+        /// Delay after dejam button release in milliseconds.
+        unsigned int post_dejam_delay{1000};
+
+        bool invert_logic_level{true};
+
+        // TODO: replace this with a template ASAP
+        int high() const;
+        int low() const;
+    };
+
+    GasBurnerControl(uint8_t power_pin, uint8_t dejam_pin, uint8_t jammed_pin, uint8_t valve_pin, uint8_t ignition_pin);
+    Settings settings() const;
+    bool set_settings(Settings new_settings);
 
     void begin() override;
     void stop() override;
@@ -49,7 +54,7 @@ private:
     uint8_t m_valve_pin;
     uint8_t m_ignition_pin;
 
-    gbc_settings m_settings;
+    Settings m_settings{};
 
     uint8_t m_ignition_counter;
     uint8_t m_dejam_counter;

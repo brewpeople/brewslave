@@ -1,36 +1,50 @@
 #include "GasBurnerControl.h"
 
-GasBurnerControl::GasBurnerControl(uint8_t powerPin, uint8_t dejamPin, uint8_t jammedPin, uint8_t valvePin, uint8_t ignitionPin, gbc_settings settings)
-: m_power_pin{powerPin}
-, m_dejam_pin{dejamPin}
-, m_jammed_pin{jammedPin}
-, m_valve_pin{valvePin}
-, m_ignition_pin{ignitionPin}
-, m_settings{settings}          // TODO: plausibility check similar to 'setSettings'
+int GasBurnerControl::Settings::high() const
 {
-    pinMode(powerPin, OUTPUT);
-    pinMode(dejamPin, OUTPUT);
-    pinMode(jammedPin, INPUT);
-    pinMode(valvePin, INPUT);
-    pinMode(ignitionPin, INPUT);
+    return invert_logic_level ? 0 : 1;
+}
+
+int GasBurnerControl::Settings::low() const
+{
+    return invert_logic_level ? 1 : 0;
+}
+
+GasBurnerControl::GasBurnerControl(uint8_t power_pin, uint8_t dejam_pin, uint8_t jammed_pin, uint8_t valve_pin, uint8_t ignition_pin)
+: m_power_pin{power_pin}
+, m_dejam_pin{dejam_pin}
+, m_jammed_pin{jammed_pin}
+, m_valve_pin{valve_pin}
+, m_ignition_pin{ignition_pin}
+{
+    pinMode(power_pin, OUTPUT);
+    pinMode(dejam_pin, OUTPUT);
+    pinMode(jammed_pin, INPUT);
+    pinMode(valve_pin, INPUT);
+    pinMode(ignition_pin, INPUT);
 
 #ifdef GBC_SERIAL_DEBUG
-    Serial.println(m_settings.startDelay);
+    Serial.println(m_settings.start_delay);
 #endif
 
     stop();
 }
 
-gbc_settings GasBurnerControl::getSettings()
+GasBurnerControl::Settings GasBurnerControl::settings() const
 {
     return m_settings;
 }
 
-bool GasBurnerControl::setSettings(gbc_settings new_settings)
+bool GasBurnerControl::set_settings(GasBurnerControl::Settings new_settings)
 {
     // TODO: plausiblity check here? -> limit max. attempts to one digit
-    if(new_settings.nDejamAttempts > 9) return false;
-    if(new_settings.nIgnitionAttempts > 9) return false;
+    // TODO: why make this a run-time decision? There is no way to react anyway.
+    if (new_settings.num_dejam_attempts > 9)
+        return false;
+
+    if (new_settings.num_ignition_attempts > 9)
+        return false;
+
     m_settings = new_settings;
     return true;
 }
@@ -66,7 +80,7 @@ void GasBurnerControl::dejam(unsigned int delay_s)
             m_state = GasBurner::State::dejam_button_pressed;
         }
         else if (dejamRead == m_settings.high()) {
-            if(millis() - m_dejam_timer >= m_settings.dejamDuration) {
+            if(millis() - m_dejam_timer >= m_settings.dejam_duration) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|---Release dejam button now");
                 #endif
@@ -85,7 +99,7 @@ void GasBurnerControl::dejam(unsigned int delay_s)
             #ifdef GBC_SERIAL_DEBUG
             Serial.println("|---Post dejam delay");
             #endif
-            if (millis() - m_dejam_timer >= m_settings.postDejamDelay) {
+            if (millis() - m_dejam_timer >= m_settings.post_dejam_delay) {
                 // dejam should be completed, reset dejam related timers
                 m_dejam_counter += 1;
                 m_dejam_timer = 0;
@@ -176,7 +190,7 @@ void GasBurnerControl::update()
             Serial.println(">Burner starting");
             #endif
             // wait some time after power on before checking the status
-            if (millis() - m_start_time >= m_settings.startDelay * 1000) {
+            if (millis() - m_start_time >= m_settings.start_delay * 1000) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Burner start delay passed");
                 #endif
@@ -203,7 +217,7 @@ void GasBurnerControl::update()
                 }
             }
             else {
-                // pass; do nothing until startDelay has passed
+                // pass; do nothing until start_delay has passed
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Burner start waiting");
                 #endif
@@ -221,7 +235,7 @@ void GasBurnerControl::update()
                 m_state = GasBurner::State::dejam_start;
             }
             else if (m_jammed == m_settings.low()) {
-                if (millis() - m_ignition_start_time >= m_settings.ignitionDuration * 1000) {     // * 20 s ignition valve still on --> state change to RUNNING
+                if (millis() - m_ignition_start_time >= m_settings.ignition_duration * 1000) {     // * 20 s ignition valve still on --> state change to RUNNING
                     if ((m_jammed == m_settings.low()) & (m_valve == m_settings.high())) {
                         m_ignition_counter = 0;
                         m_dejam_counter = 1;
@@ -277,11 +291,11 @@ void GasBurnerControl::update()
             // * case ignitionCounter == 0 -> first dejam attempt right away, do not increase dejamCounter
             // * case ignitionCounter > 0 -> wait 60+X s before first dejam attempt
 
-            if (m_ignition_counter >= m_settings.nIgnitionAttempts) {
+            if (m_ignition_counter >= m_settings.num_ignition_attempts) {
                 // exceeded max. ignition attepts
                 m_state = GasBurner::State::error_ignition;
             }
-            else if ((m_ignition_counter == 0) & (m_dejam_counter > m_settings.nDejamAttempts)) {
+            else if ((m_ignition_counter == 0) & (m_dejam_counter > m_settings.num_dejam_attempts)) {
                 // exceeded max. dejam attempts
                 if (m_ignition_counter == 0) {
                     // ignition never started (dejamming at start unsuccessful) -> wiring issue? // power supply issue?
@@ -302,13 +316,13 @@ void GasBurnerControl::update()
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Dejam after first delay (65ish s?)");
                 #endif
-                dejam(m_settings.dejamDelay1);
+                dejam(m_settings.dejam_delay_1);
             }
             else if(m_dejam_counter > 1) {
                 #ifdef GBC_SERIAL_DEBUG
                 Serial.println("|-Dejam secondary attempt 10s delay");
                 #endif
-                dejam(m_settings.dejamDelay2);
+                dejam(m_settings.dejam_delay_2);
             }
             else {
                 #ifdef GBC_SERIAL_DEBUG

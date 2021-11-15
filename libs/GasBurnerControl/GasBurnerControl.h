@@ -28,33 +28,32 @@ struct gbc_settings {
     };
 };
 
-
-enum class GasBurnerControlState {
-    idle = 0,
-    starting = 10,
-    ignition = 20,
-    running = 30,
-    any_dejam = 4,
-    dejam_start = 41,
-    dejam_pre_delay = 42,
-    dejam_button_pressed = 43,
-    dejam_post_delay = 44,
-    any_error = 5,
-    error_start = 51,
-    error_ignition = 52,
-    error_other = 53
-};
-
 class GasBurnerControl
 {
 public:
+    enum class State {
+        idle = 0,
+        starting = 10,
+        ignition = 20,
+        running = 30,
+        any_dejam = 4,
+        dejam_start = 41,
+        dejam_pre_delay = 42,
+        dejam_button_pressed = 43,
+        dejam_post_delay = 44,
+        any_error = 5,
+        error_start = 51,
+        error_ignition = 52,
+        error_other = 53
+    };
+
     GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings={});
     gbc_settings getSettings();
     bool setSettings(gbc_settings new_settings);
     void start();
     void stop();
     void update();
-    GasBurnerControlState getState();
+    State getState();
     unsigned int getFullState();
 
 private:
@@ -74,7 +73,7 @@ private:
     unsigned long _nextDejamAttemptTime;
     unsigned long _dejamTimer;
 
-    GasBurnerControlState m_state;
+    State m_state;
 
     bool _valve;
     bool _jammed;

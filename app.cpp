@@ -14,6 +14,7 @@ Sh1106 display{SH1106_RST, SH1106_DC, SH1106_CS, SH1106_DIN, SH1106_CLK};
 #endif  // WITH_SH1106
 
 #if WITH_DS18B20
+#include <ds18b20.h>
 Ds18b20 sensor{DS18B20_PIN};
 #else
 MockTemperatureSensor sensor;

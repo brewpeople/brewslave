@@ -187,7 +187,9 @@ void setup()
 
     display.begin();
 
+#if defined(WITH_GBC)
     gbc.begin();
+#endif
 }
 
 void serialEvent()

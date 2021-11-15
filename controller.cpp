@@ -100,7 +100,7 @@ bool MockController::has_problem() const
     return m_current_temperature > 72.0f;
 }
 
-void MockGasBurner::begin()
+void MockGasBurner::start()
 {
 }
 

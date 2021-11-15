@@ -41,7 +41,7 @@ public:
     Settings settings() const;
     bool set_settings(Settings new_settings);
 
-    void begin() override;
+    void start() override;
     void stop() override;
     void update() override;
     State state() override;

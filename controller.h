@@ -25,12 +25,12 @@ public:
     };
 
     /**
-     * Start state machine.
+     * Start burner.
      */
-    virtual void begin() = 0;
+    virtual void start() = 0;
 
     /**
-     * Stop state machine and control loop.
+     * Stop burner.
      */
     virtual void stop() = 0;
 
@@ -52,7 +52,7 @@ public:
 
 class MockGasBurner : public GasBurner {
 public:
-    void begin() override;
+    void start() override;
     void stop() override;
     void update() override;
     State state() override;

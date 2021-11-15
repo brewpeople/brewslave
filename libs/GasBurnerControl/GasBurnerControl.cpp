@@ -121,7 +121,7 @@ void GasBurnerControl::dejam(unsigned int delay_s)
     }
 }
 
-void GasBurnerControl::begin()
+void GasBurnerControl::start()
 {
     GBC_DEBUGLN(">Start Burner");
     m_ignition_counter = 0;
@@ -160,7 +160,7 @@ void GasBurnerControl::update()
             }
             else if (digitalRead(m_power_pin) == m_settings.high()) {         // state where Burner was powered on outside of class
                 GBC_DEBUGLN(">Burner external on");
-                begin();
+                start();
             }
             break;
 

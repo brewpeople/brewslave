@@ -79,6 +79,13 @@ class Config:
             self.ky040_sw = config["ky040"].get("sw") if self.with_ky040 else None
             self.ky040_dt = config["ky040"].get("dt") if self.with_ky040 else None
             self.ky040_clk = config["ky040"].get("clk") if self.with_ky040 else None
+
+            self.with_gbc = config.has_section("gbc")
+            self.gbc_power = config["gbc"].getint("power") if self.with_gbc else None
+            self.gbc_dejam = config["gbc"].getint("dejam") if self.with_gbc else None
+            self.gbc_jammed = config["gbc"].getint("jammed") if self.with_gbc else None
+            self.gbc_valve = config["gbc"].getint("valve") if self.with_gbc else None
+            self.gbc_ignition = config["gbc"].getint("ignition") if self.with_gbc else None
         except KeyError as e:
             raise ValueError(f"Could not find configuration entry: {e}")
 
@@ -114,7 +121,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     VERSION_STRING = git_hash()
-    ARDUINO_LIBS = ["GasBurnerControl"]
+    ARDUINO_LIBS = []
     CONFIG = []
 
     if config.with_mock_controller:
@@ -142,6 +149,15 @@ if __name__ == "__main__":
         CONFIG.append(f"#define KY040_SW {config.ky040_sw}")
         CONFIG.append(f"#define KY040_DT {config.ky040_dt}")
         CONFIG.append(f"#define KY040_CLK {config.ky040_clk}")
+
+    if config.with_gbc:
+        ARDUINO_LIBS.append("GasBurnerControl")
+        CONFIG.append("#define WITH_GBC 1")
+        CONFIG.append(f"#define GBC_POWER_PIN {config.gbc_power}")
+        CONFIG.append(f"#define GBC_DEJAM_PIN {config.gbc_dejam}")
+        CONFIG.append(f"#define GBC_JAMMED_PIN {config.gbc_jammed}")
+        CONFIG.append(f"#define GBC_VALVE_PIN {config.gbc_valve}")
+        CONFIG.append(f"#define GBC_IGNITION_PIN {config.gbc_ignition}")
 
     with Path("Makefile").open("w") as f:
         template = string.Template(open("Makefile.in").read())

@@ -34,6 +34,12 @@ MockEncoder encoder{};
 #define ENCODER_MESSAGE " +mock_encoder"
 #endif
 
+#if defined(WITH_GBC)
+#include <GasBurnerControl.h>
+
+GasBurnerControl gbc{GBC_POWER_PIN, GBC_DEJAM_PIN, GBC_JAMMED_PIN, GBC_VALVE_PIN, GBC_IGNITION_PIN};
+#endif
+
 #if defined(WITH_SH1106)
 #include "sh1106.h"
 
@@ -65,6 +71,10 @@ public:
         const auto now{millis()};
         const auto elapsed{now - m_last_update};
         m_last_update = now;
+
+#if defined(WITH_GBC)
+        gbc.update();
+#endif
 
         m_controller.update(elapsed);
 
@@ -174,6 +184,10 @@ void setup()
     Serial.begin(115200, SERIAL_8N1);
 
     display.begin();
+
+#if defined(WITH_GBC)
+    gbc.start();
+#endif
 }
 
 void serialEvent()

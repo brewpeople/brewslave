@@ -1,6 +1,4 @@
-#ifndef GasBurnerControl_h
-#define GasBurnerControl_h
-
+#pragma once
 
 #include <Arduino.h>
 
@@ -19,9 +17,9 @@ struct gbc_settings {
     byte ignitionDuration{22};          // s, time after which ignition should be complete
     unsigned int dejamDuration{1000};   // ms, duration of button press during dejamming
     unsigned int postDejamDelay{1000};  // ms, delay after dejam button release
-    
+
     bool invertLogicLevel{true};
-    
+
     int high() {
         return invertLogicLevel ? 0 : 1;
     };
@@ -47,50 +45,46 @@ enum class GasBurnerControlState {
     error_other = 53
 };
 
-
-#ifdef WITH_GBC
 class GasBurnerControl
 {
-    public:
-        GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings={});
-        // GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin);
-        gbc_settings getSettings();
-        bool setSettings(gbc_settings new_settings);
-        void start();
-        void stop();
-        void update();
-        GasBurnerControlState getState();
-        unsigned int getFullState();
+public:
+    GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings={});
+    gbc_settings getSettings();
+    bool setSettings(gbc_settings new_settings);
+    void start();
+    void stop();
+    void update();
+    GasBurnerControlState getState();
+    unsigned int getFullState();
 
+private:
+    byte m_powerPin;
+    byte m_dejamPin;
+    byte m_jammedPin;
+    byte m_valvePin;
+    byte m_ignitionPin;
 
-    private:
-        byte m_powerPin;
-        byte m_dejamPin;
-        byte m_jammedPin;
-        byte m_valvePin;
-        byte m_ignitionPin;
+    gbc_settings m_settings;
 
-        gbc_settings m_settings;
+    byte _ignitionCounter;
+    byte _dejamCounter;
 
-        byte _ignitionCounter;
-        byte _dejamCounter;
+    unsigned long _startTime;
+    unsigned long _ignitionStartTime;
+    unsigned long _nextDejamAttemptTime;
+    unsigned long _dejamTimer;
 
-        unsigned long _startTime;
-        unsigned long _ignitionStartTime;
-        unsigned long _nextDejamAttemptTime;
-        unsigned long _dejamTimer;
+    GasBurnerControlState m_state;
 
-        GasBurnerControlState m_state;
+    bool _valve;
+    bool _jammed;
+    bool _ignition;
 
-        bool _valve;
-        bool _jammed;
-        bool _ignition;
-
-        void _dejam(unsigned int delay_s);
+    void _dejam(unsigned int delay_s);
 };
 
 
-#else
+#if 0
 class GasBurnerControl{
     public:
         GasBurnerControl(byte powerPin, byte dejamPin, byte jammedPin, byte valvePin, byte ignitionPin, gbc_settings={}) {};
@@ -129,5 +123,3 @@ class GasBurnerControl{
         unsigned long _lastStateChangeTime{0};
 };
 #endif // #ifdef WITH_GBC
-
-#endif // #ifnedf GasBurnerControl_h

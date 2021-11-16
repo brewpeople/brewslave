@@ -31,7 +31,7 @@ void Ui::update()
     }
 
     if (refresh) {
-        auto clamped{static_cast<uint8_t>(current_temperature)};
+        auto clamped{static_cast<uint8_t>(round(current_temperature))};
         clamped = clamped >= 100 ? 99 : clamped;
 
         m_display.draw_bitmap(0, 0, Bitmap { 36, 64, DIGITS_36_64[clamped / 10] });

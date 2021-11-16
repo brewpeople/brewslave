@@ -53,8 +53,15 @@ void loop()
     auto temperature{static_cast<uint8_t>(sensor.temperature())};
     temperature = temperature >= 100 ? 99 : temperature;
 
-    display.draw_bitmap(0, 0, Bitmap { 36, 64, HUGE_DIGITS[temperature / 10] });
-    display.draw_bitmap(36, 0, Bitmap { 36, 64, HUGE_DIGITS[temperature % 10] });
+    display.draw_bitmap(0, 0, Bitmap { 36, 64, DIGITS_36_64[temperature / 10] });
+    display.draw_bitmap(36, 0, Bitmap { 36, 64, DIGITS_36_64[temperature % 10] });
+    display.draw_bitmap(70, 0, Bitmap { 11, 6, ICON_ARROW_UP_11_6 });
+    display.draw_bitmap(70, 63 - 6, Bitmap { 11, 6, ICON_ARROW_DOWN_11_6 });
+
+    display.draw_bitmap(86, 0, Bitmap { 18, 32, DIGITS_18_32[9] });
+    display.draw_bitmap(106, 0, Bitmap { 18, 32, DIGITS_18_32[8] });
+
+    display.draw_bitmap(127 - 22, 63 - 22, Bitmap { 22, 22, ICON_WARNING_22_22 });
 
     display.flush();
 #endif  // WITH_SH1106

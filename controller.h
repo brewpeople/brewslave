@@ -17,6 +17,11 @@ public:
     virtual void set_temperature(float temperature) = 0;
 
     /**
+     * Get target temperature.
+     */
+    virtual float target_temperature() const = 0;
+
+    /**
      * Get current temperature.
      *
      * @return Current temperature.
@@ -63,6 +68,8 @@ public:
     MockController(TemperatureSensor& sensor);
 
     void set_temperature(float temperature) final;
+
+    float target_temperature() const final;
 
     float temperature() final;
 

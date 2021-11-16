@@ -9,6 +9,11 @@ void MockController::set_temperature(float temperature)
     m_target_temperature = temperature;
 }
 
+float MockController::target_temperature() const
+{
+    return m_target_temperature;
+}
+
 float MockController::temperature()
 {
     return m_sensor.temperature();

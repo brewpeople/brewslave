@@ -12,9 +12,10 @@ Initialize and update required library submodules with
     $ git submodule init
     $ git submodule update
 
-Configure the source tree with
+Make a copy of the `config.ini.template` and adapt the values accordingly. Then
+pass the filename to the `configure` script:
 
-    $ ./configure [--with-ds18b20 <PIN>] <BOARD_TAG>[.<BOARD_SUB>]
+    $ ./configure <config.ini>
 
 and compile and flash with
 

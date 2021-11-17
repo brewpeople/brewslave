@@ -13,7 +13,11 @@ Ds18b20 sensor{DS18B20_PIN};
 MockTemperatureSensor sensor;
 #endif  // WITH_DS18B20
 
-MockController controller{sensor};
+#if defined(WITH_MOCK_CONTROLLER)
+MockController controller{};
+#else
+MainController controller{sensor};
+#endif
 
 #if WITH_SH1106
 #include "sh1106.h"
@@ -45,6 +49,8 @@ void serialEvent()
 
 void loop()
 {
+    controller.update();
+
 #if defined(WITH_SH1106)
     ui.update();
 #endif  // WITH_SH1106

@@ -67,6 +67,8 @@ class Config:
             self.board = config["general"].get("board")
             self.sub = config["general"].get("sub", None)
 
+            self.with_mock_controller = config["general"].getboolean("with_mock_controller", False)
+
             self.with_ds18b20 = config.has_section("ds18b20")
             self.ds18b20_pin = config["ds18b20"].getint("pin") if self.with_ds18b20 else None
 
@@ -107,6 +109,9 @@ if __name__ == "__main__":
     VERSION_STRING = git_hash()
     ARDUINO_LIBS = []
     CONFIG = []
+
+    if config.with_mock_controller:
+        CONFIG.append("#define WITH_MOCK_CONTROLLER 1")
 
     if config.with_ds18b20:
         ARDUINO_LIBS.append("OneWire")

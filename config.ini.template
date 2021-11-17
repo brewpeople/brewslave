@@ -7,6 +7,7 @@
 # avrdude_conf =
 board = nano
 # sub = atmega328
+with_mock_controller = false
 
 # By default these point to the ./libs dir, so no need to adjust them. Change
 # only if you know what you are doing.

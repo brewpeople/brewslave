@@ -6,7 +6,7 @@
 #include "controller.h"
 #include "sensor.h"
 
-#if WITH_DS18B20
+#if defined(WITH_DS18B20)
 #include <ds18b20.h>
 Ds18b20 sensor{DS18B20_PIN};
 #else
@@ -19,7 +19,7 @@ MockController controller{};
 MainController controller{sensor};
 #endif
 
-#if WITH_SH1106
+#if defined(WITH_SH1106)
 #include "sh1106.h"
 #include "ui.h"
 
@@ -37,7 +37,7 @@ void setup()
 
     Serial.begin(115200, SERIAL_8N1);
 
-#if WITH_SH1106
+#if defined(WITH_SH1106)
     display.begin();
 #endif  // WITH_SH1106
 }

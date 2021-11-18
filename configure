@@ -12,12 +12,7 @@ from collections import defaultdict
 from pathlib import Path
 
 
-def get_valid_boards(arduino_dir):
-    path = arduino_dir / "hardware/arduino/avr/boards.txt"
-
-    if not path.exists():
-        raise RuntimeError(f"Could not find {path}")
-
+def get_valid_boards(path):
     bt = defaultdict(list)
 
     name_expression = re.compile(r"^([\w\d_\-]+)\.name.*$")
@@ -66,6 +61,7 @@ class Config:
             self.user_lib_path = get_path("general", "user_lib_path", "./libs").absolute()
             self.board = config["general"].get("board")
             self.sub = config["general"].get("sub", None)
+            self.extra_cxx_flags = config["general"].get("extra_cxx_flags", "")
 
             self.with_mock_controller = config["general"].getboolean("with_mock_controller", False)
 
@@ -81,7 +77,18 @@ class Config:
         except KeyError as e:
             raise ValueError(f"Could not find configuration entry: {e}")
 
-        boards = get_valid_boards(self.arduino_dir)
+        path = self.arduino_dir / "hardware/arduino/avr/boards.txt"
+
+        if path.exists():
+            boards = get_valid_boards(path)
+
+        path = self.arduino_dir / "hardware/arduino/boards.txt"
+
+        if path.exists():
+            boards = get_valid_boards(path)
+
+        if boards is None:
+            raise RuntimeError(f"Could not find {self.arduino_dir}/hardware/arduino/[avr/]boards.txt")
 
         if self.board not in boards:
             raise ValueError(f"Unknown board '{self.board}', valid boards: {', '.join(boards.keys())}")
@@ -102,7 +109,7 @@ if __name__ == "__main__":
 
     try:
         config = Config(args.config)
-    except ValueError as e:
+    except (ValueError, RuntimeError) as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
 
@@ -140,7 +147,8 @@ if __name__ == "__main__":
                  BOARD_TAG=config.board,
                  BOARD_SUB=config.sub or "",
                  ARDMK_LOCATION=config.ardmk_dir / "Arduino.mk",
-                 USER_LIB_PATH=config.user_lib_path)
+                 USER_LIB_PATH=config.user_lib_path,
+                 EXTRA_CXX_FLAGS=config.extra_cxx_flags)
 
         f.write(template.safe_substitute(d))
 

@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+
+      - name: Install Arduino distribution
+        run: sudo apt install -y arduino
+
+      - name: Create configuration
+        run: |
+          echo "[general]" > config.ci.ini
+          echo "arduino_dir = /usr/share/arduino" >> config.ci.ini
+          echo "with_mock_controller = true" >> config.ci.ini
+          echo "board = uno" >> config.ci.ini
+          echo "extra_cxx_flags = -D'yield(x)='" >> config.ci.ini
+
+          echo "[ds18b20]" >> config.ci.ini
+          echo "pin = 2" >> config.ci.ini
+
+          echo "[sh1106]" >> config.ci.ini
+          echo "rst = 9" >> config.ci.ini
+          echo "dc = 8" >> config.ci.ini
+          echo "cs = 10" >> config.ci.ini
+          echo "din = 11" >> config.ci.ini
+          echo "clk = 13" >> config.ci.ini
+
+      - name: Configure
+        run: ./configure config.ci.ini
+
+      - name: Build
+        run: make

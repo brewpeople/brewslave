@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     try:
         config = Config(args.config)
-    except ValueError as e:
+    except (ValueError, RuntimeError) as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
 

@@ -7,5 +7,5 @@ USER_LIB_PATH = ${USER_LIB_PATH}
 BOARD_TAG = ${BOARD_TAG}
 BOARD_SUB = ${BOARD_SUB}
 CFLAGS = -DHAVE_CONFIG_H=1 -Wall -Wextra
-CXXFLAGS = -DHAVE_CONFIG_H=1 -Wall -Wextra -I. -I$(ARDUINO_DIR)/hardware/tools/avr/avr/include
+CXXFLAGS = -DHAVE_CONFIG_H=1 -Wall -Wextra -I. -I$(ARDUINO_DIR)/hardware/tools/avr/avr/include ${EXTRA_CXX_FLAGS}
 include ${ARDMK_LOCATION}

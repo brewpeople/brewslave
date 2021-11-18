@@ -66,6 +66,7 @@ class Config:
             self.user_lib_path = get_path("general", "user_lib_path", "./libs").absolute()
             self.board = config["general"].get("board")
             self.sub = config["general"].get("sub", None)
+            self.extra_cxx_flags = config["general"].get("extra_cxx_flags", "")
 
             self.with_mock_controller = config["general"].getboolean("with_mock_controller", False)
 
@@ -140,7 +141,8 @@ if __name__ == "__main__":
                  BOARD_TAG=config.board,
                  BOARD_SUB=config.sub or "",
                  ARDMK_LOCATION=config.ardmk_dir / "Arduino.mk",
-                 USER_LIB_PATH=config.user_lib_path)
+                 USER_LIB_PATH=config.user_lib_path,
+                 EXTRA_CXX_FLAGS=config.extra_cxx_flags)
 
         f.write(template.safe_substitute(d))
 

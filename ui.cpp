@@ -11,11 +11,13 @@ void Ui::update()
     const auto current_temperature{m_controller.temperature()};
     const auto target_temperature{m_controller.target_temperature()};
     const auto delta{current_temperature - m_last_temperature};
+    const auto have_problem{m_controller.has_problem()};
     const bool refresh{
         // Refresh if current temperature has changed
         fabs(delta) > 0.0f ||
         // Refresh if target temperature has changed
-        (target_temperature != m_last_target_temperature)
+        (target_temperature != m_last_target_temperature) ||
+        have_problem
     };
 
     if (refresh) {
@@ -28,6 +30,10 @@ void Ui::update()
 
     if (delta < - 0.1f) {
         m_display.draw_bitmap(70, 63 - 6, Bitmap { 11, 6, ICON_ARROW_DOWN_11_6 });
+    }
+
+    if (have_problem) {
+        m_display.draw_bitmap(127 - 22, 63 - 22, Bitmap { 22, 22, ICON_WARNING_22_22 });
     }
 
     if (refresh) {

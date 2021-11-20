@@ -25,6 +25,7 @@ jobs:
         run: |
           echo "[general]" > config.ci.ini
           echo "arduino_dir = /usr/share/arduino" >> config.ci.ini
+          echo "boards_txt = /usr/share/arduino/hardware/arduino/boards.txt" >> config.ci.ini
           echo "with_mock_controller = true" >> config.ci.ini
           echo "board = uno" >> config.ci.ini
           echo "extra_cxx_flags = -D'yield(x)='" >> config.ci.ini

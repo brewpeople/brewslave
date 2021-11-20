@@ -14,6 +14,11 @@ with_mock_controller = false
 # ardmk_dir =
 # user_lib_path =
 
+# By default this points to [general].arduino_dir/hardware/arduino/avr/boards.txt
+# however the Ubuntu package has it in a different location. To override the
+# default use this setting.
+# boards_txt =
+
 # [ds18b20]
 # pin = 2
 

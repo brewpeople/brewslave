@@ -45,8 +45,8 @@ void Ui::update()
 
         clamped = static_cast<uint8_t>(target_temperature);
         clamped = clamped >= 100 ? 99 : clamped;
-        m_display.draw_bitmap(86, 0, Bitmap { 18, 32, DIGITS_18_32[clamped / 10] });
-        m_display.draw_bitmap(106, 0, Bitmap { 18, 32, DIGITS_18_32[clamped % 10] });
+        m_display.draw_bitmap(127 - 2 * 18, 0, Bitmap { 18, 32, DIGITS_18_32[clamped / 10] });
+        m_display.draw_bitmap(127 - 1 * 18, 0, Bitmap { 18, 32, DIGITS_18_32[clamped % 10] });
 
         m_display.flush();
 

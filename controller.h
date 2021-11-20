@@ -60,6 +60,11 @@ public:
      * @return @c true if heater is on else @c false.
      */
     virtual bool heater_is_on() = 0;
+
+    /**
+     * Return @c true if there is an issue.
+     */
+    virtual bool has_problem() const = 0;
 };
 
 /**
@@ -85,6 +90,8 @@ public:
     void set_heater_on(bool is_on) final;
 
     bool heater_is_on() final;
+
+    bool has_problem() const final;
 
 private:
     TemperatureSensor& m_sensor;
@@ -118,6 +125,8 @@ public:
     void set_heater_on(bool is_on) final;
 
     bool heater_is_on() final;
+
+    bool has_problem() const final;
 
 private:
     unsigned long m_last_time;

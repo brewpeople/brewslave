@@ -44,6 +44,11 @@ bool MainController::heater_is_on()
     return m_heater_on;
 }
 
+bool MainController::has_problem() const
+{
+    return false;
+}
+
 MockController::MockController()
 : m_last_time{millis()}
 {}
@@ -103,4 +108,9 @@ void MockController::set_heater_on(bool is_on)
 bool MockController::heater_is_on()
 {
     return m_heater_on;
+}
+
+bool MockController::has_problem() const
+{
+    return m_current_temperature > 72.0f;
 }

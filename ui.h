@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sh1106.h"
+#include "fonts.h"
 #include "sensor.h"
 #include "controller.h"
 
@@ -24,6 +25,7 @@ public:
 
 private:
     Sh1106& m_display;
+    FontPico m_pico;
     Controller& m_controller;
     float m_last_temperature{20.0f};
     float m_last_target_temperature{20.0f};

@@ -3,11 +3,13 @@
 
 Ui::Ui(Sh1106& display, Controller& controller)
 : m_display{display}
+, m_pico{display}
 , m_controller{controller}
 {}
 
 void Ui::update()
 {
+    const auto now{millis()};
     const auto current_temperature{m_controller.temperature()};
     const auto target_temperature{m_controller.target_temperature()};
     const auto delta{current_temperature - m_last_temperature};
@@ -17,7 +19,8 @@ void Ui::update()
         fabs(delta) > 0.0f ||
         // Refresh if target temperature has changed
         (target_temperature != m_last_target_temperature) ||
-        have_problem
+        have_problem ||
+        now < 5000
     };
 
     if (refresh) {
@@ -34,6 +37,11 @@ void Ui::update()
 
     if (have_problem) {
         m_display.draw_bitmap(127 - 22, 63 - 22, Bitmap { 22, 22, ICON_WARNING_22_22 });
+    }
+
+    // Display version string for 5 seconds
+    if (now < 5000) {
+        m_pico.draw(VERSION_STRING, 127 - 4 * 5, 63 - 6);
     }
 
     if (refresh) {

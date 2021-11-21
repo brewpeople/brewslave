@@ -60,7 +60,7 @@ void Sh1106::begin()
 
 void Sh1106::clear()
 {
-    for (size_t i = 0; i < m_width * m_height / 8; i++) {
+    for (size_t i = 0; i < width * height / 8; i++) {
         m_buffer[i] = 0;
     }
 }
@@ -79,20 +79,20 @@ void Sh1106::flush()
         // write data
         digitalWrite(m_dc, HIGH);
 
-        for (size_t i = 0; i < m_width; i++) {
+        for (size_t i = 0; i < width; i++) {
             SPI.transfer(buffer[i]);
         }
 
-        buffer += m_width;
+        buffer += width;
     }
 }
 
 void Sh1106::draw_pixel(uint8_t x, uint8_t y)
 {
-    if (x > m_width || y > m_height)
+    if (x > width || y > height)
         return;
 
-    m_buffer[x + (y / 8) * m_width] |= 1 << (y % 8);
+    m_buffer[x + (y / 8) * width] |= 1 << (y % 8);
 }
 
 void Sh1106::draw_bitmap(uint8_t x, uint8_t y, Bitmap&& bitmap)

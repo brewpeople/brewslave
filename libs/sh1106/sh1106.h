@@ -18,6 +18,9 @@ public:
     void draw_pixel(uint8_t x, uint8_t y);
     void draw_bitmap(uint8_t x, uint8_t y, Bitmap&& bitmap);
 
+    static constexpr size_t width{128};
+    static constexpr size_t height{64};
+
 private:
     void command(uint8_t cmd);
 
@@ -26,7 +29,5 @@ private:
     const byte m_cs;
     const byte m_din;
     const byte m_clk;
-    static const size_t m_width{128};
-    static const size_t m_height{64};
-    uint8_t m_buffer[m_width * m_height / 8];
+    uint8_t m_buffer[width * height / 8];
 };

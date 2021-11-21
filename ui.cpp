@@ -33,11 +33,11 @@ void Ui::update()
     }
 
     if (delta < - 0.1f) {
-        m_display.draw_bitmap(70, 63 - 6, Bitmap { 11, 6, ICON_ARROW_DOWN_11_6 });
+        m_display.draw_bitmap(70, m_display.height - 1 - 6, Bitmap { 11, 6, ICON_ARROW_DOWN_11_6 });
     }
 
     if (have_problem) {
-        m_display.draw_bitmap(127 - 22, 63 - 22, Bitmap { 22, 22, ICON_WARNING_22_22 });
+        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap { 22, 22, ICON_WARNING_22_22 });
     }
 
     if (*m_welcome_last != '\0') {
@@ -65,8 +65,8 @@ void Ui::update()
 
         clamped = static_cast<uint8_t>(target_temperature);
         clamped = clamped >= 100 ? 99 : clamped;
-        m_display.draw_bitmap(127 - 2 * 18, 0, Bitmap { 18, 32, DIGITS_18_32[clamped / 10] });
-        m_display.draw_bitmap(127 - 1 * 18, 0, Bitmap { 18, 32, DIGITS_18_32[clamped % 10] });
+        m_display.draw_bitmap(m_display.width - 1 - 2 * 18, 0, Bitmap { 18, 32, DIGITS_18_32[clamped / 10] });
+        m_display.draw_bitmap(m_display.width - 1 - 1 * 18, 0, Bitmap { 18, 32, DIGITS_18_32[clamped % 10] });
 
         m_display.flush();
 

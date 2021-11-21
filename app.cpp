@@ -38,8 +38,10 @@ MockEncoder encoder{};
 #include <GasBurnerControl.h>
 
 GasBurnerControl gbc{GBC_POWER_PIN, GBC_DEJAM_PIN, GBC_JAMMED_PIN, GBC_VALVE_PIN, GBC_IGNITION_PIN};
+#define GBC_MESSAGE " +real_gbc"
 #else
 MockGasBurner gbc{};
+#define GBC_MESSAGE " +mock_gbc"
 #endif
 
 #if defined(WITH_SH1106)
@@ -50,7 +52,7 @@ Sh1106 display{SH1106_RST, SH1106_DC, SH1106_CS, SH1106_DIN, SH1106_CLK};
 MockDisplay display{};
 #endif  // WITH_SH1106
 
-Ui ui{display, VERSION_STRING TEMPERATURE_MESSAGE ENCODER_MESSAGE CONTROLLER_MESSAGE};
+Ui ui{display, VERSION_STRING TEMPERATURE_MESSAGE ENCODER_MESSAGE CONTROLLER_MESSAGE GBC_MESSAGE};
 
 ISR(PCINT1_vect)
 {
@@ -74,9 +76,7 @@ public:
         const auto elapsed{now - m_last_update};
         m_last_update = now;
 
-#if defined(WITH_GBC)
         gbc.update();
-#endif
 
         m_controller.update(elapsed);
 

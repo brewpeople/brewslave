@@ -1,15 +1,16 @@
 #include "ui.h"
 #include "fonts.h"
 
-Ui::Ui(Sh1106& display, Controller& controller)
+Ui::Ui(Sh1106& display, Controller& controller, const char* welcome)
 : m_display{display}
 , m_pico{display}
 , m_controller{controller}
+, m_welcome{welcome}
+, m_welcome_last{welcome}
 {}
 
 void Ui::update()
 {
-    const auto now{millis()};
     const auto current_temperature{m_controller.temperature()};
     const auto target_temperature{m_controller.target_temperature()};
     const auto delta{current_temperature - m_last_temperature};
@@ -20,7 +21,7 @@ void Ui::update()
         // Refresh if target temperature has changed
         (target_temperature != m_last_target_temperature) ||
         have_problem ||
-        now < 5000
+        m_welcome_last != nullptr
     };
 
     if (refresh) {
@@ -39,9 +40,20 @@ void Ui::update()
         m_display.draw_bitmap(127 - 22, 63 - 22, Bitmap { 22, 22, ICON_WARNING_22_22 });
     }
 
-    // Display version string for 5 seconds
-    if (now < 5000) {
-        m_pico.draw(VERSION_STRING, 127 - 4 * 5, 63 - 6);
+    if (*m_welcome_last != '\0') {
+        // This is pretty choppy because of the uneven loop timing. There are
+        // two options: we schedule the UI updates at precise points in time or
+        // use ye olde trick of time-dependent updates. But not super important
+        // for now, I'd say.
+        m_pico.draw(m_welcome_last, m_current_scroll_start, 63 - 6);
+
+        if (m_current_scroll_start > 69) {
+            m_current_scroll_start--;
+        }
+        else {
+            m_welcome_last++;
+            m_current_scroll_start += 4;
+        }
     }
 
     if (refresh) {

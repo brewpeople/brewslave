@@ -4,12 +4,10 @@
 namespace {
     enum class Command : uint8_t {
         invalid = 0x0,
-        read_temperature = 0x1,
-        write_temperature = 0x2,
-        read_stirrer = 0x4,
-        turn_stirrer_on = 0x5,
-        turn_stirrer_off = 0x6,
-        read_heater = 0x8,
+        read_state = 0x1,
+        set_temperature = 0x2,
+        turn_stirrer_on = 0x3,
+        turn_stirrer_off = 0x4,
     };
 
     enum class Response : uint8_t {
@@ -36,27 +34,35 @@ void Comm::process_serial_data()
     }
 
     switch (command) {
-        case Command::read_temperature:
+        case Command::read_state:
             {
-                float temperature{m_controller.temperature()};
+                const float temperature{m_controller.temperature()};
+                uint8_t state{0};
+
+                if (m_controller.stirrer_is_on()) {
+                    state |= 0x1;
+                }
+
+                if (m_controller.heater_is_on()) {
+                    state |= 0x2;
+                }
+
                 Serial.write((const uint8_t*) &temperature, 4);
+                Serial.write(state);
             }
             break;
-        case Command::write_temperature:
+        case Command::set_temperature:
             {
                 float temperature{20.0f};
 
                 if (Serial.readBytes((char *) &temperature, 4) == 4) {
                     m_controller.set_temperature(temperature);
-                    Serial.write(response(Command::write_temperature, Response::ack));
+                    Serial.write(response(Command::set_temperature, Response::ack));
                 }
                 else {
-                    Serial.write(response(Command::write_temperature, Response::nack));
+                    Serial.write(response(Command::set_temperature, Response::nack));
                 }
             }
-            break;
-        case Command::read_stirrer:
-            Serial.write(static_cast<uint8_t>(m_controller.stirrer_is_on()));
             break;
         case Command::turn_stirrer_on:
             m_controller.set_stirrer_on(true);
@@ -65,9 +71,6 @@ void Comm::process_serial_data()
         case Command::turn_stirrer_off:
             m_controller.set_stirrer_on(false);
             Serial.write(response(Command::turn_stirrer_off, Response::ack));
-            break;
-        case Command::read_heater:
-            Serial.write(static_cast<uint8_t>(m_controller.heater_is_on()));
             break;
         case Command::invalid:
             break;

@@ -36,7 +36,8 @@ void Comm::process_serial_data()
     switch (command) {
         case Command::read_state:
             {
-                const float temperature{m_controller.temperature()};
+                const float current{m_controller.temperature()};
+                const float target{m_controller.target_temperature()};
                 uint8_t state{0};
 
                 if (m_controller.stirrer_is_on()) {
@@ -47,7 +48,8 @@ void Comm::process_serial_data()
                     state |= 0x2;
                 }
 
-                Serial.write((const uint8_t*) &temperature, 4);
+                Serial.write((const uint8_t*) &current, 4);
+                Serial.write((const uint8_t*) &target, 4);
                 Serial.write(state);
             }
             break;

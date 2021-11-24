@@ -7,7 +7,19 @@
 
 class Updateable {
 public:
+    enum State : uint8_t {
+        UpArrow = 1 << 0,
+        DownArrow = 1 << 1,
+        Warning = 1 << 2,
+    };
+
     virtual void update() = 0;
+
+    virtual void set_big_number(uint8_t number) = 0;
+
+    virtual void set_small_number(uint8_t number) = 0;
+
+    virtual void set_state(uint8_t state) = 0;
 };
 
 class Ui : public Updateable {
@@ -22,7 +34,22 @@ public:
      * @param controller Used to read the current set temperature.
      * @param welcome Initial welcome message.
      */
-    Ui(Sh1106& display, Controller& controller, const char* welcome);
+    Ui(Sh1106& display, const char* welcome);
+
+    /**
+     * Set the left-hand side number.
+     */
+    void set_big_number(uint8_t number) final;
+
+    /**
+     * Set the right-hand side smaller number.
+     */
+    void set_small_number(uint8_t number) final;
+
+    /**
+     * Set additional UI state flags.
+     */
+    void set_state(uint8_t) final;
 
     /**
      * Update internal state and refresh display if necessary.
@@ -32,15 +59,19 @@ public:
 private:
     Sh1106& m_display;
     FontPico m_pico;
-    Controller& m_controller;
+    uint8_t m_big_number{20};
+    uint8_t m_small_number{20};
+    uint8_t m_state{0};
+    bool m_refresh{true};
     const char* m_welcome{nullptr};
     const char* m_welcome_last{nullptr};
     uint8_t m_current_scroll_start{127};
-    float m_last_temperature{20.0f};
-    float m_last_target_temperature{20.0f};
 };
 
 class MockUi : public Updateable {
 public:
     void update() final {};
+    void set_big_number(uint8_t) final {};
+    void set_small_number(uint8_t) final {};
+    void set_state(uint8_t) final {}
 };

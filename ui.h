@@ -5,7 +5,12 @@
 #include "sensor.h"
 #include "controller.h"
 
-class Ui {
+class Updateable {
+public:
+    virtual void update() = 0;
+};
+
+class Ui : public Updateable {
 public:
     /**
      * Construct a new user interface object.
@@ -22,7 +27,7 @@ public:
     /**
      * Update internal state and refresh display if necessary.
      */
-    void update();
+    void update() final;
 
 private:
     Sh1106& m_display;
@@ -33,4 +38,9 @@ private:
     uint8_t m_current_scroll_start{127};
     float m_last_temperature{20.0f};
     float m_last_target_temperature{20.0f};
+};
+
+class MockUi : public Updateable {
+public:
+    void update() final {};
 };

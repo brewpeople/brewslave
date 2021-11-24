@@ -29,6 +29,8 @@ MainController controller{sensor};
 
 Sh1106 display{SH1106_RST, SH1106_DC, SH1106_CS, SH1106_DIN, SH1106_CLK};
 Ui ui{display, controller, VERSION_STRING TEMPERATURE_MESSAGE CONTROLLER_MESSAGE};
+#else
+MockUi ui{};
 #endif  // WITH_SH1106
 
 Comm comm{controller};
@@ -54,8 +56,5 @@ void serialEvent()
 void loop()
 {
     controller.update();
-
-#if defined(WITH_SH1106)
     ui.update();
-#endif  // WITH_SH1106
 }

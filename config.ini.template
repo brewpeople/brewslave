@@ -28,3 +28,8 @@ with_mock_controller = false
 # cs = 10
 # din = 11
 # clk = 13
+
+# [ky040]
+# sw = A0
+# dt = A1
+# clk = A2

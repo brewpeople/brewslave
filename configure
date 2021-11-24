@@ -74,6 +74,11 @@ class Config:
             self.sh1106_cs = config["sh1106"].getint("cs") if self.with_sh1106 else None
             self.sh1106_din = config["sh1106"].getint("din") if self.with_sh1106 else None
             self.sh1106_clk = config["sh1106"].getint("clk") if self.with_sh1106 else None
+
+            self.with_ky040 = config.has_section("ky040")
+            self.ky040_sw = config["ky040"].get("sw") if self.with_ky040 else None
+            self.ky040_dt = config["ky040"].get("dt") if self.with_ky040 else None
+            self.ky040_clk = config["ky040"].get("clk") if self.with_ky040 else None
         except KeyError as e:
             raise ValueError(f"Could not find configuration entry: {e}")
 
@@ -131,6 +136,12 @@ if __name__ == "__main__":
         CONFIG.append(f"#define SH1106_CS {config.sh1106_cs}")
         CONFIG.append(f"#define SH1106_DIN {config.sh1106_din}")
         CONFIG.append(f"#define SH1106_CLK {config.sh1106_clk}")
+
+    if config.with_ky040:
+        CONFIG.append("#define WITH_KY040 1")
+        CONFIG.append(f"#define KY040_SW {config.ky040_sw}")
+        CONFIG.append(f"#define KY040_DT {config.ky040_dt}")
+        CONFIG.append(f"#define KY040_CLK {config.ky040_clk}")
 
     with Path("Makefile").open("w") as f:
         template = string.Template(open("Makefile.in").read())

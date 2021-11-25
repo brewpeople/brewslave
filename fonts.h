@@ -24,4 +24,4 @@ extern const PROGMEM uint8_t ICON_ARROW_UP_11_6[12];
 extern const PROGMEM uint8_t ICON_ARROW_DOWN_11_6[12];
 extern const PROGMEM uint8_t ICON_SMALL_ARROW_UP_6_3[3];
 extern const PROGMEM uint8_t ICON_SMALL_ARROW_DOWN_6_3[3];
-extern const PROGMEM uint8_t ICON_SMALL_ARROW_EQ_6_3[3];
+extern const PROGMEM uint8_t ICON_SMALL_ARROW_EQ_6_5[5];

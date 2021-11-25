@@ -77,7 +77,7 @@ void Ui::update()
     }
 
     if ((m_state & Updateable::State::SmallEq) != 0) {
-        m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 15, Bitmap { 6, 3, ICON_SMALL_ARROW_EQ_6_3 });
+        m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 15, Bitmap { 6, 5, ICON_SMALL_ARROW_EQ_6_5 });
     }
 
     m_display.draw_bitmap(m_display.width - 1 - 2 * 18, 0, Bitmap { 18, 32, DIGITS_18_32[m_small_number / 10] });

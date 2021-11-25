@@ -740,8 +740,10 @@ const PROGMEM uint8_t ICON_SMALL_ARROW_DOWN_6_3[3] = {
     B0010000,
 };
 
-const PROGMEM uint8_t ICON_SMALL_ARROW_EQ_6_3[3] = {
-    B0111000,
-    B0111000,
-    B0111000,
+const PROGMEM uint8_t ICON_SMALL_ARROW_EQ_6_5[5] = {
+    B1000000,
+    B1100000,
+    B1110000,
+    B1100000,
+    B1000000,
 };

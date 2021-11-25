@@ -25,6 +25,7 @@ void Ui::set_small_number(uint8_t number)
 void Ui::set_state(uint8_t state)
 {
     m_refresh = m_refresh || (m_state != state);
+    m_state = state;
 }
 
 void Ui::update()

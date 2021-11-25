@@ -11,6 +11,9 @@ public:
         UpArrow = 1 << 0,
         DownArrow = 1 << 1,
         Warning = 1 << 2,
+        SmallUpArrow = 1 << 3,
+        SmallDownArrow = 1 << 4,
+        SmallEq = 1 << 5,
     };
 
     virtual void update() = 0;

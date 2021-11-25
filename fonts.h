@@ -22,3 +22,6 @@ extern const PROGMEM uint8_t PICO_FONT_4_6[384];
 extern const PROGMEM uint8_t ICON_WARNING_22_22[66];
 extern const PROGMEM uint8_t ICON_ARROW_UP_11_6[12];
 extern const PROGMEM uint8_t ICON_ARROW_DOWN_11_6[12];
+extern const PROGMEM uint8_t ICON_SMALL_ARROW_UP_6_3[3];
+extern const PROGMEM uint8_t ICON_SMALL_ARROW_DOWN_6_3[3];
+extern const PROGMEM uint8_t ICON_SMALL_ARROW_EQ_6_3[3];

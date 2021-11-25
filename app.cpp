@@ -62,24 +62,60 @@ public:
     {
         m_controller.update();
 
-        const auto current_temperature{m_controller.temperature()};
-        const auto delta{current_temperature - m_last_temperature};
-        uint8_t ui_state{0};
         auto target_temperature{m_controller.target_temperature()};
 
-        switch (m_encoder.direction()) {
-            case ButtonEncoder::Direction::Clockwise:
-                target_temperature = min(100.0f, target_temperature + 1.0f);
-                break;
-            case ButtonEncoder::Direction::CounterClockwise:
-                target_temperature = max(0.0f, target_temperature - 1.0f);
-                break;
-            default:
-                break;
+        if (m_encoder.pressed()) {
+            switch (m_state) {
+                case State::SetTarget:
+                    m_state = State::Main;
+                    target_temperature = static_cast<float>(m_set_target_temperature);
+                    m_controller.set_temperature(target_temperature);
+                    break;
+                case State::Main:
+                    m_set_target_temperature = static_cast<uint8_t>(round(target_temperature));
+                    m_state = State::SetTarget;
+                    break;
+            }
         }
 
-        m_controller.set_temperature(target_temperature);
+        const auto current_temperature{m_controller.temperature()};
+        const auto delta{current_temperature - m_last_temperature};
         m_last_temperature = current_temperature;
+
+        uint8_t ui_state{0};
+
+        switch (m_state) {
+            case State::Main:
+                m_ui.set_small_number(static_cast<uint8_t>(round(target_temperature)));
+                break;
+
+            case State::SetTarget:
+                {
+                    const auto direction{m_encoder.direction()};
+
+                    if (direction == ButtonEncoder::Direction::Clockwise && m_set_target_temperature < 100) {
+                        m_set_target_temperature++;
+                    }
+                    else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 1) {
+                        m_set_target_temperature--;
+                    }
+
+                    const auto current_target{static_cast<uint8_t>(round(target_temperature))};
+
+                    if (m_set_target_temperature > current_target) {
+                        ui_state |= Updateable::State::SmallUpArrow;
+                    }
+                    else if (m_set_target_temperature < current_target) {
+                        ui_state |= Updateable::State::SmallDownArrow;
+                    }
+                    else {
+                        ui_state |= Updateable::State::SmallEq;
+                    }
+
+                    m_ui.set_small_number(m_set_target_temperature);
+                }
+                break;
+        }
 
         if (delta > 0.1f) {
             ui_state |= Updateable::State::UpArrow;
@@ -94,7 +130,6 @@ public:
         }
 
         m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));
-        m_ui.set_small_number(static_cast<uint8_t>(round(target_temperature)));
         m_ui.set_state(ui_state);
         m_ui.update();
     }
@@ -108,7 +143,9 @@ private:
     Updateable& m_ui;
     Controller& m_controller;
     ButtonEncoder& m_encoder;
+    State m_state{State::Main};
     float m_last_temperature{20.0f};
+    uint8_t m_set_target_temperature{0};
 };
 
 App app{ui, controller, encoder};

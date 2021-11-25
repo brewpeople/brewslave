@@ -18,5 +18,6 @@ private:
 
     uint8_t m_sw{0};
     uint8_t m_sw_pin;
+    bool m_pressed{false};
     RotaryEncoder m_encoder;
 };

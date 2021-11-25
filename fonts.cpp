@@ -727,3 +727,21 @@ const PROGMEM uint8_t PICO_FONT_4_6[384] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
+
+const PROGMEM uint8_t ICON_SMALL_ARROW_UP_6_3[3] = {
+    B0010000,
+    B0111000,
+    B1111100,
+};
+
+const PROGMEM uint8_t ICON_SMALL_ARROW_DOWN_6_3[3] = {
+    B1111100,
+    B0111000,
+    B0010000,
+};
+
+const PROGMEM uint8_t ICON_SMALL_ARROW_EQ_6_3[3] = {
+    B0111000,
+    B0111000,
+    B0111000,
+};

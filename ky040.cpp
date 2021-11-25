@@ -13,7 +13,9 @@ Ky040::Ky040(uint8_t sw, uint8_t dt, uint8_t clk)
 
 void Ky040::update()
 {
-    m_sw = digitalRead(m_sw_pin);
+    const auto sw{digitalRead(m_sw_pin)};
+    m_pressed = m_pressed || ((m_sw != sw) && (sw == 1));
+    m_sw = sw;
     m_encoder.tick();
 }
 
@@ -33,9 +35,9 @@ ButtonEncoder::Direction Ky040::direction()
 
 bool Ky040::pressed()
 {
-    const auto pressed{m_sw == 1};
-    m_sw = 0;
-    return pressed;
+    const auto tmp{m_pressed};
+    m_pressed = false;
+    return tmp;
 }
 
 void Ky040::pin_change(uint8_t pin)

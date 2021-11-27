@@ -82,10 +82,9 @@ public:
         const auto delta{current_temperature - m_last_temperature};
         m_last_temperature = current_temperature;
 
-        uint8_t ui_state{0};
-
         switch (m_state) {
             case State::Main:
+                m_ui_state &= ~(Updateable::State::SmallUpArrow | Updateable::State::SmallDownArrow | Updateable::State::SmallEq);
                 m_ui.set_small_number(static_cast<uint8_t>(round(target_temperature)));
                 break;
 
@@ -103,13 +102,16 @@ public:
                     const auto current_target{static_cast<uint8_t>(round(target_temperature))};
 
                     if (m_set_target_temperature > current_target) {
-                        ui_state |= Updateable::State::SmallUpArrow;
+                        m_ui_state &= ~(Updateable::State::SmallDownArrow | Updateable::State::SmallEq);
+                        m_ui_state |= Updateable::State::SmallUpArrow;
                     }
                     else if (m_set_target_temperature < current_target) {
-                        ui_state |= Updateable::State::SmallDownArrow;
+                        m_ui_state &= ~(Updateable::State::SmallUpArrow | Updateable::State::SmallEq);
+                        m_ui_state |= Updateable::State::SmallDownArrow;
                     }
                     else {
-                        ui_state |= Updateable::State::SmallEq;
+                        m_ui_state &= ~(Updateable::State::SmallUpArrow | Updateable::State::SmallDownArrow);
+                        m_ui_state |= Updateable::State::SmallEq;
                     }
 
                     m_ui.set_small_number(m_set_target_temperature);
@@ -118,19 +120,24 @@ public:
         }
 
         if (delta > 0.1f) {
-            ui_state |= Updateable::State::UpArrow;
+            m_ui_state &= ~Updateable::State::DownArrow;
+            m_ui_state |= Updateable::State::UpArrow;
         }
 
         if (delta < -0.1f) {
-            ui_state |= Updateable::State::DownArrow;
+            m_ui_state &= ~Updateable::State::UpArrow;
+            m_ui_state |= Updateable::State::DownArrow;
         }
 
         if (m_controller.has_problem()) {
-            ui_state |= Updateable::State::Warning;
+            m_ui_state |= Updateable::State::Warning;
+        }
+        else {
+            m_ui_state &= ~Updateable::State::Warning;
         }
 
         m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));
-        m_ui.set_state(ui_state);
+        m_ui.set_state(m_ui_state);
         m_ui.update();
     }
 
@@ -141,6 +148,7 @@ private:
     };
 
     Updateable& m_ui;
+    uint8_t m_ui_state{0};
     Controller& m_controller;
     ButtonEncoder& m_encoder;
     State m_state{State::Main};

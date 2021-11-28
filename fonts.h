@@ -2,17 +2,17 @@
 
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-#include "sh1106.h"
+#include "display.h"
 
 class FontPico {
 public:
-    FontPico(Sh1106& display);
+    FontPico(Display& display);
 
     void draw(const char* s, uint8_t x, uint8_t y);
     void draw_char(char c, uint8_t x, uint8_t y);
 
 private:
-    Sh1106& m_display;
+    Display& m_display;
     static constexpr size_t m_image_width{128};
 };
 

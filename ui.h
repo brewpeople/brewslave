@@ -1,12 +1,15 @@
 #pragma once
 
-#include "sh1106.h"
+#include "display.h"
 #include "fonts.h"
 #include "sensor.h"
 #include "controller.h"
 
-class Updateable {
+class Ui {
 public:
+    /**
+     * Bitflags for various UI elements.
+     */
     enum State : uint8_t {
         UpArrow = 1 << 0,
         DownArrow = 1 << 1,
@@ -16,17 +19,6 @@ public:
         SmallEq = 1 << 5,
     };
 
-    virtual void update() = 0;
-
-    virtual void set_big_number(uint8_t number) = 0;
-
-    virtual void set_small_number(uint8_t number) = 0;
-
-    virtual void set_state(uint8_t state) = 0;
-};
-
-class Ui : public Updateable {
-public:
     /**
      * Construct a new user interface object.
      *
@@ -37,30 +29,30 @@ public:
      * @param controller Used to read the current set temperature.
      * @param welcome Initial welcome message.
      */
-    Ui(Sh1106& display, const char* welcome);
+    Ui(Display& display, const char* welcome);
 
     /**
      * Set the left-hand side number.
      */
-    void set_big_number(uint8_t number) final;
+    void set_big_number(uint8_t number);
 
     /**
      * Set the right-hand side smaller number.
      */
-    void set_small_number(uint8_t number) final;
+    void set_small_number(uint8_t number);
 
     /**
      * Set additional UI state flags.
      */
-    void set_state(uint8_t) final;
+    void set_state(uint8_t);
 
     /**
      * Update internal state and refresh display if necessary.
      */
-    void update() final;
+    void update();
 
 private:
-    Sh1106& m_display;
+    Display& m_display;
     FontPico m_pico;
     uint8_t m_big_number{20};
     uint8_t m_small_number{20};
@@ -69,12 +61,4 @@ private:
     const char* m_welcome{nullptr};
     const char* m_welcome_last{nullptr};
     uint8_t m_current_scroll_start{127};
-};
-
-class MockUi : public Updateable {
-public:
-    void update() final {};
-    void set_big_number(uint8_t) final {};
-    void set_small_number(uint8_t) final {};
-    void set_state(uint8_t) final {}
 };

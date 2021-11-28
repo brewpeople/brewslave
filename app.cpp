@@ -5,6 +5,7 @@
 #include "comm.h"
 #include "controller.h"
 #include "sensor.h"
+#include "ui.h"
 
 #if defined(WITH_DS18B20)
 #include <ds18b20.h>
@@ -35,13 +36,13 @@ MockEncoder encoder{};
 
 #if defined(WITH_SH1106)
 #include "sh1106.h"
-#include "ui.h"
 
 Sh1106 display{SH1106_RST, SH1106_DC, SH1106_CS, SH1106_DIN, SH1106_CLK};
-Ui ui{display, VERSION_STRING TEMPERATURE_MESSAGE ENCODER_MESSAGE CONTROLLER_MESSAGE};
 #else
-MockUi ui{};
+MockDisplay display{};
 #endif  // WITH_SH1106
+
+Ui ui{display, VERSION_STRING TEMPERATURE_MESSAGE ENCODER_MESSAGE CONTROLLER_MESSAGE};
 
 ISR(PCINT1_vect)
 {
@@ -52,7 +53,7 @@ Comm comm{controller};
 
 class App {
 public:
-    App(Updateable& ui, Controller& controller, ButtonEncoder& encoder)
+    App(Ui& ui, Controller& controller, ButtonEncoder& encoder)
     : m_ui{ui}
     , m_controller{controller}
     , m_encoder{encoder}
@@ -84,7 +85,7 @@ public:
 
         switch (m_state) {
             case State::Main:
-                m_ui_state &= ~(Updateable::State::SmallUpArrow | Updateable::State::SmallDownArrow | Updateable::State::SmallEq);
+                m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallDownArrow | Ui::State::SmallEq);
                 m_ui.set_small_number(static_cast<uint8_t>(round(target_temperature)));
                 break;
 
@@ -102,16 +103,16 @@ public:
                     const auto current_target{static_cast<uint8_t>(round(target_temperature))};
 
                     if (m_set_target_temperature > current_target) {
-                        m_ui_state &= ~(Updateable::State::SmallDownArrow | Updateable::State::SmallEq);
-                        m_ui_state |= Updateable::State::SmallUpArrow;
+                        m_ui_state &= ~(Ui::State::SmallDownArrow | Ui::State::SmallEq);
+                        m_ui_state |= Ui::State::SmallUpArrow;
                     }
                     else if (m_set_target_temperature < current_target) {
-                        m_ui_state &= ~(Updateable::State::SmallUpArrow | Updateable::State::SmallEq);
-                        m_ui_state |= Updateable::State::SmallDownArrow;
+                        m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallEq);
+                        m_ui_state |= Ui::State::SmallDownArrow;
                     }
                     else {
-                        m_ui_state &= ~(Updateable::State::SmallUpArrow | Updateable::State::SmallDownArrow);
-                        m_ui_state |= Updateable::State::SmallEq;
+                        m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallDownArrow);
+                        m_ui_state |= Ui::State::SmallEq;
                     }
 
                     m_ui.set_small_number(m_set_target_temperature);
@@ -120,20 +121,20 @@ public:
         }
 
         if (delta > 0.1f) {
-            m_ui_state &= ~Updateable::State::DownArrow;
-            m_ui_state |= Updateable::State::UpArrow;
+            m_ui_state &= ~Ui::State::DownArrow;
+            m_ui_state |= Ui::State::UpArrow;
         }
 
         if (delta < -0.1f) {
-            m_ui_state &= ~Updateable::State::UpArrow;
-            m_ui_state |= Updateable::State::DownArrow;
+            m_ui_state &= ~Ui::State::UpArrow;
+            m_ui_state |= Ui::State::DownArrow;
         }
 
         if (m_controller.has_problem()) {
-            m_ui_state |= Updateable::State::Warning;
+            m_ui_state |= Ui::State::Warning;
         }
         else {
-            m_ui_state &= ~Updateable::State::Warning;
+            m_ui_state &= ~Ui::State::Warning;
         }
 
         m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));
@@ -147,7 +148,7 @@ private:
         SetTarget,
     };
 
-    Updateable& m_ui;
+    Ui& m_ui;
     uint8_t m_ui_state{0};
     Controller& m_controller;
     ButtonEncoder& m_encoder;
@@ -166,9 +167,7 @@ void setup()
 
     Serial.begin(115200, SERIAL_8N1);
 
-#if defined(WITH_SH1106)
     display.begin();
-#endif  // WITH_SH1106
 }
 
 void serialEvent()

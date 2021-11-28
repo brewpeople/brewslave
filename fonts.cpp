@@ -1,6 +1,6 @@
 #include "fonts.h"
 
-FontPico::FontPico(Sh1106& display)
+FontPico::FontPico(Display& display)
 : m_display{display}
 {}
 

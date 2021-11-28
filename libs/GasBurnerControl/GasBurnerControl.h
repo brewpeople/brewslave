@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "controller.h"
+#include "burner.h"
 
 //#define GBC_SERIAL_DEBUG            // if uncommented every update will also send a message over serial
 

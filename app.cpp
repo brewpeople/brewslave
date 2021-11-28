@@ -4,6 +4,7 @@
 
 #include "comm.h"
 #include "controller.h"
+#include "burner.h"
 #include "sensor.h"
 #include "ui.h"
 

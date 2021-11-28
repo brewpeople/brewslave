@@ -57,11 +57,16 @@ public:
     : m_ui{ui}
     , m_controller{controller}
     , m_encoder{encoder}
+    , m_last_update{millis()}
     {}
 
     void update()
     {
-        m_controller.update();
+        const auto now{millis()};
+        const auto elapsed{now - m_last_update};
+        m_last_update = now;
+
+        m_controller.update(elapsed);
 
         auto target_temperature{m_controller.target_temperature()};
 
@@ -155,6 +160,7 @@ private:
     State m_state{State::Main};
     float m_last_temperature{20.0f};
     uint8_t m_set_target_temperature{0};
+    unsigned long m_last_update{0};
 };
 
 App app{ui, controller, encoder};

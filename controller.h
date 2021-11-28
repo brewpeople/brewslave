@@ -9,8 +9,10 @@ class Controller {
 public:
     /**
      * Update internal state and potential set variables.
+     *
+     * @param elapsed Number of milliseconds elapsed since last call.
      */
-    virtual void update() = 0;
+    virtual void update(unsigned long elapsed) = 0;
 
     /**
      * Set target temperature.
@@ -68,7 +70,7 @@ class MainController : public Controller {
 public:
     MainController(TemperatureSensor& sensor);
 
-    void update() final;
+    void update(unsigned long elapsed) final;
 
     void set_temperature(float temperature) final;
 
@@ -101,7 +103,7 @@ class MockController : public Controller {
 public:
     MockController();
 
-    void update() final;
+    void update(unsigned long elapsed) final;
 
     void set_temperature(float temperature) final;
 
@@ -118,7 +120,6 @@ public:
     bool has_problem() const final;
 
 private:
-    unsigned long m_last_time;
     float m_current_temperature{20.0f};
     float m_target_temperature{20.0f};
     bool m_stirrer_on{false};

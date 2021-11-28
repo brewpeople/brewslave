@@ -5,7 +5,7 @@ MainController::MainController(TemperatureSensor& sensor)
 : m_sensor{sensor}
 {}
 
-void MainController::update()
+void MainController::update(unsigned long)
 {
 }
 
@@ -45,17 +45,15 @@ bool MainController::has_problem() const
 }
 
 MockController::MockController()
-: m_last_time{millis()}
 {}
 
-void MockController::update()
+void MockController::update(unsigned long elapsed)
 {
     if (fabs(m_current_temperature - m_target_temperature) < 0.001f) {
         return;
     }
 
-    const auto now{millis()};
-    const auto grad{(now - m_last_time) / 1000.0f};
+    const auto grad{elapsed / 1000.0f};
 
     if (m_current_temperature < m_target_temperature) {
         m_current_temperature += grad;
@@ -65,14 +63,11 @@ void MockController::update()
         m_current_temperature -= grad;
         m_heater_on = false;
     }
-
-    m_last_time = now;
 }
 
 void MockController::set_temperature(float temperature)
 {
     m_target_temperature = temperature;
-    m_last_time = millis();
 }
 
 float MockController::target_temperature() const

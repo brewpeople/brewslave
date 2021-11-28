@@ -186,10 +186,7 @@ void setup()
     Serial.begin(115200, SERIAL_8N1);
 
     display.begin();
-
-#if defined(WITH_GBC)
     gbc.begin();
-#endif
 }
 
 void serialEvent()

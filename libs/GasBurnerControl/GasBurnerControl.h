@@ -16,11 +16,12 @@ public:
         uint8_t ignition_pin
     );
 
-    void start() override;
-    void stop() override;
-    void update() override;
-    State state() override;
-    unsigned int full_state() override;
+    void begin() final;
+    void start() final;
+    void stop() final;
+    void update() final;
+    State state() final;
+    unsigned int full_state() final;
 
 private:
     uint8_t m_power_pin;

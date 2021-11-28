@@ -105,6 +105,10 @@ uint16_t GasBurner::encode_state(State state, uint8_t dejam_counter, uint8_t ign
     return static_cast<uint8_t>(state) | ((dejam_counter & 0x1F) << 11) | ((ignition_counter & 0x1F) << 6);
 }
 
+void MockGasBurner::begin()
+{
+}
+
 void MockGasBurner::start()
 {
 }

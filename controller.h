@@ -37,6 +37,11 @@ public:
     static uint16_t encode_state(State state, uint8_t dejam_counter, uint8_t ignition_counter);
 
     /**
+     * One-time initialization to be called in setup().
+     */
+    virtual void begin() = 0;
+
+    /**
      * Start burner.
      */
     virtual void start() = 0;
@@ -67,11 +72,12 @@ public:
 
 class MockGasBurner : public GasBurner {
 public:
-    void start() override;
-    void stop() override;
-    void update() override;
-    State state() override;
-    unsigned int full_state() override;
+    void begin() final;
+    void start() final;
+    void stop() final;
+    void update() final;
+    State state() final;
+    unsigned int full_state() final;
 
 private:
     GasBurner::State m_state;

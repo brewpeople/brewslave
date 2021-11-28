@@ -50,11 +50,15 @@ GasBurnerControl::GasBurnerControl(
 , m_valve_pin{valve_pin}
 , m_ignition_pin{ignition_pin}
 {
-    pinMode(power_pin, OUTPUT);
-    pinMode(dejam_pin, OUTPUT);
-    pinMode(jammed_pin, INPUT);
-    pinMode(valve_pin, INPUT);
-    pinMode(ignition_pin, INPUT);
+}
+
+void GasBurnerControl::begin()
+{
+    pinMode(m_power_pin, OUTPUT);
+    pinMode(m_dejam_pin, OUTPUT);
+    pinMode(m_jammed_pin, INPUT);
+    pinMode(m_valve_pin, INPUT);
+    pinMode(m_ignition_pin, INPUT);
 
     GBC_DEBUGLN(m_settings.start_delay);
 

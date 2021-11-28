@@ -48,13 +48,6 @@ public:
     virtual bool stirrer_is_on() = 0;
 
     /**
-     * Turn heater on or off.
-     *
-     * @param on @c true if heater is to be turned on, @c false if not.
-     */
-    virtual void set_heater_on(bool on) = 0;
-
-    /**
      * Retrieve location of variable holding if heater is on or off.
      *
      * @return @c true if heater is on else @c false.
@@ -86,8 +79,6 @@ public:
     void set_stirrer_on(bool is_on) final;
 
     bool stirrer_is_on() final;
-
-    void set_heater_on(bool is_on) final;
 
     bool heater_is_on() final;
 
@@ -121,8 +112,6 @@ public:
     void set_stirrer_on(bool is_on) final;
 
     bool stirrer_is_on() final;
-
-    void set_heater_on(bool is_on) final;
 
     bool heater_is_on() final;
 

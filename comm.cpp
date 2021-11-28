@@ -14,11 +14,11 @@ namespace {
         ack = 0x80,
         nack = 0x40,
     };
-}
 
-uint8_t response(Command command, Response response)
-{
-    return static_cast<uint8_t>(command) | static_cast<uint8_t>(response);
+    uint8_t response(Command command, Response response)
+    {
+        return static_cast<uint8_t>(command) | static_cast<uint8_t>(response);
+    }
 }
 
 Comm::Comm(Controller& controller)

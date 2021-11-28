@@ -10,6 +10,9 @@ class GasBurner {
 public:
     enum class State : uint8_t {
         idle = 0,
+        // matze: should we really expose starting and ignition to the user of
+        // the class? AFAICS at that layer we are only interested in if it's
+        // running or not and then start/stop it if its not or is.
         starting = 1,
         ignition = 2,
         running = 3,
@@ -153,7 +156,7 @@ public:
  */
 class MainController : public Controller {
 public:
-    MainController(TemperatureSensor& sensor);
+    MainController(TemperatureSensor& sensor, GasBurner& burner);
 
     void update(unsigned long elapsed) final;
 
@@ -173,6 +176,7 @@ public:
 
 private:
     TemperatureSensor& m_sensor;
+    GasBurner& m_burner;
     float m_target_temperature{20.0f};
     bool m_stirrer_on{false};
     bool m_heater_on{false};

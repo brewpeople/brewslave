@@ -16,14 +16,6 @@ MockTemperatureSensor sensor;
 #define TEMPERATURE_MESSAGE " +mock_sensor"
 #endif  // WITH_DS18B20
 
-#if defined(WITH_MOCK_CONTROLLER)
-MockController controller{};
-#define CONTROLLER_MESSAGE " +mock_controller"
-#else
-MainController controller{sensor};
-#define CONTROLLER_MESSAGE " +real_controller"
-#endif
-
 #if defined(WITH_KY040)
 #include "ky040.h"
 Ky040 encoder{KY040_SW, KY040_DT, KY040_CLK};
@@ -42,6 +34,14 @@ GasBurnerControl gbc{GBC_POWER_PIN, GBC_DEJAM_PIN, GBC_JAMMED_PIN, GBC_VALVE_PIN
 #else
 MockGasBurner gbc{};
 #define GBC_MESSAGE " +mock_gbc"
+#endif
+
+#if defined(WITH_MOCK_CONTROLLER)
+MockController controller{};
+#define CONTROLLER_MESSAGE " +mock_controller"
+#else
+MainController controller{sensor, gbc};
+#define CONTROLLER_MESSAGE " +real_controller"
 #endif
 
 #if defined(WITH_SH1106)
@@ -75,8 +75,6 @@ public:
         const auto now{millis()};
         const auto elapsed{now - m_last_update};
         m_last_update = now;
-
-        gbc.update();
 
         m_controller.update(elapsed);
 

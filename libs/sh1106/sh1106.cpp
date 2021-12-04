@@ -22,7 +22,7 @@ void Sh1106::begin()
     pinMode(m_cs, OUTPUT);
     SPI.begin();
 
-    SPI.setClockDivider(SPI_CLOCK_DIV128);
+    SPI.setClockDivider(SPI_CLOCK_DIV2);
 
     digitalWrite(m_cs, LOW);
     digitalWrite(m_rst, HIGH);

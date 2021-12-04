@@ -49,6 +49,10 @@ MainController controller{sensor, gbc};
 #include "sh1106.h"
 
 Sh1106 display{SH1106_RST, SH1106_DC, SH1106_CS, SH1106_DIN, SH1106_CLK};
+#elif defined(WITH_SSD1327)
+#include "ssd1327.h"
+
+Ssd1327 display{SSD1327_RST, SSD1327_DC, SSD1327_CS, SSD1327_DIN, SSD1327_CLK};
 #else
 MockDisplay display{};
 #endif  // WITH_SH1106

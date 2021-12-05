@@ -33,3 +33,10 @@ with_mock_controller = false
 # sw = A0
 # dt = A1
 # clk = A2
+
+# [gbc]
+# power = 6
+# dejam = 7
+# jammed = 8
+# valve = 9
+# ignition = 10

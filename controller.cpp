@@ -1,12 +1,24 @@
 #include <Arduino.h>
 #include "controller.h"
 
-MainController::MainController(TemperatureSensor& sensor)
+MainController::MainController(TemperatureSensor& sensor, GasBurner& burner)
 : m_sensor{sensor}
+, m_burner{burner}
 {}
 
 void MainController::update(unsigned long)
 {
+    m_burner.update();
+
+    const auto temperature{m_sensor.temperature()};
+    const auto burner_state{m_burner.state()};
+
+    if ((temperature < m_target_temperature - 1.0f) && (burner_state == GasBurner::State::idle)) {
+        m_burner.start();
+    }
+    else if ((temperature >= m_target_temperature - 1.0f) && (burner_state == GasBurner::State::running)) {
+        m_burner.stop();
+    }
 }
 
 void MainController::set_temperature(float temperature)

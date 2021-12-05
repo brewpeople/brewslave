@@ -4,6 +4,7 @@
 
 #include "comm.h"
 #include "controller.h"
+#include "burner.h"
 #include "sensor.h"
 #include "ui.h"
 
@@ -16,14 +17,6 @@ MockTemperatureSensor sensor;
 #define TEMPERATURE_MESSAGE " +mock_sensor"
 #endif  // WITH_DS18B20
 
-#if defined(WITH_MOCK_CONTROLLER)
-MockController controller{};
-#define CONTROLLER_MESSAGE " +mock_controller"
-#else
-MainController controller{sensor};
-#define CONTROLLER_MESSAGE " +real_controller"
-#endif
-
 #if defined(WITH_KY040)
 #include "ky040.h"
 Ky040 encoder{KY040_SW, KY040_DT, KY040_CLK};
@@ -34,15 +27,37 @@ MockEncoder encoder{};
 #define ENCODER_MESSAGE " +mock_encoder"
 #endif
 
+#if defined(WITH_GBC)
+#include <GasBurnerControl.h>
+
+GasBurnerControl gbc{GBC_POWER_PIN, GBC_DEJAM_PIN, GBC_JAMMED_PIN, GBC_VALVE_PIN, GBC_IGNITION_PIN};
+#define GBC_MESSAGE " +real_gbc"
+#else
+MockGasBurner gbc{};
+#define GBC_MESSAGE " +mock_gbc"
+#endif
+
+#if defined(WITH_MOCK_CONTROLLER)
+MockController controller{};
+#define CONTROLLER_MESSAGE " +mock_controller"
+#else
+MainController controller{sensor, gbc};
+#define CONTROLLER_MESSAGE " +real_controller"
+#endif
+
 #if defined(WITH_SH1106)
 #include "sh1106.h"
 
 Sh1106 display{SH1106_RST, SH1106_DC, SH1106_CS, SH1106_DIN, SH1106_CLK};
+#elif defined(WITH_SSD1327)
+#include "ssd1327.h"
+
+Ssd1327 display{SSD1327_RST, SSD1327_DC, SSD1327_CS, SSD1327_DIN, SSD1327_CLK};
 #else
 MockDisplay display{};
 #endif  // WITH_SH1106
 
-Ui ui{display, VERSION_STRING TEMPERATURE_MESSAGE ENCODER_MESSAGE CONTROLLER_MESSAGE};
+Ui ui{display, VERSION_STRING TEMPERATURE_MESSAGE ENCODER_MESSAGE CONTROLLER_MESSAGE GBC_MESSAGE};
 
 ISR(PCINT1_vect)
 {
@@ -174,6 +189,7 @@ void setup()
     Serial.begin(115200, SERIAL_8N1);
 
     display.begin();
+    gbc.begin();
 }
 
 void serialEvent()

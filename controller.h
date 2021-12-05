@@ -1,9 +1,12 @@
 #pragma once
 
+#include <Arduino.h>
 #include "sensor.h"
+#include "burner.h"
 
 /**
- * Controller interface.
+ * Main controller interface reading temperatures and trying to set the
+ * temperature in a control loop based on a burner control.
  */
 class Controller {
 public:
@@ -68,7 +71,7 @@ public:
  */
 class MainController : public Controller {
 public:
-    MainController(TemperatureSensor& sensor);
+    MainController(TemperatureSensor& sensor, GasBurner& burner);
 
     void update(unsigned long elapsed) final;
 
@@ -88,6 +91,7 @@ public:
 
 private:
     TemperatureSensor& m_sensor;
+    GasBurner& m_burner;
     float m_target_temperature{20.0f};
     bool m_stirrer_on{false};
     bool m_heater_on{false};

@@ -28,10 +28,10 @@ void Ui::set_state(uint8_t state)
     m_state = state;
 }
 
-void Ui::update()
+void Ui::update(unsigned long elapsed)
 {
     // Bail out early if there is nothing to redraw.
-    if (!m_refresh && (m_welcome == nullptr)) {
+    if (elapsed < 15 || (!m_refresh && (m_welcome == nullptr))) {
         return;
     }
 

@@ -48,8 +48,10 @@ public:
 
     /**
      * Update internal state and refresh display if necessary.
+     *
+     * @param elapsed Milliseconds elapsed since last update.
      */
-    void update();
+    void update(unsigned long elapsed);
 
 private:
     Display& m_display;

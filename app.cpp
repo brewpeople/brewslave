@@ -159,7 +159,7 @@ public:
 
         m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));
         m_ui.set_state(m_ui_state);
-        m_ui.update();
+        m_ui.update(elapsed);
     }
 
 private:

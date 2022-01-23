@@ -1,10 +1,9 @@
 #include <SPI.h>
 #include "sh1106.h"
 
-Sh1106::Sh1106(byte rst, byte dc, byte cs, byte din, byte clk)
+Sh1106::Sh1106(byte rst, byte dc, byte din, byte clk)
 : m_rst{rst}
 , m_dc{dc}
-, m_cs{cs}
 , m_din{din}
 , m_clk{clk}
 {}
@@ -19,12 +18,10 @@ void Sh1106::begin()
 {
     pinMode(m_rst, OUTPUT);
     pinMode(m_dc, OUTPUT);
-    pinMode(m_cs, OUTPUT);
     SPI.begin();
 
     SPI.setClockDivider(SPI_CLOCK_DIV2);
 
-    digitalWrite(m_cs, LOW);
     digitalWrite(m_rst, HIGH);
     delay(10);
     digitalWrite(m_rst, LOW);

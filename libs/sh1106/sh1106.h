@@ -5,7 +5,7 @@
 
 class Sh1106 : public Display {
 public:
-    Sh1106(byte rst=9, byte dc=8, byte cs=10, byte din=11, byte clk=13);
+    Sh1106(byte rst=9, byte dc=8, byte din=11, byte clk=13);
 
     void begin() final;
     void clear() final;
@@ -18,7 +18,6 @@ private:
 
     const byte m_rst;
     const byte m_dc;
-    const byte m_cs;
     const byte m_din;
     const byte m_clk;
     uint8_t m_buffer[width * height / 8];

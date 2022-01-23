@@ -71,7 +71,6 @@ class Config:
             self.with_sh1106 = config.has_section("sh1106")
             self.sh1106_rst = config["sh1106"].getint("rst") if self.with_sh1106 else None
             self.sh1106_dc = config["sh1106"].getint("dc") if self.with_sh1106 else None
-            self.sh1106_cs = config["sh1106"].getint("cs") if self.with_sh1106 else None
             self.sh1106_din = config["sh1106"].getint("din") if self.with_sh1106 else None
             self.sh1106_clk = config["sh1106"].getint("clk") if self.with_sh1106 else None
 
@@ -147,7 +146,6 @@ if __name__ == "__main__":
         CONFIG.append("#define WITH_SH1106 1")
         CONFIG.append(f"#define SH1106_RST {config.sh1106_rst}")
         CONFIG.append(f"#define SH1106_DC {config.sh1106_dc}")
-        CONFIG.append(f"#define SH1106_CS {config.sh1106_cs}")
         CONFIG.append(f"#define SH1106_DIN {config.sh1106_din}")
         CONFIG.append(f"#define SH1106_CLK {config.sh1106_clk}")
 

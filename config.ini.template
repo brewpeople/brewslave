@@ -25,7 +25,6 @@ with_mock_controller = false
 # [sh1106]
 # rst = 9
 # dc = 8
-# cs = 10
 # din = 11
 # clk = 13
 

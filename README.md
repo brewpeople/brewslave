@@ -1,8 +1,10 @@
 # brewslave
 
+![workflow status](https://github.com/brewpeople/brewslave/actions/workflows/main.yml/badge.svg)
+
 Brewslave is an Arduino slave application working with
-[brewmeister](https://github.com/matze/brewmeister). It is still under heavy
-development and comes with NO WARRANTY.
+[brewmeister](https://github.com/brewpeople/brewmeister-rs). It is still under
+heavy development and comes with NO WARRANTY.
 
 
 ## Build

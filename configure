@@ -74,6 +74,12 @@ class Config:
             self.sh1106_din = config["sh1106"].getint("din") if self.with_sh1106 else None
             self.sh1106_clk = config["sh1106"].getint("clk") if self.with_sh1106 else None
 
+            self.with_sh1107 = config.has_section("sh1107")
+            self.sh1107_rst = config["sh1107"].getint("rst") if self.with_sh1107 else None
+            self.sh1107_dc = config["sh1107"].getint("dc") if self.with_sh1107 else None
+            self.sh1107_din = config["sh1107"].getint("din") if self.with_sh1107 else None
+            self.sh1107_clk = config["sh1107"].getint("clk") if self.with_sh1107 else None
+
             self.with_ssd1327 = config.has_section("ssd1327")
             self.ssd1327_rst = config["ssd1327"].getint("rst") if self.with_ssd1327 else None
             self.ssd1327_dc = config["ssd1327"].getint("dc") if self.with_ssd1327 else None
@@ -147,6 +153,15 @@ if __name__ == "__main__":
         CONFIG.append(f"#define SH1106_DC {config.sh1106_dc}")
         CONFIG.append(f"#define SH1106_DIN {config.sh1106_din}")
         CONFIG.append(f"#define SH1106_CLK {config.sh1106_clk}")
+
+    if config.with_sh1107:
+        ARDUINO_LIBS.append("SPI")
+        ARDUINO_LIBS.append("sh1107")
+        CONFIG.append("#define WITH_SH1107 1")
+        CONFIG.append(f"#define SH1107_RST {config.sh1107_rst}")
+        CONFIG.append(f"#define SH1107_DC {config.sh1107_dc}")
+        CONFIG.append(f"#define SH1107_DIN {config.sh1107_din}")
+        CONFIG.append(f"#define SH1107_CLK {config.sh1107_clk}")
 
     if config.with_ssd1327:
         ARDUINO_LIBS.append("SPI")

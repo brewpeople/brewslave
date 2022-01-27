@@ -77,7 +77,6 @@ class Config:
             self.with_ssd1327 = config.has_section("ssd1327")
             self.ssd1327_rst = config["ssd1327"].getint("rst") if self.with_ssd1327 else None
             self.ssd1327_dc = config["ssd1327"].getint("dc") if self.with_ssd1327 else None
-            self.ssd1327_cs = config["ssd1327"].getint("cs") if self.with_ssd1327 else None
             self.ssd1327_din = config["ssd1327"].getint("din") if self.with_ssd1327 else None
             self.ssd1327_clk = config["ssd1327"].getint("clk") if self.with_ssd1327 else None
 
@@ -155,7 +154,6 @@ if __name__ == "__main__":
         CONFIG.append("#define WITH_SSD1327 1")
         CONFIG.append(f"#define SSD1327_RST {config.ssd1327_rst}")
         CONFIG.append(f"#define SSD1327_DC {config.ssd1327_dc}")
-        CONFIG.append(f"#define SSD1327_CS {config.ssd1327_cs}")
         CONFIG.append(f"#define SSD1327_DIN {config.ssd1327_din}")
         CONFIG.append(f"#define SSD1327_CLK {config.ssd1327_clk}")
 

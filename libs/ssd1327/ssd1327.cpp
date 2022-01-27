@@ -1,10 +1,9 @@
 #include <SPI.h>
 #include "ssd1327.h"
 
-Ssd1327::Ssd1327(byte rst, byte dc, byte cs, byte din, byte clk)
+Ssd1327::Ssd1327(byte rst, byte dc, byte din, byte clk)
 : m_rst{rst}
 , m_dc{dc}
-, m_cs{cs}
 , m_din{din}
 , m_clk{clk}
 {}
@@ -19,7 +18,6 @@ void Ssd1327::begin()
 {
     pinMode(m_rst, OUTPUT);
     pinMode(m_dc, OUTPUT);
-    pinMode(m_cs, OUTPUT);
     
     SPI.setDataMode(SPI_MODE0);
     SPI.setBitOrder(MSBFIRST);
@@ -29,7 +27,6 @@ void Ssd1327::begin()
     SPI.setClockDivider(SPI_CLOCK_DIV2);
 
     // reset display
-    digitalWrite(m_cs, LOW);        // chip select always enabled, since only one SPI device
     digitalWrite(m_rst, HIGH);
     delay(10);
     digitalWrite(m_rst, LOW);

@@ -28,6 +28,12 @@ with_mock_controller = false
 # din = 11
 # clk = 13
 
+# [ssd1327]
+# rst = 12
+# dc = 10
+# din = 11
+# clk = 13
+
 # [ky040]
 # sw = A0
 # dt = A1

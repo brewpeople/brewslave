@@ -23,6 +23,13 @@ void Ui::set_small_number(uint8_t number)
     m_small_number = clamped;
 }
 
+void Ui::set_small_number2(uint8_t number)
+{
+    auto clamped = number >= 100 ? 99 : number;
+    m_refresh = m_refresh || (m_small_number2 != clamped);
+    m_small_number2 = clamped;
+}
+
 void Ui::set_state(uint8_t state)
 {
     m_refresh = m_refresh || (m_state != state);

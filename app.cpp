@@ -11,10 +11,20 @@
 
 #if defined(WITH_DS18B20)
 #include <ds18b20.h>
-Ds18b20 sensor{DS18B20_PIN};
+#if defined(AMBIENT_SENSOR_PIN)
+Ds18b20 ambient_sensor{AMBIENT_SENSOR_PIN};
+#else
+MockTemperatureSensor ambient_sensor;
+#endif
+#if defined(BREW_SENSOR_PIN)
+Ds18b20 brew_sensor{BREW_SENSOR_PIN};
+#else
+MockTemperatureSensor brew_sensor;
+#endif
 #define TEMPERATURE_MESSAGE " +ds18b20"
 #else
-MockTemperatureSensor sensor;
+MockTemperatureSensor ambient_sensor;
+MockTemperatureSensor brew_sensor;
 #define TEMPERATURE_MESSAGE " +mock_sensor"
 #endif // WITH_DS18B20
 
@@ -59,7 +69,7 @@ MockGasBurner gbc{};
 MockController controller{};
 #define CONTROLLER_MESSAGE " +mock_controller"
 #else
-MainController controller{sensor, gbc};
+MainController controller{brew_sensor, gbc};
 #define CONTROLLER_MESSAGE " +real_controller"
 #endif
 
@@ -100,9 +110,10 @@ Comm comm{controller};
 
 class App {
 public:
-    App(Ui& ui, Controller& controller, ButtonEncoder& encoder)
+    App(Ui& ui, Controller& controller, Ds18b20& ambient_sensor, ButtonEncoder& encoder)  // how to allow two classes, either mock or d18b20 for ambient sensor? or another wrapper?
     : m_ui{ui}
     , m_controller{controller}
+    , m_ambient_sensor{ambient_sensor}
     , m_encoder{encoder}
     , m_last_update{millis()}
     {
@@ -132,9 +143,12 @@ public:
             }
         }
 
+
         const auto current_temperature{m_controller.temperature()};
         const auto delta{current_temperature - m_last_temperature};
         m_last_temperature = current_temperature;
+        
+        const auto ambient_temperature{m_ambient_sensor.temperature()};
 
         switch (m_state) {
             case State::Main:
@@ -189,6 +203,7 @@ public:
         }
 
         m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));
+        m_ui.set_small_number2(static_cast<uint8_t>(round(ambient_temperature)));
         m_ui.set_state(m_ui_state);
         m_ui.update(elapsed);
     }
@@ -202,6 +217,7 @@ private:
     Ui& m_ui;
     uint8_t m_ui_state{0};
     Controller& m_controller;
+    Ds18b20& m_ambient_sensor;
     ButtonEncoder& m_encoder;
     State m_state{State::Main};
     float m_last_temperature{20.0f};
@@ -209,7 +225,7 @@ private:
     unsigned long m_last_update{0};
 };
 
-App app{ui, controller, encoder};
+App app{ui, controller, ambient_sensor, encoder};
 
 void setup()
 {

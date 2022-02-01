@@ -40,11 +40,6 @@ public:
      * Set the right-hand side smaller number.
      */
     void set_small_number(uint8_t number);
-    
-    /**
-     * Set the lower right-hand side smaller number.
-     */
-    void set_small_number2(uint8_t number);
 
     /**
      * Set additional UI state flags.
@@ -63,7 +58,6 @@ private:
     FontPico m_pico;
     uint8_t m_big_number{20};
     uint8_t m_small_number{20};
-    uint8_t m_small_number2{42};
     uint8_t m_state{0};
     bool m_refresh{true};
     const char* m_welcome{nullptr};

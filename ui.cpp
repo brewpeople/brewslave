@@ -23,13 +23,6 @@ void Ui::set_small_number(uint8_t number)
     m_small_number = clamped;
 }
 
-void Ui::set_small_number2(uint8_t number)
-{
-    auto clamped = number >= 100 ? 99 : number;
-    m_refresh = m_refresh || (m_small_number2 != clamped);
-    m_small_number2 = clamped;
-}
-
 void Ui::set_state(uint8_t state)
 {
     m_refresh = m_refresh || (m_state != state);
@@ -73,8 +66,12 @@ void Ui::update(unsigned long elapsed)
         }
     }
 
-    m_display.draw_bitmap(0, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number / 10]});
-    m_display.draw_bitmap(36, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number % 10]});
+    if (m_big_number != 0) {
+        if (m_big_number / 10 != 0) {
+            m_display.draw_bitmap(0, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number / 10]});
+        }
+        m_display.draw_bitmap(36, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number % 10]});
+    }
 
     if ((m_state & State::SmallUpArrow) != 0) {
         m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 0, Bitmap{6, 3, ICON_SMALL_ARROW_UP_6_3});

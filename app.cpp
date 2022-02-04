@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 #include "burner.h"
+#include "button.h"
 #include "comm.h"
 #include "controller.h"
 #include "sensor.h"
@@ -26,6 +27,23 @@ Ky040 encoder{KY040_SW, KY040_DT, KY040_CLK};
 MockEncoder encoder{};
 #define ENCODER_MESSAGE " +mock_encoder"
 #endif
+
+#if defined(WITH_BUTTONS)
+#include "PushButton.h"
+#if defined(BREW_BUTTON_PIN)
+PushButton brew_button{BREW_BUTTON_PIN};
+#else
+MockButton brew_button{};
+#endif // BREW_BUTTON_PIN
+#if defined(STARGING_BUTTON_PIN)
+PushButton starging_button{BREW_BUTTON_PIN};
+#else
+MockButton starging_button{};
+#endif // STARGING_BUTTON_PIN
+#else
+MockButton brew_button{};
+MockButton starging_button{};
+#endif // WITH_BUTTONS
 
 #if defined(WITH_GBC)
 #include <GasBurnerControl.h>
@@ -66,6 +84,16 @@ Ui ui{display, VERSION_STRING TEMPERATURE_MESSAGE ENCODER_MESSAGE CONTROLLER_MES
 ISR(PCINT1_vect)
 {
     encoder.update();
+}
+
+void brew_button_trigger()
+{
+    brew_button.trigger();
+}
+
+void starging_button_trigger()
+{
+    starging_button.trigger();
 }
 
 Comm comm{controller};
@@ -190,6 +218,13 @@ void setup()
     digitalWrite(13, LOW);
 
     Serial.begin(115200, SERIAL_8N1);
+
+#if defined(BREW_BUTTON_PIN)
+    attachInterrupt(digitalPinToInterrupt(BREW_BUTTON_PIN), brew_button_trigger, RISING);
+#endif
+#if defined(STARGING_BUTTON_PIN)
+    attachInterrupt(digitalPinToInterrupt(STARGING_BUTTON_PIN), starging_button_trigger, RISING);
+#endif
 
     display.begin();
     gbc.begin();

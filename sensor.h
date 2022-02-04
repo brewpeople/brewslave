@@ -30,10 +30,10 @@ public:
 class MockTemperatureSensor : public TemperatureSensor {
 public:
     void begin() final {}
-    
+
     float temperature() final { return 20.0f; }
-    
+
     unsigned int elapsed() final { return 0; }
-    
+
     bool is_connected() final { return true; }
 };

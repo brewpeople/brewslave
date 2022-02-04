@@ -215,7 +215,8 @@ public:
 
         if (brew_sensor.is_connected()) {
             m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));
-        } else {
+        }
+        else {
             m_ui.set_big_number(0);
         }
 

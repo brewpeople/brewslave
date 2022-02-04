@@ -8,7 +8,6 @@
 #include <DallasTemperature.h>
 #include <OneWire.h>
 
-
 class Ds18b20 : public TemperatureSensor {
 public:
     Ds18b20(uint8_t pin);
@@ -25,10 +24,10 @@ public:
     bool is_connected() final;
 
 private:
-    uint8_t m_pin_pullup{255};          // lacking a better "not defined" state
+    uint8_t m_pin_pullup{255}; // lacking a better "not defined" state
     OneWire m_wire;
     DallasTemperature m_sensors;
-    DeviceAddress m_address;            // default value required?
+    DeviceAddress m_address; // default value required?
     float m_last_temperature{20.0f};
     unsigned long m_last_seen{0};
     bool m_disconnected{true};

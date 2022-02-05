@@ -1,8 +1,8 @@
 #pragma once
 
+#include "display.h"
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-#include "display.h"
 
 class FontPico {
 public:

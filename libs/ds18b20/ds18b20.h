@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Arduino.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
 #include "sensor.h"
+#include <Arduino.h>
+#include <DallasTemperature.h>
+#include <OneWire.h>
 
 class Ds18b20 : public TemperatureSensor {
 public:

@@ -1,10 +1,11 @@
-#include <Arduino.h>
 #include "controller.h"
+#include <Arduino.h>
 
 MainController::MainController(TemperatureSensor& sensor, GasBurner& burner)
 : m_sensor{sensor}
 , m_burner{burner}
-{}
+{
+}
 
 void MainController::update(unsigned long)
 {
@@ -56,8 +57,7 @@ bool MainController::has_problem() const
     return false;
 }
 
-MockController::MockController()
-{}
+MockController::MockController() {}
 
 void MockController::update(unsigned long elapsed)
 {

@@ -11,7 +11,7 @@ struct Bitmap {
     /// Height of bitmap in number of pixels.
     const uint8_t height;
     /// Pointer to bitmap data with at least (width * height / 8) bytes.
-    const uint8_t *data;
+    const uint8_t* data;
 };
 
 class Display {

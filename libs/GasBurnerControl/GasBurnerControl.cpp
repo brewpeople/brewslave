@@ -1,15 +1,14 @@
 #include "GasBurnerControl.h"
 
 #ifdef GBC_SERIAL_DEBUG
-#define GBC_DEBUG(x)    Serial.print((x))
-#define GBC_DEBUGLN(x)  Serial.println((x))
+#define GBC_DEBUG(x) Serial.print((x))
+#define GBC_DEBUGLN(x) Serial.println((x))
 #else
 #define GBC_DEBUG(x)
 #define GBC_DEBUGLN(x)
 #endif
 
-namespace gbc
-{
+namespace gbc {
     /// Number of unsuccessful dejam attempts before aborting permanently.
     constexpr uint8_t num_dejam_attempts{3};
     /// Number of unsuccessful ignition attempts before aborting permanently.
@@ -38,12 +37,7 @@ static_assert((gbc::high == 1 && gbc::low == 0) || (gbc::high == 0 && gbc::low =
 static_assert(gbc::num_dejam_attempts < gbc::max_dejam_attempts, "Cannot have more than 31 dejam attempts");
 static_assert(gbc::num_ignition_attempts < gbc::max_ignition_attempts, "Cannot have more than 31 ignition attempts");
 
-GasBurnerControl::GasBurnerControl(
-    uint8_t power_pin,
-    uint8_t dejam_pin,
-    uint8_t jammed_pin,
-    uint8_t valve_pin,
-    uint8_t ignition_pin)
+GasBurnerControl::GasBurnerControl(uint8_t power_pin, uint8_t dejam_pin, uint8_t jammed_pin, uint8_t valve_pin, uint8_t ignition_pin)
 : m_power_pin{power_pin}
 , m_dejam_pin{dejam_pin}
 , m_jammed_pin{jammed_pin}
@@ -84,12 +78,12 @@ void GasBurnerControl::dejam(unsigned int delay_s)
         bool dejamRead = digitalRead(m_dejam_pin);
         if ((dejamRead == gbc::low) & (m_dejam_timer == 0)) {
             GBC_DEBUGLN("|---Press dejam button now");
-            digitalWrite(m_dejam_pin, gbc::high);  // press dejam button
+            digitalWrite(m_dejam_pin, gbc::high); // press dejam button
             m_dejam_timer = millis();
             m_state = GasBurner::State::dejam_button_pressed;
         }
         else if (dejamRead == gbc::high) {
-            if(millis() - m_dejam_timer >= gbc::dejam_duration) {
+            if (millis() - m_dejam_timer >= gbc::dejam_duration) {
                 GBC_DEBUGLN("|---Release dejam button now");
                 digitalWrite(m_dejam_pin, gbc::low);
                 m_dejam_timer = millis();
@@ -101,9 +95,9 @@ void GasBurnerControl::dejam(unsigned int delay_s)
             }
         }
         else if ((dejamRead == gbc::low) & (m_dejam_timer > 0)) {
-            #ifdef GBC_SERIAL_DEBUG
+#ifdef GBC_SERIAL_DEBUG
             GBC_DEBUGLN("|---Post dejam delay");
-            #endif
+#endif
             if (millis() - m_dejam_timer >= gbc::post_dejam_delay) {
                 // dejam should be completed, reset dejam related timers
                 m_dejam_counter += 1;
@@ -164,26 +158,26 @@ void GasBurnerControl::update()
 
     switch (m_state) {
         case GasBurner::State::idle:
-            if (digitalRead(m_power_pin) == gbc::low) {                 // state where Burner is regular off
+            if (digitalRead(m_power_pin) == gbc::low) { // state where Burner is regular off
                 // pass
                 GBC_DEBUGLN(">Burner regular off");
             }
-            else if (digitalRead(m_power_pin) == gbc::high) {         // state where Burner was powered on outside of class
+            else if (digitalRead(m_power_pin) == gbc::high) { // state where Burner was powered on outside of class
                 GBC_DEBUGLN(">Burner external on");
                 start();
             }
             break;
 
-        case GasBurner::State::starting:                                          // state startup when Burner was powered on
+        case GasBurner::State::starting: // state startup when Burner was powered on
             GBC_DEBUGLN(">Burner starting");
             // wait some time after power on before checking the status
             if (millis() - m_start_time >= gbc::start_delay * 1000) {
                 GBC_DEBUGLN("|-Burner start delay passed");
-                if ((m_jammed == gbc::low) & ((m_ignition == gbc::high) | (m_valve == gbc::high))) {   // Burner is regular on and attempting ignition
+                if ((m_jammed == gbc::low) & ((m_ignition == gbc::high) | (m_valve == gbc::high))) { // Burner is regular on and attempting ignition
                     GBC_DEBUGLN(">State Change: STARTING -> IGNITION");
                     m_ignition_start_time = millis();
                     m_ignition_counter += 1;
-                    m_dejam_counter = 1;    // skips immediate dejam attempt
+                    m_dejam_counter = 1; // skips immediate dejam attempt
                     m_state = GasBurner::State::ignition;
                 }
                 else if ((m_jammed == gbc::high) & (m_ignition == gbc::low) & (m_valve == gbc::low)) {
@@ -203,12 +197,12 @@ void GasBurnerControl::update()
 
         case GasBurner::State::ignition:
             GBC_DEBUGLN(">Burner Ignition");
-            if (m_jammed == gbc::high) {                                                       // * at any time if jammed is HIGH, state change to DEJAM
+            if (m_jammed == gbc::high) { // * at any time if jammed is HIGH, state change to DEJAM
                 GBC_DEBUGLN(">State Change: IGNITION -> DEJAM");
                 m_state = GasBurner::State::dejam_start;
             }
             else if (m_jammed == gbc::low) {
-                if (millis() - m_ignition_start_time >= gbc::ignition_duration * 1000) {     // * 20 s ignition valve still on --> state change to RUNNING
+                if (millis() - m_ignition_start_time >= gbc::ignition_duration * 1000) { // * 20 s ignition valve still on --> state change to RUNNING
                     if ((m_jammed == gbc::low) & (m_valve == gbc::high)) {
                         m_ignition_counter = 0;
                         m_dejam_counter = 1;
@@ -267,15 +261,15 @@ void GasBurnerControl::update()
                     m_state = GasBurner::State::error_other;
                 }
             }
-            else if((m_ignition_counter == 0) & (m_dejam_counter == 0)) {
+            else if ((m_ignition_counter == 0) & (m_dejam_counter == 0)) {
                 GBC_DEBUGLN("|-Dejam immediately at first start");
                 dejam(0);
             }
-            else if(m_dejam_counter == 1) {
+            else if (m_dejam_counter == 1) {
                 GBC_DEBUGLN("|-Dejam after first delay (65ish s?)");
                 dejam(gbc::dejam_delay_1);
             }
-            else if(m_dejam_counter > 1) {
+            else if (m_dejam_counter > 1) {
                 GBC_DEBUGLN("|-Dejam secondary attempt 10s delay");
                 dejam(gbc::dejam_delay_2);
             }
@@ -296,11 +290,11 @@ void GasBurnerControl::update()
             digitalWrite(m_dejam_pin, gbc::low);
             break;
 
-        default:                                            // any other not defined state is changed to error state, TODO: do i need this with enum class states?
+        default: // any other not defined state is changed to error state, TODO: do i need this with enum class states?
             GBC_DEBUGLN(">Burner unknown state: ? -> ERROR");
             m_state = GasBurner::State::error_other;
             break;
-    }         // switch
+    } // switch
 } // GasBurnerControl::update()
 
 GasBurner::State GasBurnerControl::state()

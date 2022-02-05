@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Arduino.h>
 #include "display.h"
+#include <Arduino.h>
 
 class Sh1107 : public Display {
 public:
-    Sh1107(byte rst=12, byte dc=10, byte din=11, byte clk=13);
+    Sh1107(byte rst = 12, byte dc = 10, byte din = 11, byte clk = 13);
 
     void begin() final;
     void clear() final;

@@ -2,9 +2,9 @@
 
 #include <Arduino.h>
 
+#include "burner.h"
 #include "comm.h"
 #include "controller.h"
-#include "burner.h"
 #include "sensor.h"
 #include "ui.h"
 
@@ -15,7 +15,7 @@ Ds18b20 sensor{DS18B20_PIN};
 #else
 MockTemperatureSensor sensor;
 #define TEMPERATURE_MESSAGE " +mock_sensor"
-#endif  // WITH_DS18B20
+#endif // WITH_DS18B20
 
 #if defined(WITH_KY040)
 #include "ky040.h"
@@ -59,7 +59,7 @@ Sh1107 display{SH1107_RST, SH1107_DC, SH1107_DIN, SH1107_CLK};
 Ssd1327 display{SSD1327_RST, SSD1327_DC, SSD1327_DIN, SSD1327_CLK};
 #else
 MockDisplay display{};
-#endif  // WITH_SH1106
+#endif // WITH_SH1106
 
 Ui ui{display, VERSION_STRING TEMPERATURE_MESSAGE ENCODER_MESSAGE CONTROLLER_MESSAGE GBC_MESSAGE};
 
@@ -77,7 +77,8 @@ public:
     , m_controller{controller}
     , m_encoder{encoder}
     , m_last_update{millis()}
-    {}
+    {
+    }
 
     void update()
     {
@@ -113,35 +114,33 @@ public:
                 m_ui.set_small_number(static_cast<uint8_t>(round(target_temperature)));
                 break;
 
-            case State::SetTarget:
-                {
-                    const auto direction{m_encoder.direction()};
+            case State::SetTarget: {
+                const auto direction{m_encoder.direction()};
 
-                    if (direction == ButtonEncoder::Direction::Clockwise && m_set_target_temperature < 100) {
-                        m_set_target_temperature++;
-                    }
-                    else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 1) {
-                        m_set_target_temperature--;
-                    }
-
-                    const auto current_target{static_cast<uint8_t>(round(target_temperature))};
-
-                    if (m_set_target_temperature > current_target) {
-                        m_ui_state &= ~(Ui::State::SmallDownArrow | Ui::State::SmallEq);
-                        m_ui_state |= Ui::State::SmallUpArrow;
-                    }
-                    else if (m_set_target_temperature < current_target) {
-                        m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallEq);
-                        m_ui_state |= Ui::State::SmallDownArrow;
-                    }
-                    else {
-                        m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallDownArrow);
-                        m_ui_state |= Ui::State::SmallEq;
-                    }
-
-                    m_ui.set_small_number(m_set_target_temperature);
+                if (direction == ButtonEncoder::Direction::Clockwise && m_set_target_temperature < 100) {
+                    m_set_target_temperature++;
                 }
-                break;
+                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 1) {
+                    m_set_target_temperature--;
+                }
+
+                const auto current_target{static_cast<uint8_t>(round(target_temperature))};
+
+                if (m_set_target_temperature > current_target) {
+                    m_ui_state &= ~(Ui::State::SmallDownArrow | Ui::State::SmallEq);
+                    m_ui_state |= Ui::State::SmallUpArrow;
+                }
+                else if (m_set_target_temperature < current_target) {
+                    m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallEq);
+                    m_ui_state |= Ui::State::SmallDownArrow;
+                }
+                else {
+                    m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallDownArrow);
+                    m_ui_state |= Ui::State::SmallEq;
+                }
+
+                m_ui.set_small_number(m_set_target_temperature);
+            } break;
         }
 
         if (delta > 0.1f) {

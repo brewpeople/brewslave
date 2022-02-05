@@ -1,20 +1,13 @@
 #pragma once
 
-#include <Arduino.h>
 #include "burner.h"
+#include <Arduino.h>
 
 //#define GBC_SERIAL_DEBUG            // if uncommented every update will also send a message over serial
 
-class GasBurnerControl : public GasBurner
-{
+class GasBurnerControl : public GasBurner {
 public:
-    GasBurnerControl(
-        uint8_t power_pin,
-        uint8_t dejam_pin,
-        uint8_t jammed_pin,
-        uint8_t valve_pin,
-        uint8_t ignition_pin
-    );
+    GasBurnerControl(uint8_t power_pin, uint8_t dejam_pin, uint8_t jammed_pin, uint8_t valve_pin, uint8_t ignition_pin);
 
     void begin() final;
     void start() final;

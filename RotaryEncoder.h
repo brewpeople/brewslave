@@ -20,40 +20,35 @@
 
 #include "Arduino.h"
 
-class RotaryEncoder
-{
+class RotaryEncoder {
 public:
-  enum class Direction {
-    NOROTATION = 0,
-    CLOCKWISE = 1,
-    COUNTERCLOCKWISE = -1
-  };
+    enum class Direction { NOROTATION = 0, CLOCKWISE = 1, COUNTERCLOCKWISE = -1 };
 
-  enum class LatchMode {
-    FOUR3 = 1, // 4 steps, Latch at position 3 only (compatible to older versions)
-    FOUR0 = 2, // 4 steps, Latch at position 0 (reverse wirings)
-    TWO03 = 3  // 2 steps, Latch at position 0 and 3
-  };
+    enum class LatchMode {
+        FOUR3 = 1, // 4 steps, Latch at position 3 only (compatible to older versions)
+        FOUR0 = 2, // 4 steps, Latch at position 0 (reverse wirings)
+        TWO03 = 3  // 2 steps, Latch at position 0 and 3
+    };
 
-  // ----- Constructor -----
-  RotaryEncoder(int pin1, int pin2, LatchMode mode = LatchMode::FOUR0);
+    // ----- Constructor -----
+    RotaryEncoder(int pin1, int pin2, LatchMode mode = LatchMode::FOUR0);
 
-  // simple retrieve of the direction the knob was rotated last time. 0 = No rotation, 1 = Clockwise, -1 = Counter Clockwise
-  Direction getDirection();
+    // simple retrieve of the direction the knob was rotated last time. 0 = No rotation, 1 = Clockwise, -1 = Counter Clockwise
+    Direction getDirection();
 
-  // call this function every some milliseconds or by using an interrupt for handling state changes of the rotary encoder.
-  void tick(void);
+    // call this function every some milliseconds or by using an interrupt for handling state changes of the rotary encoder.
+    void tick(void);
 
 private:
-  int _pin1, _pin2; // Arduino pins used for the encoder.
+    int _pin1, _pin2; // Arduino pins used for the encoder.
 
-  LatchMode _mode; // Latch mode from initialization
+    LatchMode _mode; // Latch mode from initialization
 
-  volatile int8_t _oldState;
+    volatile int8_t _oldState;
 
-  volatile long _position;        // Internal position (4 times _positionExt)
-  volatile long _positionExt;     // External position
-  volatile long _positionExtPrev; // External position (used only for direction checking)
+    volatile long _position;        // Internal position (4 times _positionExt)
+    volatile long _positionExt;     // External position
+    volatile long _positionExtPrev; // External position (used only for direction checking)
 };
 
 #endif

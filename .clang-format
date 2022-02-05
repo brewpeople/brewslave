@@ -1,0 +1,16 @@
+﻿---
+BasedOnStyle: Mozilla
+AccessModifierOffset: -4
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+BreakBeforeBraces: Stroustrup
+Cpp11BracedListStyle: true
+ColumnLimit: '1000'
+ConstructorInitializerIndentWidth: 0
+NamespaceIndentation: All
+DeriveLineEnding: false
+IndentWidth: '4'
+SpaceAfterCStyleCast: true
+UseCRLF: false
+
+...

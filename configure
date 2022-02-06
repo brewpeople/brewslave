@@ -91,6 +91,12 @@ class Config:
             self.ky040_dt = config["ky040"].get("dt") if self.with_ky040 else None
             self.ky040_clk = config["ky040"].get("clk") if self.with_ky040 else None
 
+            self.with_buttons = config.has_section("brew-button") or config.has_section("starging-button")
+            self.with_brew_button = config.has_section("brew-button")
+            self.brew_button_pin = config["brew-button"].get("pin") if self.with_brew_button else None
+            self.with_starging_button = config.has_section("starging-button")
+            self.starging_button_pin = config["starging-button"].get("pin") if self.with_starging_button else None
+
             self.with_gbc = config.has_section("gbc")
             self.gbc_power = config["gbc"].getint("power") if self.with_gbc else None
             self.gbc_dejam = config["gbc"].getint("dejam") if self.with_gbc else None
@@ -177,6 +183,13 @@ if __name__ == "__main__":
         CONFIG.append(f"#define KY040_SW {config.ky040_sw}")
         CONFIG.append(f"#define KY040_DT {config.ky040_dt}")
         CONFIG.append(f"#define KY040_CLK {config.ky040_clk}")
+
+    if config.with_buttons:
+        CONFIG.append("#define WITH_BUTTONS 1")
+        if config.with_brew_button:
+            CONFIG.append(f"#define BREW_BUTTON_PIN {config.brew_button_pin}")
+        if config.with_starging_button:
+            CONFIG.append(f"#define STARGING_BUTTON_PIN {config.starging_button_pin}")
 
     if config.with_gbc:
         ARDUINO_LIBS.append("GasBurnerControl")

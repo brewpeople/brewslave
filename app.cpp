@@ -11,11 +11,6 @@
 
 #if defined(WITH_DS18B20)
 #include <ds18b20.h>
-#if defined(AMBIENT_SENSOR_PIN)
-Ds18b20 ambient_sensor{AMBIENT_SENSOR_PIN};
-#else
-MockTemperatureSensor ambient_sensor;
-#endif
 #if defined(BREW_SENSOR_PIN)
 #if defined(BREW_SENSOR_PIN_PULLUP)
 Ds18b20 brew_sensor{BREW_SENSOR_PIN, BREW_SENSOR_PIN_PULLUP};
@@ -32,7 +27,6 @@ MockTemperatureSensor sparging_sensor;
 #endif // SPARGING_SENSOR_PIN
 #define TEMPERATURE_MESSAGE " +ds18b20"
 #else
-MockTemperatureSensor ambient_sensor;
 MockTemperatureSensor brew_sensor;
 MockTemperatureSensor sparging_sensor;
 #define TEMPERATURE_MESSAGE " +mock_sensor"
@@ -120,10 +114,9 @@ Comm comm{controller};
 
 class App {
 public:
-    App(Ui& ui, Controller& controller, TemperatureSensor& ambient_sensor, TemperatureSensor& sparging_sensor, ButtonEncoder& encoder)
+    App(Ui& ui, Controller& controller, TemperatureSensor& sparging_sensor, ButtonEncoder& encoder)
     : m_ui{ui}
     , m_controller{controller}
-    , m_ambient_sensor{ambient_sensor}
     , m_sparging_sensor{sparging_sensor}
     , m_encoder{encoder}
     , m_last_update{millis()}
@@ -158,7 +151,6 @@ public:
         const auto delta{current_temperature - m_last_temperature};
         m_last_temperature = current_temperature;
 
-        const auto ambient_temperature{m_ambient_sensor.temperature()};
         const auto sparging_temperature{m_sparging_sensor.temperature()};
 
         switch (m_state) {
@@ -233,7 +225,6 @@ private:
     Ui& m_ui;
     uint8_t m_ui_state{0};
     Controller& m_controller;
-    TemperatureSensor& m_ambient_sensor;
     TemperatureSensor& m_sparging_sensor;
     ButtonEncoder& m_encoder;
     State m_state{State::Main};
@@ -242,7 +233,7 @@ private:
     unsigned long m_last_update{0};
 };
 
-App app{ui, controller, ambient_sensor, sparging_sensor, encoder};
+App app{ui, controller, sparging_sensor, encoder};
 
 void setup()
 {

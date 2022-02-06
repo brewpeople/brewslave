@@ -40,14 +40,9 @@ with_mock_controller = false
 # [sparging-sensor]
 # pin = 7
 
-# Either use pin 9 as pullup XOR as ambient sensor.
 # [brew-sensor]
 # pin = 8
 # pin_pullup = 9
-
-# Either use pin 9 as brew pullup XOR as ambient sensor.
-# [ambient-sensor]
-# pin = 9
 
 # [brew-button]
 # pin = 2

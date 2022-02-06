@@ -1,12 +1,13 @@
-#include <SPI.h>
 #include "sh1107.h"
+#include <SPI.h>
 
 Sh1107::Sh1107(byte rst, byte dc, byte din, byte clk)
 : m_rst{rst}
 , m_dc{dc}
 , m_din{din}
 , m_clk{clk}
-{}
+{
+}
 
 void Sh1107::command(uint8_t cmd)
 {
@@ -33,7 +34,7 @@ void Sh1107::begin()
     command(0xAE); //--11. turn off oled panel
 
     // === commands relevant to orientation ===
-    
+
     // column address is set prior sending data anyway, so this here is not necessary
     command(0x00); //--1. Set low column address 0x00~0x0F (address % 16)
     command(0x12); //--2. Set high column address 0x10~0x17 (0x10 + floor(address / 16))
@@ -47,7 +48,6 @@ void Sh1107::begin()
 
     command(0xC8); //--13. Set COM/Row Scan Direction 0xC0/0xC8 (flips in short side direction)
 
-
     // === commands not relevant to orientation but non-default values ===
     command(0x81); //--4. Set contrast control register (double byte command)
     command(0xFF); //--contrast 0x00~0xFF
@@ -57,7 +57,6 @@ void Sh1107::begin()
 
     command(0xDB); //--16. Set vcomh (two byte command)
     command(0x40); //--Set VCOM Deselect Level
-
 
     // === commands with default values ===
     command(0xA8); //--6. Set multiplex ratio(1 to 64, double byte command)
@@ -91,25 +90,25 @@ void Sh1107::clear()
  */
 // void Sh1107::clear_ram()
 // {
-    // for (uint8_t page = 0; page < 16; page++) {
-        // // set page address
-        // command(0xB0 + page);
-        // // set low column address (address % 16)
-        // command(0x00);
-        // // set high column address (0x10 + floor(address / 16))
-        // command(0x10);
-        // // write data
-        // digitalWrite(m_dc, HIGH);
+// for (uint8_t page = 0; page < 16; page++) {
+// // set page address
+// command(0xB0 + page);
+// // set low column address (address % 16)
+// command(0x00);
+// // set high column address (0x10 + floor(address / 16))
+// command(0x10);
+// // write data
+// digitalWrite(m_dc, HIGH);
 
-        // for (size_t i = 0; i < 128; i++) {
-            // SPI.transfer(0);
-        // }
-    // }
+// for (size_t i = 0; i < 128; i++) {
+// SPI.transfer(0);
+// }
+// }
 // }
 
 void Sh1107::flush()
 {
-    uint8_t *buffer = m_buffer;
+    uint8_t* buffer = m_buffer;
 
     for (uint8_t page = 0; page < 16; page++) {
         // set page address
@@ -141,11 +140,11 @@ void Sh1107::draw_bitmap(uint8_t x, uint8_t y, Bitmap&& bitmap)
 {
     uint8_t byte_width = (bitmap.width + 7) / 8;
 
-    for (uint8_t j = 0; j < bitmap.height; j++){
-        for (uint8_t i = 0; i < bitmap.width; i ++){
+    for (uint8_t j = 0; j < bitmap.height; j++) {
+        for (uint8_t i = 0; i < bitmap.width; i++) {
             // Seems stupid to read the same byte over and over again ...
             if (pgm_read_byte(bitmap.data + j * byte_width + i / 8) & (128 >> (i & 7))) {
-                draw_pixel(x+i, y+j);
+                draw_pixel(x + i, y + j);
             }
         }
     }

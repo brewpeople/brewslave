@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Arduino.h>
-#include "sensor.h"
 #include "burner.h"
+#include "sensor.h"
+#include <Arduino.h>
 
 /**
  * Main controller interface reading temperatures and trying to set the

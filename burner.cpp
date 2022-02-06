@@ -5,17 +5,11 @@ uint16_t GasBurner::encode_state(State state, uint8_t dejam_counter, uint8_t ign
     return static_cast<uint8_t>(state) | ((dejam_counter & 0x1F) << 11) | ((ignition_counter & 0x1F) << 6);
 }
 
-void MockGasBurner::begin()
-{
-}
+void MockGasBurner::begin() {}
 
-void MockGasBurner::start()
-{
-}
+void MockGasBurner::start() {}
 
-void MockGasBurner::stop()
-{
-}
+void MockGasBurner::stop() {}
 
 void MockGasBurner::update()
 {
@@ -33,7 +27,7 @@ void MockGasBurner::update()
             mock_substate = rand() % 3 + 1;
         }
 
-        m_state = static_cast<GasBurner::State> (mock_main_state * 10 + mock_substate);
+        m_state = static_cast<GasBurner::State>(mock_main_state * 10 + mock_substate);
 
         if (mock_main_state > 0) {
             m_ignition_counter = rand() % 4;

@@ -2,7 +2,8 @@
 
 FontPico::FontPico(Display& display)
 : m_display{display}
-{}
+{
+}
 
 void FontPico::draw_char(char c, uint8_t x_start, uint8_t y_start)
 {
@@ -86,6 +87,8 @@ void FontPico::draw(const char* s, uint8_t x_start, uint8_t y)
         x += 4;
     }
 }
+
+// clang-format off
 
 const PROGMEM uint8_t DIGITS_36_64[10][320] = {
 {
@@ -747,3 +750,5 @@ const PROGMEM uint8_t ICON_SMALL_ARROW_EQ_6_5[5] = {
     B1100000,
     B1000000,
 };
+
+// clang-format on

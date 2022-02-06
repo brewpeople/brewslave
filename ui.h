@@ -1,9 +1,9 @@
 #pragma once
 
+#include "controller.h"
 #include "display.h"
 #include "fonts.h"
 #include "sensor.h"
-#include "controller.h"
 
 class Ui {
 public:

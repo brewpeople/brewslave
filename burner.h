@@ -87,4 +87,3 @@ private:
     uint8_t m_dejam_counter;
     unsigned long m_last_state_change_time{0};
 };
-

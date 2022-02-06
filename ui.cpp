@@ -6,7 +6,8 @@ Ui::Ui(Display& display, const char* welcome)
 , m_pico{display}
 , m_welcome{welcome}
 , m_welcome_last{welcome}
-{}
+{
+}
 
 void Ui::set_big_number(uint8_t number)
 {
@@ -38,15 +39,15 @@ void Ui::update(unsigned long elapsed)
     m_display.clear();
 
     if ((m_state & State::UpArrow) != 0) {
-        m_display.draw_bitmap(70, 0, Bitmap { 11, 6, ICON_ARROW_UP_11_6 });
+        m_display.draw_bitmap(70, 0, Bitmap{11, 6, ICON_ARROW_UP_11_6});
     }
 
     if ((m_state & State::DownArrow) != 0) {
-        m_display.draw_bitmap(70, m_display.height - 1 - 6, Bitmap { 11, 6, ICON_ARROW_DOWN_11_6 });
+        m_display.draw_bitmap(70, m_display.height - 1 - 6, Bitmap{11, 6, ICON_ARROW_DOWN_11_6});
     }
 
     if ((m_state & State::Warning) != 0) {
-        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap { 22, 22, ICON_WARNING_22_22 });
+        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_WARNING_22_22});
     }
 
     if (*m_welcome_last != '\0') {
@@ -65,23 +66,23 @@ void Ui::update(unsigned long elapsed)
         }
     }
 
-    m_display.draw_bitmap(0, 0, Bitmap { 36, 64, DIGITS_36_64[m_big_number / 10] });
-    m_display.draw_bitmap(36, 0, Bitmap { 36, 64, DIGITS_36_64[m_big_number % 10] });
+    m_display.draw_bitmap(0, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number / 10]});
+    m_display.draw_bitmap(36, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number % 10]});
 
     if ((m_state & State::SmallUpArrow) != 0) {
-        m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 0, Bitmap { 6, 3, ICON_SMALL_ARROW_UP_6_3 });
+        m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 0, Bitmap{6, 3, ICON_SMALL_ARROW_UP_6_3});
     }
 
     if ((m_state & State::SmallDownArrow) != 0) {
-        m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 29, Bitmap { 6, 3, ICON_SMALL_ARROW_DOWN_6_3 });
+        m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 29, Bitmap{6, 3, ICON_SMALL_ARROW_DOWN_6_3});
     }
 
     if ((m_state & State::SmallEq) != 0) {
-        m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 14, Bitmap { 6, 5, ICON_SMALL_ARROW_EQ_6_5 });
+        m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 14, Bitmap{6, 5, ICON_SMALL_ARROW_EQ_6_5});
     }
 
-    m_display.draw_bitmap(m_display.width - 1 - 2 * 18, 0, Bitmap { 18, 32, DIGITS_18_32[m_small_number / 10] });
-    m_display.draw_bitmap(m_display.width - 1 - 1 * 18, 0, Bitmap { 18, 32, DIGITS_18_32[m_small_number % 10] });
+    m_display.draw_bitmap(m_display.width - 1 - 2 * 18, 0, Bitmap{18, 32, DIGITS_18_32[m_small_number / 10]});
+    m_display.draw_bitmap(m_display.width - 1 - 1 * 18, 0, Bitmap{18, 32, DIGITS_18_32[m_small_number % 10]});
 
     m_display.flush();
     m_refresh = false;

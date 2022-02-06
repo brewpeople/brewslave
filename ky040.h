@@ -1,7 +1,7 @@
 #pragma once
 
-#include "encoder.h"
 #include "RotaryEncoder.h"
+#include "encoder.h"
 
 class Ky040 : public ButtonEncoder {
 public:

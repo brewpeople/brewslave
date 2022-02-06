@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Arduino.h>
 #include "display.h"
+#include <Arduino.h>
 
 class Ssd1327 : public Display {
 public:
-    Ssd1327(byte rst=12, byte dc=10, byte din=11, byte clk=13);
+    Ssd1327(byte rst = 12, byte dc = 10, byte din = 11, byte clk = 13);
 
     void begin() final;
     void clear() final;

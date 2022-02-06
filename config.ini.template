@@ -49,7 +49,6 @@ with_mock_controller = false
 # [ambient-sensor]
 # pin = 9
 
-# The following two buttons are not yet implemented.
 # [brew-button]
 # pin = 2
 

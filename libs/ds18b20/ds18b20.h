@@ -20,7 +20,7 @@ public:
 
     void begin() final;
     float temperature() final;
-    unsigned int elapsed() final;
+    unsigned int last_seen() final;
     bool is_connected() final;
 
 private:
@@ -30,6 +30,8 @@ private:
     DeviceAddress m_address; // default value required?
     float m_last_temperature{20.0f};
     unsigned long m_last_seen{0};
+    unsigned long m_last_interaction{0};
+    unsigned long m_last_reconnect{0};
     bool m_disconnected{true};
 
     void reset();

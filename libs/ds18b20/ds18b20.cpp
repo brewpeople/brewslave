@@ -1,22 +1,13 @@
 #include "ds18b20.h"
 
-#define DS18B20_RESOLUTION 10 // set desired resolution in bit (9 to 12)
-
 /**
  * Since neither DallasTemperature functions 'isConnected' nor
  * 'isConversionComplete' work in parasite mode, conversion time has to
  * be considere explicitly.
  * 9-12 bit resolution: 94, 188, 375, 750 ms conversion time
  */
-#if DS18B20_RESOLUTION == 9
-#define DS18B20_CONVERSION_DURATION 94
-#elif DS18B20_RESOLUTION == 10
+#define DS18B20_RESOLUTION 10 // set desired resolution in bit (9 to 12)
 #define DS18B20_CONVERSION_DURATION 188
-#elif DS18B20_RESOLUTION == 11
-#define DS18B20_CONVERSION_DURATION 375
-#elif DS18B20_RESOLUTION == 12
-#define DS18B20_CONVERSION_DURATION 750
-#endif
 
 Ds18b20::Ds18b20(uint8_t pin)
 : m_wire{pin}
@@ -35,32 +26,25 @@ Ds18b20::Ds18b20(uint8_t pin, uint8_t pin_pullup)
 
 void Ds18b20::begin()
 {
-    set_external_pullup(false);
-    m_sensors.begin();
-    m_sensors.getAddress(m_address, 0);
     reset();
-    set_external_pullup(true);
 }
 
 void Ds18b20::reset()
 {
     set_external_pullup(false);
-    if (m_sensors.isConnected(m_address)) {
-        m_sensors.setWaitForConversion(false);
-        m_sensors.setResolution(DS18B20_RESOLUTION);
-        m_sensors.requestTemperatures();
-        m_last_seen = millis();
-    }
-    else {
-        m_disconnected = true;
-        m_wire.reset();
-        m_sensors.begin();
-        m_sensors.getAddress(m_address, 0);
-    }
+    m_wire.reset();
+    m_sensors.begin();
+    m_sensors.getAddress(m_address, 0);
+    m_sensors.setWaitForConversion(false);
+    m_sensors.setResolution(DS18B20_RESOLUTION);
+    m_sensors.requestTemperatures();
     set_external_pullup(true);
+    const auto time{millis()};
+    m_last_reconnect = time;
+    m_last_interaction = time;
 }
 
-unsigned int Ds18b20::elapsed()
+unsigned int Ds18b20::last_seen()
 {
     return millis() - m_last_seen;
 }
@@ -72,41 +56,29 @@ bool Ds18b20::is_connected()
 
 float Ds18b20::temperature()
 {
-    const auto elapsed_ms{elapsed()};
+    const auto time{millis()};
+    const auto elapsed_last_seen_ms{time - m_last_seen};
+    const auto elapsed_interaction_ms{time - m_last_interaction};
+    const auto elapsed_reconnect_ms{time - m_last_reconnect};
 
-    if (elapsed_ms > 5000) { // timeout for sensor connection
+    if (elapsed_last_seen_ms > 2000) { // timeout until sensor disconnect state
         m_disconnected = true;
-        if (elapsed_ms / 1000 % 5 == 0) { // try reconenct every 5s (at the moment this tries for 1s every 5s, is there a better approach attempting this only once without additional flag?)
+        if (elapsed_reconnect_ms > 5000) { // try reconenct every 5s
             reset();
         }
     }
-    if (elapsed_ms > DS18B20_CONVERSION_DURATION) {
+    if (elapsed_interaction_ms > DS18B20_CONVERSION_DURATION && elapsed_reconnect_ms > DS18B20_CONVERSION_DURATION) {
+        m_last_interaction = time;
         set_external_pullup(false);
-
-        /**
-         * The 'not connected' value is defined in the DallasTemperature lib as
-         * -127 in C or -7040 (DEVICE_DISCONNECTED_RAW) in raw.
-         * If DS18B20 resolution is below maximum, the omitted lower bits may be
-         * undefined/floating. I am not sure whether the power/conversion
-         * error (+85 C, 0x0550) is also affected by this. Hence, the raw value is
-         * read and shifted, omitting the lower undefined/floating bits.
-         *
-         * This results in the following readings regarded as invalid:
-         *  9 bit: +85.0000 to +85.4375
-         * 10 bit: +85.0000 to +85.1875
-         * 11 bit: +85.0000 to +85.0625
-         * 12 bit: +85.0000
-         */
         int16_t raw_T = m_sensors.getTemp(m_address);
         if ((raw_T > DEVICE_DISCONNECTED_RAW) && ((raw_T >> (12 + 3 - DS18B20_RESOLUTION)) != (0x0550 >> (12 - DS18B20_RESOLUTION)))) {
             m_last_temperature = m_sensors.rawToCelsius(raw_T);
-            m_last_seen = millis();
-            m_sensors.requestTemperaturesByAddress(m_address);
+            m_last_seen = time;
+            m_sensors.requestTemperatures();
             m_disconnected = false;
         }
         set_external_pullup(true);
     }
-
     return m_last_temperature;
 }
 

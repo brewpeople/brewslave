@@ -17,7 +17,7 @@ public:
     /**
      * Returns the elapsed time in ms since the last successful sensor reading.
      */
-    virtual unsigned int elapsed() = 0;
+    virtual unsigned int last_seen() = 0;
 
     /**
      * Return true if last sensor reading was successful. Indicates if the value
@@ -33,7 +33,7 @@ public:
 
     float temperature() final { return 20.0f; }
 
-    unsigned int elapsed() final { return 0; }
+    unsigned int last_seen() final { return 0; }
 
     bool is_connected() final { return true; }
 };

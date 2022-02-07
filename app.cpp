@@ -250,6 +250,9 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(SPARGING_BUTTON_PIN), sparging_button_trigger, RISING);
 #endif
 
+    brew_sensor.begin();
+    sparging_sensor.begin();
+
     display.begin();
     gbc.begin();
 }

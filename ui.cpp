@@ -67,10 +67,12 @@ void Ui::update(unsigned long elapsed)
     }
 
     if (m_big_number != 0) {
-        if (m_big_number / 10 != 0) {
-            m_display.draw_bitmap(0, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number / 10]});
-        }
+        m_display.draw_bitmap(0, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number / 10]});
         m_display.draw_bitmap(36, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number % 10]});
+    }
+    else {
+        m_display.draw_bitmap(0, 0, Bitmap{36, 64, DASH_36_64});
+        m_display.draw_bitmap(36, 0, Bitmap{36, 64, DASH_36_64});
     }
 
     if ((m_state & State::SmallUpArrow) != 0) {

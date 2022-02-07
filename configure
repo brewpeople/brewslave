@@ -65,7 +65,7 @@ class Config:
 
             self.with_mock_controller = config["general"].getboolean("with_mock_controller", False)
 
-            self.with_ds18b20 = config.has_section("brew-sensor") or config.has_section("ambient-sensor") or config.has_section("sparging-sensor")
+            self.with_ds18b20 = config.has_section("brew-sensor") or config.has_section("sparging-sensor")
             self.with_brew_sensor = config.has_section("brew-sensor")
             self.brew_sensor_pin = config["brew-sensor"].getint("pin") if self.with_brew_sensor else None
             self.brew_sensor_pin_pullup = config["brew-sensor"].getint("pin_pullup") if self.with_brew_sensor and config.has_option("brew-sensor", "pin_pullup") else None

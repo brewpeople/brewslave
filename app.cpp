@@ -210,6 +210,8 @@ public:
         }
         else {
             m_ui.set_big_number(0);
+            m_ui_state &= ~Ui::State::DownArrow;
+            m_ui_state &= ~Ui::State::UpArrow;
         }
 
         m_ui.set_state(m_ui_state);

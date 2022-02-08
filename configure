@@ -94,8 +94,8 @@ class Config:
             self.with_buttons = config.has_section("brew-button") or config.has_section("starging-button")
             self.with_brew_button = config.has_section("brew-button")
             self.brew_button_pin = config["brew-button"].get("pin") if self.with_brew_button else None
-            self.with_starging_button = config.has_section("starging-button")
-            self.starging_button_pin = config["starging-button"].get("pin") if self.with_starging_button else None
+            self.with_sparging_button = config.has_section("sparging-button")
+            self.sparging_button_pin = config["sparging-button"].get("pin") if self.with_sparging_button else None
 
             self.with_gbc = config.has_section("gbc")
             self.gbc_power = config["gbc"].getint("power") if self.with_gbc else None
@@ -188,8 +188,8 @@ if __name__ == "__main__":
         CONFIG.append("#define WITH_BUTTONS 1")
         if config.with_brew_button:
             CONFIG.append(f"#define BREW_BUTTON_PIN {config.brew_button_pin}")
-        if config.with_starging_button:
-            CONFIG.append(f"#define STARGING_BUTTON_PIN {config.starging_button_pin}")
+        if config.with_sparging_button:
+            CONFIG.append(f"#define SPARGING_BUTTON_PIN {config.sparging_button_pin}")
 
     if config.with_gbc:
         ARDUINO_LIBS.append("GasBurnerControl")

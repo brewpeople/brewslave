@@ -37,7 +37,7 @@ with_mock_controller = false
 # din = 11
 # clk = 13
 
-# [starging-sensor]
+# [sparging-sensor]
 # pin = 7
 
 # Either use pin 9 as pullup XOR as ambient sensor.
@@ -52,7 +52,7 @@ with_mock_controller = false
 # [brew-button]
 # pin = 2
 
-# [starging-button]
+# [sparging-button]
 # pin = 3
 
 # [ky040]

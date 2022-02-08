@@ -35,14 +35,14 @@ PushButton brew_button{BREW_BUTTON_PIN};
 #else
 MockButton brew_button{};
 #endif // BREW_BUTTON_PIN
-#if defined(STARGING_BUTTON_PIN)
-PushButton starging_button{BREW_BUTTON_PIN};
+#if defined(SPARGING_BUTTON_PIN)
+PushButton sparging_button{BREW_BUTTON_PIN};
 #else
-MockButton starging_button{};
-#endif // STARGING_BUTTON_PIN
+MockButton sparging_button{};
+#endif // SPARGING_BUTTON_PIN
 #else
 MockButton brew_button{};
-MockButton starging_button{};
+MockButton sparging_button{};
 #endif // WITH_BUTTONS
 
 #if defined(WITH_GBC)
@@ -91,9 +91,9 @@ void brew_button_trigger()
     brew_button.trigger();
 }
 
-void starging_button_trigger()
+void sparging_button_trigger()
 {
-    starging_button.trigger();
+    sparging_button.trigger();
 }
 
 Comm comm{controller};
@@ -222,8 +222,8 @@ void setup()
 #if defined(BREW_BUTTON_PIN)
     attachInterrupt(digitalPinToInterrupt(BREW_BUTTON_PIN), brew_button_trigger, RISING);
 #endif
-#if defined(STARGING_BUTTON_PIN)
-    attachInterrupt(digitalPinToInterrupt(STARGING_BUTTON_PIN), starging_button_trigger, RISING);
+#if defined(SPAGING_BUTTON_PIN)
+    attachInterrupt(digitalPinToInterrupt(SPARGING_BUTTON_PIN), sparging_button_trigger, RISING);
 #endif
 
     display.begin();

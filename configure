@@ -66,25 +66,25 @@ class Config:
             self.with_mock_controller = config["general"].getboolean("with_mock_controller", False)
 
             self.with_ds18b20 = config.has_section("ds18b20")
-            self.ds18b20_pin = config["ds18b20"].getint("pin") if self.with_ds18b20 else None
+            self.ds18b20_pin = config["ds18b20"].get("pin") if self.with_ds18b20 else None
 
             self.with_sh1106 = config.has_section("sh1106")
-            self.sh1106_rst = config["sh1106"].getint("rst") if self.with_sh1106 else None
-            self.sh1106_dc = config["sh1106"].getint("dc") if self.with_sh1106 else None
-            self.sh1106_din = config["sh1106"].getint("din") if self.with_sh1106 else None
-            self.sh1106_clk = config["sh1106"].getint("clk") if self.with_sh1106 else None
+            self.sh1106_rst = config["sh1106"].get("rst") if self.with_sh1106 else None
+            self.sh1106_dc = config["sh1106"].get("dc") if self.with_sh1106 else None
+            self.sh1106_din = config["sh1106"].get("din") if self.with_sh1106 else None
+            self.sh1106_clk = config["sh1106"].get("clk") if self.with_sh1106 else None
 
             self.with_sh1107 = config.has_section("sh1107")
-            self.sh1107_rst = config["sh1107"].getint("rst") if self.with_sh1107 else None
-            self.sh1107_dc = config["sh1107"].getint("dc") if self.with_sh1107 else None
-            self.sh1107_din = config["sh1107"].getint("din") if self.with_sh1107 else None
-            self.sh1107_clk = config["sh1107"].getint("clk") if self.with_sh1107 else None
+            self.sh1107_rst = config["sh1107"].get("rst") if self.with_sh1107 else None
+            self.sh1107_dc = config["sh1107"].get("dc") if self.with_sh1107 else None
+            self.sh1107_din = config["sh1107"].get("din") if self.with_sh1107 else None
+            self.sh1107_clk = config["sh1107"].get("clk") if self.with_sh1107 else None
 
             self.with_ssd1327 = config.has_section("ssd1327")
-            self.ssd1327_rst = config["ssd1327"].getint("rst") if self.with_ssd1327 else None
-            self.ssd1327_dc = config["ssd1327"].getint("dc") if self.with_ssd1327 else None
-            self.ssd1327_din = config["ssd1327"].getint("din") if self.with_ssd1327 else None
-            self.ssd1327_clk = config["ssd1327"].getint("clk") if self.with_ssd1327 else None
+            self.ssd1327_rst = config["ssd1327"].get("rst") if self.with_ssd1327 else None
+            self.ssd1327_dc = config["ssd1327"].get("dc") if self.with_ssd1327 else None
+            self.ssd1327_din = config["ssd1327"].get("din") if self.with_ssd1327 else None
+            self.ssd1327_clk = config["ssd1327"].get("clk") if self.with_ssd1327 else None
 
             self.with_ky040 = config.has_section("ky040")
             self.ky040_sw = config["ky040"].get("sw") if self.with_ky040 else None
@@ -98,11 +98,11 @@ class Config:
             self.sparging_button_pin = config["sparging-button"].get("pin") if self.with_sparging_button else None
 
             self.with_gbc = config.has_section("gbc")
-            self.gbc_power = config["gbc"].getint("power") if self.with_gbc else None
-            self.gbc_dejam = config["gbc"].getint("dejam") if self.with_gbc else None
-            self.gbc_jammed = config["gbc"].getint("jammed") if self.with_gbc else None
-            self.gbc_valve = config["gbc"].getint("valve") if self.with_gbc else None
-            self.gbc_ignition = config["gbc"].getint("ignition") if self.with_gbc else None
+            self.gbc_power = config["gbc"].get("power") if self.with_gbc else None
+            self.gbc_dejam = config["gbc"].get("dejam") if self.with_gbc else None
+            self.gbc_jammed = config["gbc"].get("jammed") if self.with_gbc else None
+            self.gbc_valve = config["gbc"].get("valve") if self.with_gbc else None
+            self.gbc_ignition = config["gbc"].get("ignition") if self.with_gbc else None
         except KeyError as e:
             raise ValueError(f"Could not find configuration entry: {e}")
 

@@ -50,7 +50,7 @@ PushButton brew_button{BREW_BUTTON_PIN};
 MockButton brew_button{};
 #endif // BREW_BUTTON_PIN
 #if defined(SPARGING_BUTTON_PIN)
-PushButton sparging_button{BREW_BUTTON_PIN};
+PushButton sparging_button{SPARGING_BUTTON_PIN};
 #else
 MockButton sparging_button{};
 #endif // SPARGING_BUTTON_PIN
@@ -248,7 +248,7 @@ void setup()
 #if defined(BREW_BUTTON_PIN)
     attachInterrupt(digitalPinToInterrupt(BREW_BUTTON_PIN), brew_button_trigger, RISING);
 #endif
-#if defined(SPAGING_BUTTON_PIN)
+#if defined(SPARGING_BUTTON_PIN)
     attachInterrupt(digitalPinToInterrupt(SPARGING_BUTTON_PIN), sparging_button_trigger, RISING);
 #endif
 

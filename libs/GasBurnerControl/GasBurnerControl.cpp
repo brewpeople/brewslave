@@ -269,7 +269,7 @@ void GasBurnerControl::update()
                 GBC_DEBUGLN(F("|-Dejam after first delay (65ish s?)"));
                 dejam(gbc::dejam_delay_1);
             }
-            else if (m_dejam_counter > 1) {
+            else if (m_dejam_counter > 1 && m_dejam_counter <= gbc::num_dejam_attempts) {
                 GBC_DEBUGLN(F("|-Dejam secondary attempt 10s delay"));
                 dejam(gbc::dejam_delay_2);
             }
@@ -277,12 +277,13 @@ void GasBurnerControl::update()
                 GBC_DEBUGLN(F("|-Unknown Dejam state error: DEJAM -> ERROR"));
                 // should never be reached unless coding with ignition or dejam counter is faulty
                 // can only be reached when dejamCounter == 0 and ignitionCounter > 0
-                m_state = GasBurner::State::error_other;
+                m_state = GasBurner::State::error_dejam;
             }
             break;
 
         case GasBurner::State::error_start:
         case GasBurner::State::error_ignition:
+        case GasBurner::State::error_dejam:
         case GasBurner::State::error_other:
             GBC_DEBUGLN(F(">Burner error state"));
             // power down but stay in this state

@@ -26,8 +26,8 @@ namespace gbc {
     /// Delay after dejam button release in milliseconds.
     constexpr uint16_t post_dejam_delay{1000};
 
-    constexpr int high{1};
-    constexpr int low{0};
+    constexpr int high{0};
+    constexpr int low{1};
 
     constexpr uint8_t max_dejam_attempts{31};
     constexpr uint8_t max_ignition_attempts{31};

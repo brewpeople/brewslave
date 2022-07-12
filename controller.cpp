@@ -14,6 +14,13 @@ void MainController::update(unsigned long)
     const auto temperature{m_sensor.temperature()};
     const auto burner_state{m_burner.state()};
 
+    // safety feature: deactivate burner if temperature sensor not connected but target temperature set
+    // TODO: we might wanna set a different (longer) timeout than for automatic sensor reconnects?
+    if (!m_sensor.is_connected() && m_target_temperature != 0.0f) {
+        m_burner.stop();
+        return;
+    }
+
     // manual mode, do nothing
     if (m_target_temperature == 0.0f) {
         return;

@@ -214,6 +214,12 @@ public:
             m_ui_state &= ~Ui::State::UpArrow;
         }
 
+        brew_button.update();
+        if (brew_button.pressed()) {
+            controller.set_temperature(0.0f); // deactivates controller
+            (gbc.state() == GasBurner::State::idle) ? gbc.start() : gbc.stop();
+        }
+
         m_ui.set_state(m_ui_state);
         m_ui.update();
     }

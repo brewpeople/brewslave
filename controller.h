@@ -7,6 +7,8 @@
 /**
  * Main controller interface reading temperatures and trying to set the
  * temperature in a control loop based on a burner control.
+ *
+ * A target temperature == 0 deactivates the controller.
  */
 class Controller {
 public:
@@ -92,7 +94,7 @@ public:
 private:
     TemperatureSensor& m_sensor;
     GasBurner& m_burner;
-    float m_target_temperature{20.0f};
+    float m_target_temperature{0.0f};
     bool m_stirrer_on{false};
     bool m_heater_on{false};
 };

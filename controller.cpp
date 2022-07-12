@@ -14,6 +14,11 @@ void MainController::update(unsigned long)
     const auto temperature{m_sensor.temperature()};
     const auto burner_state{m_burner.state()};
 
+    // manual mode, do nothing
+    if (m_target_temperature == 0.0f) {
+        return;
+    }
+
     if ((temperature < m_target_temperature - 1.0f) && (burner_state == GasBurner::State::idle)) {
         m_burner.start();
     }
@@ -61,6 +66,10 @@ MockController::MockController() {}
 
 void MockController::update(unsigned long elapsed)
 {
+    if (m_target_temperature == 0.0f) {
+        return;
+    }
+
     if (fabs(m_current_temperature - m_target_temperature) < 0.001f) {
         return;
     }

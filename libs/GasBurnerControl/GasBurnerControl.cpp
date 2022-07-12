@@ -48,6 +48,9 @@ GasBurnerControl::GasBurnerControl(uint8_t power_pin, uint8_t dejam_pin, uint8_t
 
 void GasBurnerControl::begin()
 {
+    // ensure that relays are off at startup (set value first, then define as output)
+    digitalWrite(m_power_pin, gbc::low);
+    digitalWrite(m_dejam_pin, gbc::low);
     pinMode(m_power_pin, OUTPUT);
     pinMode(m_dejam_pin, OUTPUT);
     pinMode(m_jammed_pin, INPUT);

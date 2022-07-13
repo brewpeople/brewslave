@@ -215,7 +215,7 @@ public:
         }
 
         m_ui.set_state(m_ui_state);
-        m_ui.update(elapsed);
+        m_ui.update();
     }
 
 private:

@@ -26,11 +26,6 @@ Ds18b20::Ds18b20(uint8_t pin, uint8_t pin_pullup)
 
 void Ds18b20::begin()
 {
-    reset();
-}
-
-void Ds18b20::reset()
-{
     set_external_pullup(false);
     m_wire.reset();
     m_sensors.begin();
@@ -64,7 +59,7 @@ float Ds18b20::temperature()
     if (elapsed_last_seen_ms > 2000) { // timeout until sensor disconnect state
         m_disconnected = true;
         if (elapsed_reconnect_ms > 5000) { // try reconenct every 5s
-            reset();
+            begin();
         }
     }
     if (elapsed_interaction_ms > DS18B20_CONVERSION_DURATION && elapsed_reconnect_ms > DS18B20_CONVERSION_DURATION) {

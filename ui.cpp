@@ -66,8 +66,14 @@ void Ui::update(unsigned long elapsed)
         }
     }
 
-    m_display.draw_bitmap(0, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number / 10]});
-    m_display.draw_bitmap(36, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number % 10]});
+    if (m_big_number != 0) {
+        m_display.draw_bitmap(0, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number / 10]});
+        m_display.draw_bitmap(36, 0, Bitmap{36, 64, DIGITS_36_64[m_big_number % 10]});
+    }
+    else {
+        m_display.draw_bitmap(0, 30, Bitmap{36, 4, DASH_36_4});
+        m_display.draw_bitmap(36, 30, Bitmap{36, 4, DASH_36_4});
+    }
 
     if ((m_state & State::SmallUpArrow) != 0) {
         m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 0, Bitmap{6, 3, ICON_SMALL_ARROW_UP_6_3});

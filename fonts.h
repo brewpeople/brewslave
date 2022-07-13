@@ -17,6 +17,7 @@ private:
 };
 
 extern const PROGMEM uint8_t DIGITS_36_64[10][320];
+extern const PROGMEM uint8_t DASH_36_4[20];
 extern const PROGMEM uint8_t DIGITS_18_32[10][96];
 extern const PROGMEM uint8_t PICO_FONT_4_6[384];
 extern const PROGMEM uint8_t ICON_WARNING_22_22[66];

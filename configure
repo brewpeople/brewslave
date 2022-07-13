@@ -65,8 +65,12 @@ class Config:
 
             self.with_mock_controller = config["general"].getboolean("with_mock_controller", False)
 
-            self.with_ds18b20 = config.has_section("ds18b20")
-            self.ds18b20_pin = config["ds18b20"].get("pin") if self.with_ds18b20 else None
+            self.with_ds18b20 = config.has_section("brew-sensor") or config.has_section("sparging-sensor")
+            self.with_brew_sensor = config.has_section("brew-sensor")
+            self.brew_sensor_pin = config["brew-sensor"].getint("pin") if self.with_brew_sensor else None
+            self.brew_sensor_pin_pullup = config["brew-sensor"].getint("pin_pullup") if self.with_brew_sensor and config.has_option("brew-sensor", "pin_pullup") else None
+            self.with_sparging_sensor = config.has_section("sparging-sensor")
+            self.sparging_sensor_pin = config["sparging-sensor"].getint("pin") if self.with_sparging_sensor else None
 
             self.with_sh1106 = config.has_section("sh1106")
             self.sh1106_rst = config["sh1106"].get("rst") if self.with_sh1106 else None
@@ -149,7 +153,12 @@ if __name__ == "__main__":
         ARDUINO_LIBS.append("DallasTemperature")
         ARDUINO_LIBS.append("ds18b20")
         CONFIG.append("#define WITH_DS18B20 1")
-        CONFIG.append(f"#define DS18B20_PIN {config.ds18b20_pin}")
+        if config.with_brew_sensor:
+            CONFIG.append(f"#define BREW_SENSOR_PIN {config.brew_sensor_pin}")
+            if config.brew_sensor_pin_pullup is not None:
+                CONFIG.append(f"#define BREW_SENSOR_PIN_PULLUP {config.brew_sensor_pin_pullup}")
+        if config.with_sparging_sensor:
+            CONFIG.append(f"#define SPARGING_SENSOR_PIN {config.sparging_sensor_pin}")
 
     if config.with_sh1106:
         ARDUINO_LIBS.append("SPI")

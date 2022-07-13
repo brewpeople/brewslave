@@ -11,10 +11,24 @@
 
 #if defined(WITH_DS18B20)
 #include <ds18b20.h>
-Ds18b20 sensor{DS18B20_PIN};
+#if defined(BREW_SENSOR_PIN)
+#if defined(BREW_SENSOR_PIN_PULLUP)
+Ds18b20 brew_sensor{BREW_SENSOR_PIN, BREW_SENSOR_PIN_PULLUP};
+#else
+Ds18b20 brew_sensor{BREW_SENSOR_PIN};
+#endif // BREW_SENSOR_PIN_PULLUP
+#else
+MockTemperatureSensor brew_sensor;
+#endif // BREW_SENSOR_PIN
+#if defined(SPARGING_SENSOR_PIN)
+Ds18b20 sparging_sensor{SPARGING_SENSOR_PIN};
+#else
+MockTemperatureSensor sparging_sensor;
+#endif // SPARGING_SENSOR_PIN
 #define TEMPERATURE_MESSAGE " +ds18b20"
 #else
-MockTemperatureSensor sensor;
+MockTemperatureSensor brew_sensor;
+MockTemperatureSensor sparging_sensor;
 #define TEMPERATURE_MESSAGE " +mock_sensor"
 #endif // WITH_DS18B20
 
@@ -59,7 +73,7 @@ MockGasBurner gbc{};
 MockController controller{};
 #define CONTROLLER_MESSAGE " +mock_controller"
 #else
-MainController controller{sensor, gbc};
+MainController controller{brew_sensor, gbc};
 #define CONTROLLER_MESSAGE " +real_controller"
 #endif
 
@@ -100,9 +114,10 @@ Comm comm{controller};
 
 class App {
 public:
-    App(Ui& ui, Controller& controller, ButtonEncoder& encoder)
+    App(Ui& ui, Controller& controller, TemperatureSensor& sparging_sensor, ButtonEncoder& encoder)
     : m_ui{ui}
     , m_controller{controller}
+    , m_sparging_sensor{sparging_sensor}
     , m_encoder{encoder}
     , m_last_update{millis()}
     {
@@ -135,6 +150,8 @@ public:
         const auto current_temperature{m_controller.temperature()};
         const auto delta{current_temperature - m_last_temperature};
         m_last_temperature = current_temperature;
+
+        const auto sparging_temperature{m_sparging_sensor.temperature()};
 
         switch (m_state) {
             case State::Main:
@@ -188,7 +205,15 @@ public:
             m_ui_state &= ~Ui::State::Warning;
         }
 
-        m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));
+        if (brew_sensor.is_connected()) {
+            m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));
+        }
+        else {
+            m_ui.set_big_number(0);
+            m_ui_state &= ~Ui::State::DownArrow;
+            m_ui_state &= ~Ui::State::UpArrow;
+        }
+
         m_ui.set_state(m_ui_state);
         m_ui.update(elapsed);
     }
@@ -202,6 +227,7 @@ private:
     Ui& m_ui;
     uint8_t m_ui_state{0};
     Controller& m_controller;
+    TemperatureSensor& m_sparging_sensor;
     ButtonEncoder& m_encoder;
     State m_state{State::Main};
     float m_last_temperature{20.0f};
@@ -209,7 +235,7 @@ private:
     unsigned long m_last_update{0};
 };
 
-App app{ui, controller, encoder};
+App app{ui, controller, sparging_sensor, encoder};
 
 void setup()
 {
@@ -225,6 +251,9 @@ void setup()
 #if defined(SPAGING_BUTTON_PIN)
     attachInterrupt(digitalPinToInterrupt(SPARGING_BUTTON_PIN), sparging_button_trigger, RISING);
 #endif
+
+    brew_sensor.begin();
+    sparging_sensor.begin();
 
     display.begin();
     gbc.begin();

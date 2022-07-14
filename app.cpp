@@ -165,7 +165,7 @@ public:
                 if (direction == ButtonEncoder::Direction::Clockwise && m_set_target_temperature < 100) {
                     m_set_target_temperature++;
                 }
-                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 1) {
+                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 0) {
                     m_set_target_temperature--;
                 }
 

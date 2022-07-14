@@ -208,12 +208,13 @@ public:
             m_ui_state |= Ui::State::DownArrow;
         }
 
-        if (m_controller.has_problem()) {
-            m_ui_state |= Ui::State::Warning;
-        }
-        else {
-            m_ui_state &= ~Ui::State::Warning;
-        }
+        // INFO: Keep for now, until we are confident that gbc controller works and we decide to go back to simple/clean UI
+        // if (m_controller.has_problem()) {
+        //     m_ui_state |= Ui::State::Warning;
+        // }
+        // else {
+        //     m_ui_state &= ~Ui::State::Warning;
+        // }
 
         if (brew_sensor.is_connected()) {
             m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));

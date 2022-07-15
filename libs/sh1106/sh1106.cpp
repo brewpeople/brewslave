@@ -63,6 +63,11 @@ void Sh1106::clear()
     }
 }
 
+bool Sh1106::next_segment()
+{
+    return false;
+}
+
 void Sh1106::flush()
 {
     uint8_t* buffer = m_buffer;

@@ -111,6 +111,11 @@ void Ssd1327::clear()
     }
 }
 
+bool Ssd1327::next_segment()
+{
+    return false;
+}
+
 void Ssd1327::flush()
 {
     uint8_t* buffer = m_buffer;

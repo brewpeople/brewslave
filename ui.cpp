@@ -29,13 +29,16 @@ void Ui::set_state(uint8_t state)
     m_state = state;
 }
 
-void Ui::update(unsigned long elapsed)
+void Ui::update()
 {
+    const auto now{millis()};
+
     // Bail out early if there is nothing to redraw.
-    if (elapsed < 15 || (!m_refresh && (m_welcome == nullptr))) {
+    if ((now - m_last_update) < 15 || (!m_refresh && (m_welcome == nullptr))) {
         return;
     }
 
+    m_last_update = now;
     m_display.clear();
 
     if ((m_state & State::UpArrow) != 0) {

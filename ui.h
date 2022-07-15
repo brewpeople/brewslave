@@ -48,10 +48,8 @@ public:
 
     /**
      * Update internal state and refresh display if necessary.
-     *
-     * @param elapsed Milliseconds elapsed since last update.
      */
-    void update(unsigned long elapsed);
+    void update();
 
 private:
     Display& m_display;
@@ -60,6 +58,7 @@ private:
     uint8_t m_small_number{20};
     uint8_t m_state{0};
     bool m_refresh{true};
+    unsigned long m_last_update{0};
     const char* m_welcome{nullptr};
     const char* m_welcome_last{nullptr};
     uint8_t m_current_scroll_start{127};

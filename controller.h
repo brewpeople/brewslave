@@ -127,7 +127,7 @@ public:
 
 private:
     float m_current_temperature{20.0f};
-    float m_target_temperature{20.0f};
+    float m_target_temperature{0.0f};
     bool m_stirrer_on{false};
     bool m_heater_on{false};
 };

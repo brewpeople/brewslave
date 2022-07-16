@@ -140,12 +140,18 @@ void Sh1107::flush()
     m_current_segment++;
 }
 
+void Sh1107::draw_pixel_unchecked(uint8_t x, uint8_t y)
+{
+    m_buffer[((x - 64 * m_current_segment) / 8) * height + y] |= 1 << (x % 8);
+}
+
 void Sh1107::draw_pixel(uint8_t x, uint8_t y)
 {
-    if (x < 64 * m_current_segment || x >= 64 * (m_current_segment + 1) || y > height)
+    if (x < 64 * m_current_segment || x >= 64 * (m_current_segment + 1) || y > height) {
         return;
+    }
 
-    m_buffer[((x - 64 * m_current_segment) / 8) * height + y] |= 1 << (x % 8);
+    draw_pixel_unchecked(x, y);
 }
 
 void Sh1107::draw_bitmap(uint8_t x, uint8_t y, Bitmap&& bitmap)
@@ -157,11 +163,20 @@ void Sh1107::draw_bitmap(uint8_t x, uint8_t y, Bitmap&& bitmap)
 
     uint8_t byte_width = (bitmap.width + 7) / 8;
 
+    uint8_t i_min = 0;
+    uint8_t i_max = bitmap.width;
+
+    // if bitmap is not entirely within one segment, limit drawing to overlap with current segment
+    if (!(x >= m_current_segment * 64 && x + bitmap.width < (m_current_segment + 1) * 64)) {
+        i_min = (m_current_segment == 0) ? 0 : 64 - x;
+        i_max = (m_current_segment == 0) ? 64 - x : bitmap.width;
+    }
+
     for (uint8_t j = 0; j < bitmap.height; j++) {
-        for (uint8_t i = 0; i < bitmap.width; i++) {
+        for (uint8_t i = i_min; i < i_max; i++) {
             // Seems stupid to read the same byte over and over again ...
             if (pgm_read_byte(bitmap.data + j * byte_width + i / 8) & (128 >> (i & 7))) {
-                draw_pixel(x + i, y + j);
+                draw_pixel_unchecked(x + i, y + j);
             }
         }
     }

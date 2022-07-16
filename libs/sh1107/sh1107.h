@@ -17,6 +17,7 @@ public:
 private:
     void command(uint8_t cmd);
     void clear_ram();
+    void draw_pixel_unchecked(uint8_t x, uint8_t y);
 
     const byte m_rst;
     const byte m_dc;

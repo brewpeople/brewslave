@@ -32,6 +32,11 @@ public:
     virtual void flush() = 0;
 
     /**
+     * Return true if segmented display buffer is utilized and current segment is not the last segment.
+     */
+    virtual bool next_segment() = 0;
+
+    /**
      * Draw a pixel at coordinate (@p x, @p y) if it falls within width and
      * height.
      *
@@ -65,6 +70,8 @@ public:
     void clear() final {}
 
     void flush() final {}
+
+    bool next_segment() final { return false; }
 
     void draw_pixel(uint8_t, uint8_t) final {}
 

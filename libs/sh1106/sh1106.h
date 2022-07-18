@@ -10,6 +10,7 @@ public:
     void begin() final;
     void clear() final;
     void flush() final;
+    bool next_segment() final;
     void draw_pixel(uint8_t x, uint8_t y) final;
     void draw_bitmap(uint8_t x, uint8_t y, Bitmap&& bitmap) final;
 

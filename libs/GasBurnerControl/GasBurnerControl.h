@@ -14,7 +14,7 @@ public:
     void stop() final;
     void update() final;
     State state() final;
-    unsigned int full_state() final;
+    uint16_t full_state() final;
 
 private:
     uint8_t m_power_pin;

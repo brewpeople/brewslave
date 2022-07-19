@@ -80,7 +80,7 @@ public:
     void stop() final;
     void update() final;
     State state() final;
-    unsigned int full_state() final;
+    uint16_t full_state() final;
 
 private:
     GasBurner::State m_state;

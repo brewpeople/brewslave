@@ -29,7 +29,7 @@ void MainController::update(unsigned long)
     if ((temperature < m_target_temperature - 1.0f) && (burner_state == GasBurner::State::idle)) {
         m_burner.start();
     }
-    else if ((temperature >= m_target_temperature - 1.0f) && (burner_state == GasBurner::State::running)) {
+    else if ((temperature >= m_target_temperature - 1.0f) && (burner_state != GasBurner::State::idle)) {
         m_burner.stop();
     }
 }

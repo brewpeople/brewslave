@@ -65,6 +65,11 @@ public:
      * Return @c true if there is an issue.
      */
     virtual bool has_problem() const = 0;
+
+    /**
+     * Expose full burner state.
+     */
+    virtual uint16_t full_burner_state() = 0;
 };
 
 /**
@@ -90,6 +95,8 @@ public:
     bool heater_is_on() final;
 
     bool has_problem() const final;
+
+    uint16_t full_burner_state() final;
 
 private:
     TemperatureSensor& m_sensor;
@@ -124,6 +131,8 @@ public:
     bool heater_is_on() final;
 
     bool has_problem() const final;
+
+    uint16_t full_burner_state() final;
 
 private:
     float m_current_temperature{20.0f};

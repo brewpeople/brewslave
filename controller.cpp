@@ -69,6 +69,11 @@ bool MainController::has_problem() const
     return false;
 }
 
+uint16_t MainController::full_burner_state()
+{
+    return m_burner.full_state();
+}
+
 MockController::MockController() {}
 
 void MockController::update(unsigned long elapsed)
@@ -126,4 +131,9 @@ bool MockController::heater_is_on()
 bool MockController::has_problem() const
 {
     return m_current_temperature > 72.0f;
+}
+
+uint16_t MockController::full_burner_state()
+{
+    return 0;
 }

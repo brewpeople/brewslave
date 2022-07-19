@@ -16,7 +16,7 @@ namespace gbc {
     /// Initial delay in seconds after powering the GBC.
     constexpr uint8_t start_delay{2};
     /// Wait time in seconds until dejamming is possible.
-    constexpr uint8_t dejam_delay_1{65};
+    constexpr uint8_t dejam_delay_1{60};
     /// Wait time in seconds between additional dejam attempts.
     constexpr uint8_t dejam_delay_2{10};
     /// Time in seconds after which ignition should be complete.

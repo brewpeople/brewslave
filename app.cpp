@@ -220,6 +220,13 @@ public:
             (gbc.state() == GasBurner::State::idle) ? gbc.start() : gbc.stop();
         }
 
+#if defined(SPARGING_CONTROLLER_PIN)
+        sparging_button.update();
+        if (sparging_button.pressed()) {
+            digitalWrite(SPARGING_CONTROLLER_PIN, digitalRead(SPARGING_CONTROLLER_PIN) ? LOW : HIGH);
+        }
+#endif
+
         m_ui.set_state(m_ui_state);
         m_ui.update();
     }
@@ -256,6 +263,11 @@ void setup()
 #endif
 #if defined(SPARGING_BUTTON_PIN)
     attachInterrupt(digitalPinToInterrupt(SPARGING_BUTTON_PIN), sparging_button_trigger, RISING);
+#endif
+
+#if defined(SPARGING_CONTROLLER_PIN)
+    digitalWrite(SPARGING_CONTROLLER_PIN, HIGH); // ensure that relay is off at start
+    pinMode(SPARGING_CONTROLLER_PIN, OUTPUT);
 #endif
 
     brew_sensor.begin();

@@ -3,8 +3,8 @@
 #include "button.h"
 #include <Arduino.h>
 
-#define BUTTON_DEBOUNCE_TIME 100
-#define BUTTON_MIN_REPEAT_TIME 1000
+#define BUTTON_DEBOUNCE_TIME 50
+#define BUTTON_MIN_REPEAT_TIME 500
 
 class PushButton : public Button {
 public:

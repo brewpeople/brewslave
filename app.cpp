@@ -6,6 +6,7 @@
 #include "button.h"
 #include "comm.h"
 #include "controller.h"
+#include "hotplate.h"
 #include "sensor.h"
 #include "ui.h"
 
@@ -69,11 +70,18 @@ MockGasBurner gbc{};
 #define GBC_MESSAGE " +mock_gbc"
 #endif
 
+#if defined(HOTPLATE_PIN)
+#include <HotplateController.h>
+HotplateController hotplate(HOTPLATE_PIN);
+#else
+MockHotplate hotplate{};
+#endif
+
 #if defined(WITH_MOCK_CONTROLLER)
 MockController controller{};
 #define CONTROLLER_MESSAGE " +mock_controller"
 #else
-MainController controller{brew_sensor, sparging_sensor, gbc};
+MainController controller{brew_sensor, sparging_sensor, gbc, hotplate};
 #define CONTROLLER_MESSAGE " +real_controller"
 #endif
 
@@ -220,12 +228,11 @@ public:
             (gbc.state() == GasBurner::State::idle) ? gbc.start() : gbc.stop();
         }
 
-#if defined(SPARGING_CONTROLLER_PIN)
         sparging_button.update();
         if (sparging_button.pressed()) {
-            digitalWrite(SPARGING_CONTROLLER_PIN, digitalRead(SPARGING_CONTROLLER_PIN) ? LOW : HIGH);
+            controller.set_sparging_temperature(0.0f); // deactivate controller
+            hotplate.state() ? hotplate.stop() : hotplate.start();
         }
-#endif
 
         m_ui.set_state(m_ui_state);
         m_ui.update();
@@ -265,16 +272,12 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(SPARGING_BUTTON_PIN), sparging_button_trigger, RISING);
 #endif
 
-#if defined(SPARGING_CONTROLLER_PIN)
-    digitalWrite(SPARGING_CONTROLLER_PIN, HIGH); // ensure that relay is off at start
-    pinMode(SPARGING_CONTROLLER_PIN, OUTPUT);
-#endif
-
     brew_sensor.begin();
     sparging_sensor.begin();
 
     display.begin();
     gbc.begin();
+    hotplate.begin(); // ensure that relay is off at start
 }
 
 void serialEvent()

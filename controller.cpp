@@ -1,10 +1,11 @@
 #include "controller.h"
 #include <Arduino.h>
 
-MainController::MainController(TemperatureSensor& brew_sensor, TemperatureSensor& sparging_sensor, GasBurner& burner)
+MainController::MainController(TemperatureSensor& brew_sensor, TemperatureSensor& sparging_sensor, GasBurner& burner, Hotplate& hotplate)
 : m_brew_sensor{brew_sensor}
 , m_sparging_sensor{sparging_sensor}
 , m_burner{burner}
+, m_hotplate{hotplate}
 {
 }
 
@@ -34,6 +35,26 @@ void MainController::update(unsigned long)
         }
     }
 
+    /**
+     * Sparging hotplate flip-flop controller
+     */
+
+    const auto sparging_temperature{m_sparging_sensor.temperature()};
+
+    if (!(m_sparging_target_temperature == 0.0f)) { // act only if not in manual mode
+        // safety feature: deactivate hotplate if temperature sensor not connected but target temperature set
+        // TODO: we might wanna set a different (longer) timeout than for automatic sensor reconnects?
+        if (!m_sparging_sensor.is_connected() && m_sparging_target_temperature != 0.0f) {
+            m_hotplate.stop();
+        }
+        // TODO: We might want to check if the +-1 deg Celsius is okay here
+        // TODO: maybe we want to limit switching frequency
+        else if (sparging_temperature < m_sparging_target_temperature - 1.0f) {
+            m_hotplate.start();
+        }
+        else if (sparging_temperature >= m_sparging_target_temperature + 1.0f) {
+            m_hotplate.stop();
+        }
     }
 }
 
@@ -80,6 +101,11 @@ bool MainController::sparging_is_connected()
 bool MainController::brew_heater_is_on()
 {
     return m_brew_heater_on;
+}
+
+bool MainController::sparging_heater_is_on()
+{
+    return m_hotplate.state();
 }
 
 bool MainController::has_problem() const
@@ -159,6 +185,10 @@ bool MockController::sparging_is_connected()
 bool MockController::brew_heater_is_on()
 {
     return m_brew_heater_on;
+}
+bool MockController::sparging_heater_is_on()
+{
+    return m_sparging_heater_on;
 }
 
 bool MockController::has_problem() const

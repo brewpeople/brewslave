@@ -1,6 +1,7 @@
 #pragma once
 
 #include "burner.h"
+#include "hotplate.h"
 #include "sensor.h"
 #include <Arduino.h>
 
@@ -83,6 +84,13 @@ public:
     virtual bool brew_heater_is_on() = 0;
 
     /**
+     * Retrieve location of variable holding if hotplate is on or off.
+     *
+     * @return @c true if hotplate is on else @c false.
+     */
+    virtual bool sparging_heater_is_on() = 0;
+
+    /**
      * Return @c true if there is an issue.
      */
     virtual bool has_problem() const = 0;
@@ -99,7 +107,7 @@ public:
  */
 class MainController : public Controller {
 public:
-    MainController(TemperatureSensor& brew_sensor, TemperatureSensor& sparging_sensor, GasBurner& burner);
+    MainController(TemperatureSensor& brew_sensor, TemperatureSensor& sparging_sensor, GasBurner& burner, Hotplate& hotplate);
 
     void update(unsigned long elapsed) final;
 
@@ -121,6 +129,8 @@ public:
 
     bool brew_heater_is_on() final;
 
+    bool sparging_heater_is_on() final;
+
     bool has_problem() const final;
 
     uint16_t full_burner_state() final;
@@ -129,6 +139,7 @@ private:
     TemperatureSensor& m_brew_sensor;
     TemperatureSensor& m_sparging_sensor;
     GasBurner& m_burner;
+    Hotplate& m_hotplate;
     float m_brew_target_temperature{0.0f};
     float m_sparging_target_temperature{0.0f};
     bool m_brew_heater_on{false};
@@ -164,6 +175,8 @@ public:
 
     bool brew_heater_is_on() final;
 
+    bool sparging_heater_is_on() final;
+
     bool has_problem() const final;
 
     uint16_t full_burner_state() final;
@@ -174,4 +187,5 @@ private:
     float m_sparging_current_temperature{20.0f};
     float m_sparging_target_temperature{0.0f};
     bool m_brew_heater_on{false};
+    bool m_sparging_heater_on{false};
 };

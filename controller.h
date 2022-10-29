@@ -41,20 +41,6 @@ public:
     virtual float temperature() = 0;
 
     /**
-     * Turn stirrer on or off.
-     *
-     * @param on @c true if stirrer is to be turned on, @c false if not.
-     */
-    virtual void set_stirrer_on(bool on) = 0;
-
-    /**
-     * Return whether stirrer is on or not.
-     *
-     * @return @c true if stirrer is on else @c false.
-     */
-    virtual bool stirrer_is_on() = 0;
-
-    /**
      * Retrieve location of variable holding if heater is on or off.
      *
      * @return @c true if heater is on else @c false.
@@ -88,10 +74,6 @@ public:
 
     float temperature() final;
 
-    void set_stirrer_on(bool is_on) final;
-
-    bool stirrer_is_on() final;
-
     bool heater_is_on() final;
 
     bool has_problem() const final;
@@ -102,7 +84,6 @@ private:
     TemperatureSensor& m_sensor;
     GasBurner& m_burner;
     float m_target_temperature{0.0f};
-    bool m_stirrer_on{false};
     bool m_heater_on{false};
 };
 
@@ -124,10 +105,6 @@ public:
 
     float temperature() final;
 
-    void set_stirrer_on(bool is_on) final;
-
-    bool stirrer_is_on() final;
-
     bool heater_is_on() final;
 
     bool has_problem() const final;
@@ -137,6 +114,5 @@ public:
 private:
     float m_current_temperature{20.0f};
     float m_target_temperature{0.0f};
-    bool m_stirrer_on{false};
     bool m_heater_on{false};
 };

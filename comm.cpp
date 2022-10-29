@@ -6,8 +6,6 @@ namespace {
         invalid = 0x0,
         read_state = 0x1,
         set_temperature = 0x2,
-        turn_stirrer_on = 0x3,
-        turn_stirrer_off = 0x4,
     };
 
     enum class Response : uint8_t {
@@ -37,10 +35,6 @@ void Comm::process_serial_data()
             const float target{m_controller.target_temperature()};
             uint8_t state{0};
 
-            if (m_controller.stirrer_is_on()) {
-                state |= 0x1;
-            }
-
             if (m_controller.heater_is_on()) {
                 state |= 0x2;
             }
@@ -60,14 +54,6 @@ void Comm::process_serial_data()
                 Serial.write(response(Command::set_temperature, Response::nack));
             }
         } break;
-        case Command::turn_stirrer_on:
-            m_controller.set_stirrer_on(true);
-            Serial.write(response(Command::turn_stirrer_on, Response::ack));
-            break;
-        case Command::turn_stirrer_off:
-            m_controller.set_stirrer_on(false);
-            Serial.write(response(Command::turn_stirrer_off, Response::ack));
-            break;
         case Command::invalid:
             break;
     }

@@ -39,7 +39,16 @@ void Comm::process_serial_data()
                 state |= 0x2;
             }
 
-            Serial.write((const uint8_t*) &current, 4);
+            if (m_controller.is_connected()) {
+                Serial.write((const uint8_t*) &current, 4);
+            }
+            else {
+                // 0x7fffffff corresponds to IEEE 754 NaN
+                float nan;
+                unsigned long* p_nan = (unsigned long*) &nan;
+                *p_nan = 0x7fffffff;
+                Serial.write((const uint8_t*) &nan, 4);
+            }
             Serial.write((const uint8_t*) &target, 4);
             Serial.write(state);
         } break;

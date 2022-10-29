@@ -41,6 +41,13 @@ public:
     virtual float temperature() = 0;
 
     /**
+     * Check if temperature sensor is connected.
+     *
+     * @return bool.
+     */
+    virtual bool is_connected() = 0;
+
+    /**
      * Retrieve location of variable holding if heater is on or off.
      *
      * @return @c true if heater is on else @c false.
@@ -74,6 +81,8 @@ public:
 
     float temperature() final;
 
+    bool is_connected() final;
+
     bool heater_is_on() final;
 
     bool has_problem() const final;
@@ -104,6 +113,8 @@ public:
     float target_temperature() const final;
 
     float temperature() final;
+
+    bool is_connected() final;
 
     bool heater_is_on() final;
 

@@ -49,6 +49,11 @@ float MainController::temperature()
     return m_sensor.temperature();
 }
 
+bool MainController::is_connected()
+{
+    return m_sensor.is_connected();
+}
+
 bool MainController::heater_is_on()
 {
     return m_heater_on;
@@ -101,6 +106,11 @@ float MockController::target_temperature() const
 float MockController::temperature()
 {
     return m_current_temperature;
+}
+
+bool MockController::is_connected()
+{
+    return true;
 }
 
 bool MockController::heater_is_on()

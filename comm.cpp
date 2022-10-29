@@ -7,6 +7,7 @@ namespace {
         read_state = 0x1,
         set_brew_temperature = 0x2,
         set_sparging_temperature = 0x3,
+        read_burner_full_state = 0x4,
     };
 
     enum class Response : uint8_t {
@@ -89,6 +90,10 @@ void Comm::process_serial_data()
             else {
                 Serial.write(response(Command::set_sparging_temperature, Response::nack));
             }
+        } break;
+        case Command::read_burner_full_state: {
+            const auto full_state{m_controller.full_burner_state()};
+            Serial.write((const uint8_t*) &full_state, 2);
         } break;
         case Command::invalid:
             break;

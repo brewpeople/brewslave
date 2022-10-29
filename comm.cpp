@@ -31,15 +31,15 @@ void Comm::process_serial_data()
 
     switch (command) {
         case Command::read_state: {
-            const float current{m_controller.temperature()};
-            const float target{m_controller.target_temperature()};
+            const float current{m_controller.brew_temperature()};
+            const float target{m_controller.brew_target_temperature()};
             uint8_t state{0};
 
-            if (m_controller.heater_is_on()) {
+            if (m_controller.brew_heater_is_on()) {
                 state |= 0x2;
             }
 
-            if (m_controller.is_connected()) {
+            if (m_controller.brew_is_connected()) {
                 Serial.write((const uint8_t*) &current, 4);
             }
             else {
@@ -56,7 +56,7 @@ void Comm::process_serial_data()
             float temperature{20.0f};
 
             if (Serial.readBytes((char*) &temperature, 4) == 4) {
-                m_controller.set_temperature(temperature);
+                m_controller.set_brew_temperature(temperature);
                 Serial.write(response(Command::set_temperature, Response::ack));
             }
             else {

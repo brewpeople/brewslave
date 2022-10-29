@@ -131,23 +131,23 @@ public:
 
         m_controller.update(elapsed);
 
-        auto target_temperature{m_controller.target_temperature()};
+        auto brew_target_temperature{m_controller.brew_target_temperature()};
 
         if (m_encoder.pressed()) {
             switch (m_state) {
                 case State::SetTarget:
                     m_state = State::Main;
-                    target_temperature = static_cast<float>(m_set_target_temperature);
-                    m_controller.set_temperature(target_temperature);
+                    brew_target_temperature = static_cast<float>(m_set_brew_target_temperature);
+                    m_controller.set_brew_temperature(brew_target_temperature);
                     break;
                 case State::Main:
-                    m_set_target_temperature = static_cast<uint8_t>(round(target_temperature));
+                    m_set_brew_target_temperature = static_cast<uint8_t>(round(brew_target_temperature));
                     m_state = State::SetTarget;
                     break;
             }
         }
 
-        const auto current_temperature{m_controller.temperature()};
+        const auto current_temperature{m_controller.brew_temperature()};
         const auto delta{current_temperature - m_last_temperature};
         m_last_temperature = current_temperature;
 
@@ -156,26 +156,26 @@ public:
         switch (m_state) {
             case State::Main:
                 m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallDownArrow | Ui::State::SmallEq);
-                m_ui.set_small_number(static_cast<uint8_t>(round(target_temperature)));
+                m_ui.set_small_number(static_cast<uint8_t>(round(brew_target_temperature)));
                 break;
 
             case State::SetTarget: {
                 const auto direction{m_encoder.direction()};
 
-                if (direction == ButtonEncoder::Direction::Clockwise && m_set_target_temperature < 100) {
-                    m_set_target_temperature++;
+                if (direction == ButtonEncoder::Direction::Clockwise && m_set_brew_target_temperature < 100) {
+                    m_set_brew_target_temperature++;
                 }
-                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 0) {
-                    m_set_target_temperature--;
+                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_brew_target_temperature > 0) {
+                    m_set_brew_target_temperature--;
                 }
 
-                const auto current_target{static_cast<uint8_t>(round(target_temperature))};
+                const auto current_target{static_cast<uint8_t>(round(brew_target_temperature))};
 
-                if (m_set_target_temperature > current_target) {
+                if (m_set_brew_target_temperature > current_target) {
                     m_ui_state &= ~(Ui::State::SmallDownArrow | Ui::State::SmallEq);
                     m_ui_state |= Ui::State::SmallUpArrow;
                 }
-                else if (m_set_target_temperature < current_target) {
+                else if (m_set_brew_target_temperature < current_target) {
                     m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallEq);
                     m_ui_state |= Ui::State::SmallDownArrow;
                 }
@@ -184,7 +184,7 @@ public:
                     m_ui_state |= Ui::State::SmallEq;
                 }
 
-                m_ui.set_small_number(m_set_target_temperature);
+                m_ui.set_small_number(m_set_brew_target_temperature);
             } break;
         }
 
@@ -216,7 +216,7 @@ public:
 
         brew_button.update();
         if (brew_button.pressed()) {
-            controller.set_temperature(0.0f); // deactivates controller
+            controller.set_brew_temperature(0.0f); // deactivates controller
             (gbc.state() == GasBurner::State::idle) ? gbc.start() : gbc.stop();
         }
 
@@ -244,7 +244,7 @@ private:
     ButtonEncoder& m_encoder;
     State m_state{State::Main};
     float m_last_temperature{20.0f};
-    uint8_t m_set_target_temperature{0};
+    uint8_t m_set_brew_target_temperature{0};
     unsigned long m_last_update{0};
 };
 

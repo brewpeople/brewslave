@@ -20,39 +20,39 @@ public:
     virtual void update(unsigned long elapsed) = 0;
 
     /**
-     * Set target temperature.
+     * Set brew target temperature.
      *
-     * Set the temperature the controller should reach.
+     * Set the temperature the brew controller should reach.
      *
      * @param temperature Target temperature in degree Celsius.
      */
-    virtual void set_temperature(float temperature) = 0;
+    virtual void set_brew_temperature(float temperature) = 0;
 
     /**
-     * Get target temperature.
+     * Get brew target temperature.
      */
-    virtual float target_temperature() const = 0;
+    virtual float brew_target_temperature() const = 0;
 
     /**
-     * Get current temperature.
+     * Get current brew temperature.
      *
-     * @return Current temperature.
+     * @return Current brew temperature.
      */
-    virtual float temperature() = 0;
+    virtual float brew_temperature() = 0;
 
     /**
-     * Check if temperature sensor is connected.
+     * Check if brew temperature sensor is connected.
      *
      * @return bool.
      */
-    virtual bool is_connected() = 0;
+    virtual bool brew_is_connected() = 0;
 
     /**
      * Retrieve location of variable holding if heater is on or off.
      *
      * @return @c true if heater is on else @c false.
      */
-    virtual bool heater_is_on() = 0;
+    virtual bool brew_heater_is_on() = 0;
 
     /**
      * Return @c true if there is an issue.
@@ -71,29 +71,29 @@ public:
  */
 class MainController : public Controller {
 public:
-    MainController(TemperatureSensor& sensor, GasBurner& burner);
+    MainController(TemperatureSensor& brew_sensor, GasBurner& burner);
 
     void update(unsigned long elapsed) final;
 
-    void set_temperature(float temperature) final;
+    void set_brew_temperature(float temperature) final;
 
-    float target_temperature() const final;
+    float brew_target_temperature() const final;
 
-    float temperature() final;
+    float brew_temperature() final;
 
-    bool is_connected() final;
+    bool brew_is_connected() final;
 
-    bool heater_is_on() final;
+    bool brew_heater_is_on() final;
 
     bool has_problem() const final;
 
     uint16_t full_burner_state() final;
 
 private:
-    TemperatureSensor& m_sensor;
+    TemperatureSensor& m_brew_sensor;
     GasBurner& m_burner;
-    float m_target_temperature{0.0f};
-    bool m_heater_on{false};
+    float m_brew_target_temperature{0.0f};
+    bool m_brew_heater_on{false};
 };
 
 /**
@@ -108,22 +108,22 @@ public:
 
     void update(unsigned long elapsed) final;
 
-    void set_temperature(float temperature) final;
+    void set_brew_temperature(float temperature) final;
 
-    float target_temperature() const final;
+    float brew_target_temperature() const final;
 
-    float temperature() final;
+    float brew_temperature() final;
 
-    bool is_connected() final;
+    bool brew_is_connected() final;
 
-    bool heater_is_on() final;
+    bool brew_heater_is_on() final;
 
     bool has_problem() const final;
 
     uint16_t full_burner_state() final;
 
 private:
-    float m_current_temperature{20.0f};
-    float m_target_temperature{0.0f};
-    bool m_heater_on{false};
+    float m_brew_current_temperature{20.0f};
+    float m_brew_target_temperature{0.0f};
+    bool m_brew_heater_on{false};
 };

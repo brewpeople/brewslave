@@ -36,10 +36,10 @@ void Comm::process_serial_data()
             const float brew_target{m_controller.brew_target_temperature()};
             const float sparging_current{m_controller.sparging_temperature()};
             const float sparging_target{m_controller.sparging_target_temperature()};
-            uint8_t state{0};
+            uint8_t state{(uint8_t) m_controller.burner_state()}; // simple burner state occupies lower 6 bits
 
-            if (m_controller.brew_heater_is_on()) {
-                state |= 0x2;
+            if (m_controller.sparging_heater_is_on()) {
+                state |= 0x1 << 7; // simple burner state occupies lower 6 bits
             }
 
             if (m_controller.brew_is_connected()) {

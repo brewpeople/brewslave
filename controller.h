@@ -77,9 +77,9 @@ public:
     virtual bool sparging_is_connected() = 0;
 
     /**
-     * Retrieve location of variable holding if heater is on or off.
+     * Retrieve location of variable holding if burner is on or off.
      *
-     * @return @c true if heater is on else @c false.
+     * @return @c true if burner is on else @c false.
      */
     virtual bool brew_heater_is_on() = 0;
 
@@ -94,6 +94,11 @@ public:
      * Return @c true if there is an issue.
      */
     virtual bool has_problem() const = 0;
+
+    /**
+     * Expose simple burner state.
+     */
+    virtual GasBurner::State burner_state() = 0;
 
     /**
      * Expose full burner state.
@@ -133,6 +138,8 @@ public:
 
     bool has_problem() const final;
 
+    GasBurner::State burner_state() final;
+
     uint16_t full_burner_state() final;
 
 private:
@@ -142,7 +149,6 @@ private:
     Hotplate& m_hotplate;
     float m_brew_target_temperature{0.0f};
     float m_sparging_target_temperature{0.0f};
-    bool m_brew_heater_on{false};
 };
 
 /**
@@ -178,6 +184,8 @@ public:
     bool sparging_heater_is_on() final;
 
     bool has_problem() const final;
+
+    GasBurner::State burner_state() final;
 
     uint16_t full_burner_state() final;
 

@@ -100,7 +100,12 @@ bool MainController::sparging_is_connected()
 
 bool MainController::brew_heater_is_on()
 {
-    return m_brew_heater_on;
+    if (m_burner.state() == GasBurner::State::running) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 bool MainController::sparging_heater_is_on()
@@ -111,6 +116,11 @@ bool MainController::sparging_heater_is_on()
 bool MainController::has_problem() const
 {
     return false;
+}
+
+GasBurner::State MainController::burner_state()
+{
+    return m_burner.state();
 }
 
 uint16_t MainController::full_burner_state()
@@ -194,6 +204,16 @@ bool MockController::sparging_heater_is_on()
 bool MockController::has_problem() const
 {
     return m_brew_current_temperature > 72.0f;
+}
+
+GasBurner::State MockController::burner_state()
+{
+    if (m_brew_heater_on == true) {
+        return GasBurner::State::running;
+    }
+    else {
+        return GasBurner::State::idle;
+    }
 }
 
 uint16_t MockController::full_burner_state()

@@ -26,7 +26,7 @@ Ds18b20 sparging_sensor{SPARGING_SENSOR_PIN};
 MockTemperatureSensor sparging_sensor;
 #endif // SPARGING_SENSOR_PIN
 #define TEMPERATURE_MESSAGE " +ds18b20"
-#else
+#else // WITH_DS18B20
 MockTemperatureSensor brew_sensor;
 MockTemperatureSensor sparging_sensor;
 #define TEMPERATURE_MESSAGE " +mock_sensor"
@@ -73,7 +73,7 @@ MockGasBurner gbc{};
 MockController controller{};
 #define CONTROLLER_MESSAGE " +mock_controller"
 #else
-MainController controller{brew_sensor, gbc};
+MainController controller{brew_sensor, sparging_sensor, gbc};
 #define CONTROLLER_MESSAGE " +real_controller"
 #endif
 

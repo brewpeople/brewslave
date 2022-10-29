@@ -1,8 +1,9 @@
 #include "controller.h"
 #include <Arduino.h>
 
-MainController::MainController(TemperatureSensor& brew_sensor, GasBurner& burner)
+MainController::MainController(TemperatureSensor& brew_sensor, TemperatureSensor& sparging_sensor, GasBurner& burner)
 : m_brew_sensor{brew_sensor}
+, m_sparging_sensor{sparging_sensor}
 , m_burner{burner}
 {
 }
@@ -41,9 +42,19 @@ void MainController::set_brew_temperature(float temperature)
     m_brew_target_temperature = temperature;
 }
 
+void MainController::set_sparging_temperature(float temperature)
+{
+    m_sparging_target_temperature = temperature;
+}
+
 float MainController::brew_target_temperature() const
 {
     return m_brew_target_temperature;
+}
+
+float MainController::sparging_target_temperature() const
+{
+    return m_sparging_target_temperature;
 }
 
 float MainController::brew_temperature()
@@ -51,9 +62,19 @@ float MainController::brew_temperature()
     return m_brew_sensor.temperature();
 }
 
+float MainController::sparging_temperature()
+{
+    return m_sparging_sensor.temperature();
+}
+
 bool MainController::brew_is_connected()
 {
     return m_brew_sensor.is_connected();
+}
+
+bool MainController::sparging_is_connected()
+{
+    return m_sparging_sensor.is_connected();
 }
 
 bool MainController::brew_heater_is_on()
@@ -100,9 +121,19 @@ void MockController::set_brew_temperature(float temperature)
     m_brew_target_temperature = temperature;
 }
 
+void MockController::set_sparging_temperature(float temperature)
+{
+    m_sparging_target_temperature = temperature;
+}
+
 float MockController::brew_target_temperature() const
 {
     return m_brew_target_temperature;
+}
+
+float MockController::sparging_target_temperature() const
+{
+    return m_sparging_target_temperature;
 }
 
 float MockController::brew_temperature()
@@ -110,7 +141,17 @@ float MockController::brew_temperature()
     return m_brew_current_temperature;
 }
 
+float MockController::sparging_temperature()
+{
+    return m_sparging_current_temperature;
+}
+
 bool MockController::brew_is_connected()
+{
+    return true;
+}
+
+bool MockController::sparging_is_connected()
 {
     return true;
 }

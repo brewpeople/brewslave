@@ -5,7 +5,8 @@ namespace {
     enum class Command : uint8_t {
         invalid = 0x0,
         read_state = 0x1,
-        set_temperature = 0x2,
+        set_brew_temperature = 0x2,
+        set_sparging_temperature = 0x3,
     };
 
     enum class Response : uint8_t {
@@ -31,8 +32,10 @@ void Comm::process_serial_data()
 
     switch (command) {
         case Command::read_state: {
-            const float current{m_controller.brew_temperature()};
-            const float target{m_controller.brew_target_temperature()};
+            const float brew_current{m_controller.brew_temperature()};
+            const float brew_target{m_controller.brew_target_temperature()};
+            const float sparging_current{m_controller.sparging_temperature()};
+            const float sparging_target{m_controller.sparging_target_temperature()};
             uint8_t state{0};
 
             if (m_controller.brew_heater_is_on()) {
@@ -40,7 +43,7 @@ void Comm::process_serial_data()
             }
 
             if (m_controller.brew_is_connected()) {
-                Serial.write((const uint8_t*) &current, 4);
+                Serial.write((const uint8_t*) &brew_current, 4);
             }
             else {
                 // 0x7fffffff corresponds to IEEE 754 NaN
@@ -49,18 +52,42 @@ void Comm::process_serial_data()
                 *p_nan = 0x7fffffff;
                 Serial.write((const uint8_t*) &nan, 4);
             }
-            Serial.write((const uint8_t*) &target, 4);
+            Serial.write((const uint8_t*) &brew_target, 4);
+
+            if (m_controller.sparging_is_connected()) {
+                Serial.write((const uint8_t*) &sparging_current, 4);
+            }
+            else {
+                // 0x7fffffff corresponds to IEEE 754 NaN
+                float nan;
+                unsigned long* p_nan = (unsigned long*) &nan;
+                *p_nan = 0x7fffffff;
+                Serial.write((const uint8_t*) &nan, 4);
+            }
+            Serial.write((const uint8_t*) &sparging_target, 4);
+
             Serial.write(state);
         } break;
-        case Command::set_temperature: {
+        case Command::set_brew_temperature: {
             float temperature{20.0f};
 
             if (Serial.readBytes((char*) &temperature, 4) == 4) {
                 m_controller.set_brew_temperature(temperature);
-                Serial.write(response(Command::set_temperature, Response::ack));
+                Serial.write(response(Command::set_brew_temperature, Response::ack));
             }
             else {
-                Serial.write(response(Command::set_temperature, Response::nack));
+                Serial.write(response(Command::set_brew_temperature, Response::nack));
+            }
+        } break;
+        case Command::set_sparging_temperature: {
+            float temperature{20.0f};
+
+            if (Serial.readBytes((char*) &temperature, 4) == 4) {
+                m_controller.set_sparging_temperature(temperature);
+                Serial.write(response(Command::set_sparging_temperature, Response::ack));
+            }
+            else {
+                Serial.write(response(Command::set_sparging_temperature, Response::nack));
             }
         } break;
         case Command::invalid:

@@ -7,8 +7,8 @@ class Controller;
 /**
  * Brewslave communication protocol parser/handler.
  *
- * It takes a controller used to set the target temperature, read the current
- * temperature, and read the state of heater.
+ * It takes a controller used to set the target temperatures, read the current
+ * temperatures, and read the state of heaters.
  *
  * TODO: we could split the controller interface into one that the comm object
  * uses and one that allows more mutability.

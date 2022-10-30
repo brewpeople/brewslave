@@ -173,10 +173,20 @@ public:
                 case State::Main: {
                     switch (ui.freeze_layout(true)) {
                         case Ui::Layout::LayoutA:
-                            m_set_target_temperature = static_cast<uint8_t>(round(brew_target_temperature));
+                            if (brew_target_temperature == 0.0f) {
+                                m_set_target_temperature = static_cast<uint8_t>(round(m_controller.brew_temperature()));
+                            }
+                            else {
+                                m_set_target_temperature = static_cast<uint8_t>(round(brew_target_temperature));
+                            }
                             break;
                         case Ui::Layout::LayoutB:
-                            m_set_target_temperature = static_cast<uint8_t>(round(sparging_target_temperature));
+                            if (sparging_target_temperature == 0.0f) {
+                                m_set_target_temperature = static_cast<uint8_t>(round(m_controller.sparging_temperature()));
+                            }
+                            else {
+                                m_set_target_temperature = static_cast<uint8_t>(round(sparging_target_temperature));
+                            }
                             break;
                     }
                     m_state = State::SetTarget;
@@ -186,7 +196,7 @@ public:
         }
 
         const auto current_brew_temperature{m_controller.brew_temperature()};
-        const auto current_sparging_temperature{m_sparging_sensor.temperature()};
+        const auto current_sparging_temperature{m_controller.sparging_temperature()};
 
         m_ui.set_full_burner_state(m_controller.full_burner_state());
 

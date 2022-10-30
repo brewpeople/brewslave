@@ -186,12 +186,7 @@ public:
         }
 
         const auto current_brew_temperature{m_controller.brew_temperature()};
-        const auto delta_brew{current_brew_temperature - m_last_brew_temperature};
-        m_last_brew_temperature = current_brew_temperature;
-
         const auto current_sparging_temperature{m_sparging_sensor.temperature()};
-        const auto delta_sparging{current_sparging_temperature - m_last_sparging_temperature};
-        m_last_sparging_temperature = current_sparging_temperature;
 
         m_ui.set_full_burner_state(m_controller.full_burner_state());
 
@@ -246,33 +241,73 @@ public:
             } break;
         }
 
-        if (delta_brew > 0.1f) {
-            m_ui_state &= ~Ui::State::DownArrowA;
-            m_ui_state |= Ui::State::UpArrowA;
-        }
+        // save temperature gradient history as bits
+        if (now - m_last_gradient > 1000) {
+            m_last_gradient = now;
 
-        if (delta_brew < -0.1f) {
-            m_ui_state &= ~Ui::State::UpArrowA;
-            m_ui_state |= Ui::State::DownArrowA;
-        }
+            const auto delta_brew{current_brew_temperature - m_last_brew_temperature};
+            m_last_brew_temperature = current_brew_temperature;
+            const auto delta_sparging{current_sparging_temperature - m_last_sparging_temperature};
+            m_last_sparging_temperature = current_sparging_temperature;
 
-        if (delta_sparging > 0.1f) {
-            m_ui_state &= ~Ui::State::DownArrowB;
-            m_ui_state |= Ui::State::UpArrowB;
-        }
+            if (delta_sparging > 0) {
+                m_sparging_gradient_up = m_sparging_gradient_up << 1 | 0x1;
+                m_sparging_gradient_down = m_brew_gradient_down << 1;
+            }
+            else if (delta_sparging < 0) {
+                m_sparging_gradient_up = m_sparging_gradient_up << 1;
+                m_sparging_gradient_down = m_sparging_gradient_down << 1 | 0x1;
+            }
+            else {
+                m_sparging_gradient_up = m_sparging_gradient_up << 1;
+                m_sparging_gradient_down = m_sparging_gradient_down << 1;
+            }
 
-        if (delta_sparging < -0.1f) {
-            m_ui_state &= ~Ui::State::UpArrowB;
-            m_ui_state |= Ui::State::DownArrowB;
-        }
+            if (delta_brew > 0) {
+                m_brew_gradient_up = m_brew_gradient_up << 1 | 0x1;
+                m_brew_gradient_down = m_brew_gradient_down << 1;
+            }
+            else if (delta_brew < 0) {
+                m_brew_gradient_up = m_brew_gradient_up << 1;
+                m_brew_gradient_down = m_brew_gradient_down << 1 | 0x1;
+            }
+            else {
+                m_brew_gradient_up = m_brew_gradient_up << 1;
+                m_brew_gradient_down = m_brew_gradient_down << 1;
+            }
 
-        // INFO: Keep for now, until we are confident that gbc controller works and we decide to go back to simple/clean UI
-        // if (m_controller.has_problem()) {
-        //     m_ui_state |= Ui::State::Warning;
-        // }
-        // else {
-        //     m_ui_state &= ~Ui::State::Warning;
-        // }
+            const auto n_brew_up{binary_digit_sum(m_brew_gradient_up)};
+            const auto n_brew_down{binary_digit_sum(m_brew_gradient_down)};
+
+            const auto n_sparging_up{binary_digit_sum(m_sparging_gradient_up)};
+            const auto n_sparging_down{binary_digit_sum(m_sparging_gradient_down)};
+
+            if (n_brew_up > n_brew_down + 1) {
+                m_ui_state &= ~Ui::State::DownArrowA;
+                m_ui_state |= Ui::State::UpArrowA;
+            }
+            else if (n_brew_down > n_brew_up + 1) {
+                m_ui_state &= ~Ui::State::UpArrowA;
+                m_ui_state |= Ui::State::DownArrowA;
+            }
+            else {
+                m_ui_state &= ~Ui::State::DownArrowB;
+                m_ui_state &= ~Ui::State::UpArrowB;
+            }
+
+            if (n_sparging_up > n_sparging_down + 1) {
+                m_ui_state &= ~Ui::State::DownArrowB;
+                m_ui_state |= Ui::State::UpArrowB;
+            }
+            else if (n_sparging_down > n_sparging_up + 1) {
+                m_ui_state &= ~Ui::State::UpArrowB;
+                m_ui_state |= Ui::State::DownArrowB;
+            }
+            else {
+                m_ui_state &= ~Ui::State::DownArrowB;
+                m_ui_state &= ~Ui::State::UpArrowB;
+            }
+        }
 
         if (brew_sensor.is_connected()) {
             m_ui.set_big_number_a(static_cast<uint8_t>(round(current_brew_temperature)));
@@ -314,6 +349,17 @@ private:
         SetTarget,
     };
 
+    uint8_t binary_digit_sum(uint8_t value)
+    {
+        uint8_t n_bits = 0;
+        for (; value; value >>= 1) {
+            if (value & 1) {
+                n_bits++;
+            }
+        }
+        return n_bits;
+    }
+
     Ui& m_ui;
     uint8_t m_ui_state{0};
     Controller& m_controller;
@@ -324,6 +370,11 @@ private:
     float m_last_sparging_temperature{20.0f};
     uint8_t m_set_target_temperature{0};
     unsigned long m_last_update{0};
+    unsigned long m_last_gradient{0};
+    uint8_t m_brew_gradient_up{0};
+    uint8_t m_brew_gradient_down{0};
+    uint8_t m_sparging_gradient_up{0};
+    uint8_t m_sparging_gradient_down{0};
 };
 
 App app{ui, controller, sparging_sensor, encoder};

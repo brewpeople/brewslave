@@ -337,6 +337,13 @@ public:
             m_ui_state &= ~Ui::State::UpArrowB;
         }
 
+        if (m_controller.sparging_heater_is_on()) {
+            m_ui_state |= Ui::State::InduOn;
+        }
+        else {
+            m_ui_state &= ~Ui::State::InduOn;
+        }
+
         brew_button.update();
         if (brew_button.pressed()) {
             controller.set_brew_temperature(0.0f); // deactivates controller

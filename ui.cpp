@@ -119,58 +119,47 @@ void Ui::update()
                     m_display.draw_bitmap(70, m_display.height - 1 - 6, Bitmap{11, 6, ICON_ARROW_DOWN_11_6});
                 }
 
-                // if ((m_state_a & State::Warning) != 0) {
-                //     m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_WARNING_22_22});
-                // }
-
                 GasBurner::decoded_state burner_decoded_state = GasBurner::decode_full_state(m_full_burner_state);
 
                 // INFO: Expose more details on gbc burner state until we are confident it works and may want to return to simple/clean UI.
                 switch (burner_decoded_state.state) {
                     case GasBurner::State::idle:
+                        m_display.draw_bitmap(m_display.width - 1 - 24, m_display.height - 1 - 24, Bitmap{24, 24, ICON_BURNER_OFF_24_24});
                         break;
                     case GasBurner::State::running:
-                        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_HEAT_22_22});
+                        m_display.draw_bitmap(m_display.width - 1 - 24, m_display.height - 1 - 24, Bitmap{24, 24, ICON_BURNER_ON_24_24});
                         break;
                     case GasBurner::State::starting:
-                        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_COCK_22_22});
+                        m_display.draw_bitmap(92, m_display.height - 1 - 10 - 1, Bitmap{8, 10, ICON_PICO_CLOCK_8_10});
+                        m_display.draw_bitmap(m_display.width - 1 - 24, m_display.height - 1 - 24, Bitmap{24, 24, ICON_BURNER_OFF_24_24});
                         break;
                     case GasBurner::State::ignition:
-                        m_display.draw_bitmap(90, 40, Bitmap{8, 10, ICON_PICO_BOLT_8_10});
-                        m_pico.draw_char(char(burner_decoded_state.ignition_counter + '0'), 100, 43);
-                        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_COCK_22_22});
+                        m_display.draw_bitmap(92, m_display.height - 1 - 10 - 1, Bitmap{8, 10, ICON_PICO_BOLT_8_10});
+                        m_display.draw_bitmap(m_display.width - 1 - 24, m_display.height - 1 - 24, Bitmap{24, 24, ICON_BURNER_OFF_24_24});
                         break;
                     case GasBurner::State::any_dejam:
                     case GasBurner::State::dejam_pre_delay:
+                    case GasBurner::State::dejam_post_delay:
                     case GasBurner::State::dejam_start:
                     case GasBurner::State::dejam_button_pressed:
-                    case GasBurner::State::dejam_post_delay:
-                        m_display.draw_bitmap(90, 40, Bitmap{8, 10, ICON_PICO_BOLT_8_10});
-                        m_pico.draw_char(char(burner_decoded_state.ignition_counter + '0'), 100, 43);
-                        m_display.draw_bitmap(90, m_display.height - 1 - 10, Bitmap{8, 10, ICON_PICO_LOCK_8_10});
-                        m_pico.draw_char(char(burner_decoded_state.dejam_counter + '0'), 100, m_display.height - 1 - 7);
-                        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_COCK_22_22});
+                        m_display.draw_bitmap(92, m_display.height - 1 - 10 - 1, Bitmap{8, 10, ICON_PICO_LOCK_8_10});
+                        m_display.draw_bitmap(m_display.width - 1 - 24, m_display.height - 1 - 24, Bitmap{24, 24, ICON_BURNER_OFF_24_24});
                         break;
                     case GasBurner::State::any_error:
                     case GasBurner::State::error_start:
-                        m_display.draw_bitmap(90, 40, Bitmap{8, 10, ICON_PICO_BOLT_8_10});
-                        m_pico.draw_char(char(burner_decoded_state.ignition_counter + '0'), 100, 43);
-                        m_display.draw_bitmap(90, m_display.height - 1 - 10, Bitmap{8, 10, ICON_PICO_LOCK_8_10});
-                        m_pico.draw_char(char(burner_decoded_state.dejam_counter + '0'), 100, m_display.height - 1 - 7);
-                        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_WARNING_22_22});
+                        m_display.draw_bitmap(92, m_display.height - 1 - 10 - 1, Bitmap{8, 10, ICON_PICO_CLOCK_8_10});
+                        m_display.draw_bitmap(m_display.width - 1 - 23, m_display.height - 1 - 23, Bitmap{22, 22, ICON_WARNING_22_22});
                         break;
                     case GasBurner::State::error_ignition:
-                        m_display.draw_bitmap(90, 40, Bitmap{8, 10, ICON_PICO_BOLT_8_10});
-                        m_pico.draw_char(char(burner_decoded_state.ignition_counter + '0'), 100, 43);
-                        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_WARNING_22_22});
+                        m_display.draw_bitmap(92, m_display.height - 1 - 10 - 1, Bitmap{8, 10, ICON_PICO_BOLT_8_10});
+                        m_display.draw_bitmap(m_display.width - 1 - 23, m_display.height - 1 - 23, Bitmap{22, 22, ICON_WARNING_22_22});
                         break;
                     case GasBurner::State::error_dejam:
-                        m_display.draw_bitmap(90, m_display.height - 1 - 10, Bitmap{8, 10, ICON_PICO_LOCK_8_10});
-                        m_pico.draw_char(char(burner_decoded_state.dejam_counter + '0'), 100, m_display.height - 1 - 7);
-                        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_WARNING_22_22});
+                        m_display.draw_bitmap(92, m_display.height - 1 - 10 - 1, Bitmap{8, 10, ICON_PICO_LOCK_8_10});
+                        m_display.draw_bitmap(m_display.width - 1 - 23, m_display.height - 1 - 23, Bitmap{22, 22, ICON_WARNING_22_22});
                         break;
                     case GasBurner::State::error_other:
-                        m_display.draw_bitmap(m_display.width - 1 - 22, m_display.height - 1 - 22, Bitmap{22, 22, ICON_WARNING_22_22});
+                        m_display.draw_bitmap(m_display.width - 1 - 23, m_display.height - 1 - 23, Bitmap{22, 22, ICON_WARNING_22_22});
                         break;
                 }
 
@@ -244,6 +233,14 @@ void Ui::update()
                     m_display.draw_bitmap(0, 15, Bitmap{18, 2, DASH_18_2});
                     m_display.draw_bitmap(18, 15, Bitmap{18, 2, DASH_18_2});
                 }
+
+                if (m_state & State::InduOn) {
+                    m_display.draw_bitmap(12, m_display.height - 1 - 24, Bitmap{24, 24, ICON_INDUCTION_ON_24_24});
+                }
+                else {
+                    m_display.draw_bitmap(12, m_display.height - 1 - 24, Bitmap{24, 24, ICON_INDUCTION_OFF_24_24});
+                }
+
                 break;
             }
 

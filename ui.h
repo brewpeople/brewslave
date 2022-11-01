@@ -27,6 +27,7 @@ public:
         SmallUpArrow = 1 << 4,
         SmallDownArrow = 1 << 5,
         SmallEq = 1 << 6,
+        InduOn = 1 << 7,
         // Warning = 1 << 7, //INFO: Keep for now, until we are confident that gbc controller works and we decide to go back to simple/clean UI
     };
 

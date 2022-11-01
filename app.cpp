@@ -161,6 +161,8 @@ public:
 
         const auto sparging_temperature{m_sparging_sensor.temperature()};
 
+        m_ui.set_full_burner_state(m_controller.full_burner_state());
+
         switch (m_state) {
             case State::Main:
                 m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallDownArrow | Ui::State::SmallEq);

@@ -29,6 +29,12 @@ void Ui::set_state(uint8_t state)
     m_state = state;
 }
 
+void Ui::set_full_burner_state(uint16_t state)
+{
+    m_refresh = m_refresh || (m_full_burner_state != state);
+    m_full_burner_state = state;
+}
+
 void Ui::update()
 {
     const auto now{millis()};

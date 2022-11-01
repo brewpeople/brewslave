@@ -13,10 +13,10 @@ public:
     enum State : uint8_t {
         UpArrow = 1 << 0,
         DownArrow = 1 << 1,
-        Warning = 1 << 2,
-        SmallUpArrow = 1 << 3,
-        SmallDownArrow = 1 << 4,
-        SmallEq = 1 << 5,
+        SmallUpArrow = 1 << 2,
+        SmallDownArrow = 1 << 3,
+        SmallEq = 1 << 4,
+        // Warning = 1 << 5, //INFO: Keep for now, until we are confident that gbc controller works and we decide to go back to simple/clean UI
     };
 
     /**
@@ -47,6 +47,11 @@ public:
     void set_state(uint8_t);
 
     /**
+     * Set GBC full state.
+     */
+    void set_full_burner_state(uint16_t);
+
+    /**
      * Update internal state and refresh display if necessary.
      */
     void update();
@@ -57,6 +62,7 @@ private:
     uint8_t m_big_number{20};
     uint8_t m_small_number{20};
     uint8_t m_state{0};
+    uint16_t m_full_burner_state{0};
     bool m_refresh{true};
     unsigned long m_last_update{0};
     const char* m_welcome{nullptr};

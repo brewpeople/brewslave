@@ -23,7 +23,8 @@ public:
         any_error = 9,
         error_start = 10,
         error_ignition = 11,
-        error_other = 12,
+        error_dejam = 12,
+        error_other = 13,
         // XXX: we use six bits for the state in order to encode dejam and
         // ignition counts in the remaining ten bits, so never add a state
         // larger than 63.
@@ -79,7 +80,7 @@ public:
     void stop() final;
     void update() final;
     State state() final;
-    unsigned int full_state() final;
+    uint16_t full_state() final;
 
 private:
     GasBurner::State m_state;

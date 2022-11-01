@@ -45,7 +45,7 @@ GasBurner::State MockGasBurner::state()
     return m_state;
 }
 
-unsigned int MockGasBurner::full_state()
+uint16_t MockGasBurner::full_state()
 {
     return GasBurner::encode_state(m_state, m_dejam_counter, m_ignition_counter);
 }

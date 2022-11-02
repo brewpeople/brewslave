@@ -140,50 +140,98 @@ public:
         m_controller.update(elapsed);
 
         auto brew_target_temperature{m_controller.brew_target_temperature()};
+        auto sparging_target_temperature{m_controller.sparging_target_temperature()};
 
-        if (m_encoder.pressed()) {
-            switch (m_state) {
-                case State::SetTarget:
-                    m_state = State::Main;
-                    brew_target_temperature = static_cast<float>(m_set_brew_target_temperature);
-                    m_controller.set_brew_temperature(brew_target_temperature);
-                    break;
-                case State::Main:
-                    m_set_brew_target_temperature = static_cast<uint8_t>(round(brew_target_temperature));
-                    m_state = State::SetTarget;
-                    break;
+        // enable layout switching only after welcome message, approx. 15 s
+        if (now > 15000) {
+            // disable layout B if sparging sensor disconnected for some time
+            if (m_sparging_sensor.last_seen() < 15000) {
+                ui.set_layout_switching(true);
+            }
+            else {
+                ui.set_layout_switching(false);
+                ui.set_layout(Ui::Layout::LayoutA);
             }
         }
 
-        const auto current_temperature{m_controller.brew_temperature()};
-        const auto delta{current_temperature - m_last_temperature};
-        m_last_temperature = current_temperature;
+        if (m_encoder.pressed()) {
+            switch (m_state) {
+                case State::SetTarget: {
+                    m_state = State::Main;
+                    switch (ui.freeze_layout(false)) {
+                        case Ui::Layout::LayoutA:
+                            brew_target_temperature = static_cast<float>(m_set_target_temperature);
+                            m_controller.set_brew_temperature(brew_target_temperature);
+                            break;
+                        case Ui::Layout::LayoutB:
+                            sparging_target_temperature = static_cast<float>(m_set_target_temperature);
+                            m_controller.set_sparging_temperature(sparging_target_temperature);
+                            break;
+                    }
+                    break;
+                }
+                case State::Main: {
+                    switch (ui.freeze_layout(true)) {
+                        case Ui::Layout::LayoutA:
+                            if (brew_target_temperature == 0.0f) {
+                                m_set_target_temperature = static_cast<uint8_t>(round(m_controller.brew_temperature()));
+                            }
+                            else {
+                                m_set_target_temperature = static_cast<uint8_t>(round(brew_target_temperature));
+                            }
+                            break;
+                        case Ui::Layout::LayoutB:
+                            if (sparging_target_temperature == 0.0f) {
+                                m_set_target_temperature = static_cast<uint8_t>(round(m_controller.sparging_temperature()));
+                            }
+                            else {
+                                m_set_target_temperature = static_cast<uint8_t>(round(sparging_target_temperature));
+                            }
+                            break;
+                    }
+                    m_state = State::SetTarget;
+                    break;
+                }
+            }
+        }
 
-        const auto sparging_temperature{m_sparging_sensor.temperature()};
+        const auto current_brew_temperature{m_controller.brew_temperature()};
+        const auto current_sparging_temperature{m_controller.sparging_temperature()};
+
+        m_ui.set_full_burner_state(m_controller.full_burner_state());
 
         switch (m_state) {
             case State::Main:
                 m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallDownArrow | Ui::State::SmallEq);
-                m_ui.set_small_number(static_cast<uint8_t>(round(brew_target_temperature)));
+                m_ui.set_small_number_a(static_cast<uint8_t>(round(brew_target_temperature)));
+                m_ui.set_small_number_b(static_cast<uint8_t>(round(sparging_target_temperature)));
                 break;
 
             case State::SetTarget: {
                 const auto direction{m_encoder.direction()};
 
-                if (direction == ButtonEncoder::Direction::Clockwise && m_set_brew_target_temperature < 100) {
-                    m_set_brew_target_temperature++;
+                if (direction == ButtonEncoder::Direction::Clockwise && m_set_target_temperature < 100) {
+                    m_set_target_temperature++;
                 }
-                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_brew_target_temperature > 0) {
-                    m_set_brew_target_temperature--;
+                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 0) {
+                    m_set_target_temperature--;
                 }
 
-                const auto current_target{static_cast<uint8_t>(round(brew_target_temperature))};
+                uint8_t current_target;
+                switch (ui.current_layout()) {
+                    case Ui::Layout::LayoutA:
+                        current_target = static_cast<uint8_t>(round(brew_target_temperature));
+                        break;
+                    case Ui::Layout::LayoutB:
+                        current_target = static_cast<uint8_t>(round(sparging_target_temperature));
+                        break;
+                }
 
-                if (m_set_brew_target_temperature > current_target) {
+                if (m_set_target_temperature > current_target) {
                     m_ui_state &= ~(Ui::State::SmallDownArrow | Ui::State::SmallEq);
                     m_ui_state |= Ui::State::SmallUpArrow;
                 }
-                else if (m_set_brew_target_temperature < current_target) {
+                else if (m_set_target_temperature < current_target) {
                     m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallEq);
                     m_ui_state |= Ui::State::SmallDownArrow;
                 }
@@ -192,34 +240,108 @@ public:
                     m_ui_state |= Ui::State::SmallEq;
                 }
 
-                m_ui.set_small_number(m_set_brew_target_temperature);
+                switch (ui.current_layout()) {
+                    case Ui::Layout::LayoutA:
+                        m_ui.set_small_number_a(m_set_target_temperature);
+                        break;
+                    case Ui::Layout::LayoutB:
+                        m_ui.set_small_number_b(m_set_target_temperature);
+                        break;
+                }
             } break;
         }
 
-        if (delta > 0.1f) {
-            m_ui_state &= ~Ui::State::DownArrow;
-            m_ui_state |= Ui::State::UpArrow;
-        }
+        // save temperature gradient history as bits
+        if (now - m_last_gradient > 1000) {
+            m_last_gradient = now;
 
-        if (delta < -0.1f) {
-            m_ui_state &= ~Ui::State::UpArrow;
-            m_ui_state |= Ui::State::DownArrow;
-        }
+            const auto delta_brew{current_brew_temperature - m_last_brew_temperature};
+            m_last_brew_temperature = current_brew_temperature;
+            const auto delta_sparging{current_sparging_temperature - m_last_sparging_temperature};
+            m_last_sparging_temperature = current_sparging_temperature;
 
-        if (m_controller.has_problem()) {
-            m_ui_state |= Ui::State::Warning;
-        }
-        else {
-            m_ui_state &= ~Ui::State::Warning;
+            if (delta_sparging > 0) {
+                m_sparging_gradient_up = m_sparging_gradient_up << 1 | 0x1;
+                m_sparging_gradient_down = m_brew_gradient_down << 1;
+            }
+            else if (delta_sparging < 0) {
+                m_sparging_gradient_up = m_sparging_gradient_up << 1;
+                m_sparging_gradient_down = m_sparging_gradient_down << 1 | 0x1;
+            }
+            else {
+                m_sparging_gradient_up = m_sparging_gradient_up << 1;
+                m_sparging_gradient_down = m_sparging_gradient_down << 1;
+            }
+
+            if (delta_brew > 0) {
+                m_brew_gradient_up = m_brew_gradient_up << 1 | 0x1;
+                m_brew_gradient_down = m_brew_gradient_down << 1;
+            }
+            else if (delta_brew < 0) {
+                m_brew_gradient_up = m_brew_gradient_up << 1;
+                m_brew_gradient_down = m_brew_gradient_down << 1 | 0x1;
+            }
+            else {
+                m_brew_gradient_up = m_brew_gradient_up << 1;
+                m_brew_gradient_down = m_brew_gradient_down << 1;
+            }
+
+            const auto n_brew_up{binary_digit_sum(m_brew_gradient_up)};
+            const auto n_brew_down{binary_digit_sum(m_brew_gradient_down)};
+
+            const auto n_sparging_up{binary_digit_sum(m_sparging_gradient_up)};
+            const auto n_sparging_down{binary_digit_sum(m_sparging_gradient_down)};
+
+            if (n_brew_up > n_brew_down + 1) {
+                m_ui_state &= ~Ui::State::DownArrowA;
+                m_ui_state |= Ui::State::UpArrowA;
+            }
+            else if (n_brew_down > n_brew_up + 1) {
+                m_ui_state &= ~Ui::State::UpArrowA;
+                m_ui_state |= Ui::State::DownArrowA;
+            }
+            else {
+                m_ui_state &= ~Ui::State::DownArrowB;
+                m_ui_state &= ~Ui::State::UpArrowB;
+            }
+
+            if (n_sparging_up > n_sparging_down + 1) {
+                m_ui_state &= ~Ui::State::DownArrowB;
+                m_ui_state |= Ui::State::UpArrowB;
+            }
+            else if (n_sparging_down > n_sparging_up + 1) {
+                m_ui_state &= ~Ui::State::UpArrowB;
+                m_ui_state |= Ui::State::DownArrowB;
+            }
+            else {
+                m_ui_state &= ~Ui::State::DownArrowB;
+                m_ui_state &= ~Ui::State::UpArrowB;
+            }
         }
 
         if (brew_sensor.is_connected()) {
-            m_ui.set_big_number(static_cast<uint8_t>(round(current_temperature)));
+            m_ui.set_big_number_a(static_cast<uint8_t>(round(current_brew_temperature)));
         }
         else {
-            m_ui.set_big_number(0);
-            m_ui_state &= ~Ui::State::DownArrow;
-            m_ui_state &= ~Ui::State::UpArrow;
+            m_ui.set_big_number_a(0);
+            m_ui_state &= ~Ui::State::DownArrowA;
+            m_ui_state &= ~Ui::State::UpArrowA;
+        }
+
+        if (sparging_sensor.is_connected()) {
+            m_ui.set_big_number_b(static_cast<uint8_t>(round(current_sparging_temperature)));
+        }
+        else {
+            m_ui.set_big_number_b(0);
+            m_ui_state &= ~Ui::State::DownArrowB;
+            m_ui_state &= ~Ui::State::UpArrowB;
+        }
+
+        if (m_controller.sparging_heater_is_on()) {
+            m_ui_state |= Ui::State::InduOn;
+        }
+        else {
+            m_ui_state &= ~Ui::State::InduOn;
         }
 
         brew_button.update();
@@ -244,15 +366,32 @@ private:
         SetTarget,
     };
 
+    uint8_t binary_digit_sum(uint8_t value)
+    {
+        uint8_t n_bits = 0;
+        for (; value; value >>= 1) {
+            if (value & 1) {
+                n_bits++;
+            }
+        }
+        return n_bits;
+    }
+
     Ui& m_ui;
     uint8_t m_ui_state{0};
     Controller& m_controller;
     TemperatureSensor& m_sparging_sensor;
     ButtonEncoder& m_encoder;
     State m_state{State::Main};
-    float m_last_temperature{20.0f};
-    uint8_t m_set_brew_target_temperature{0};
+    float m_last_brew_temperature{20.0f};
+    float m_last_sparging_temperature{20.0f};
+    uint8_t m_set_target_temperature{0};
     unsigned long m_last_update{0};
+    unsigned long m_last_gradient{0};
+    uint8_t m_brew_gradient_up{0};
+    uint8_t m_brew_gradient_down{0};
+    uint8_t m_sparging_gradient_up{0};
+    uint8_t m_sparging_gradient_down{0};
 };
 
 App app{ui, controller, sparging_sensor, encoder};

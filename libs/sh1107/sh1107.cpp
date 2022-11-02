@@ -168,8 +168,9 @@ void Sh1107::draw_bitmap(uint8_t x, uint8_t y, Bitmap&& bitmap)
 
     // if bitmap is not entirely within one segment, limit drawing to overlap with current segment
     if (!(x >= m_current_segment * 64 && x + bitmap.width < (m_current_segment + 1) * 64)) {
-        i_min = (m_current_segment == 0) ? 0 : 64 - x;
-        i_max = (m_current_segment == 0) ? 64 - x : bitmap.width;
+        // allow bitmapt to exceed right border of the display
+        i_min = (m_current_segment == 0) ? 0 : (64 - x < 0) ? 0 : 64 - x;
+        i_max = (m_current_segment == 0) ? 64 - x : (x + bitmap.width > 128) ? 128 - x : bitmap.width;
     }
 
     for (uint8_t j = 0; j < bitmap.height; j++) {

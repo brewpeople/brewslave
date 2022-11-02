@@ -6,6 +6,7 @@
 #include "button.h"
 #include "comm.h"
 #include "controller.h"
+#include "hotplate.h"
 #include "sensor.h"
 #include "ui.h"
 
@@ -26,7 +27,7 @@ Ds18b20 sparging_sensor{SPARGING_SENSOR_PIN};
 MockTemperatureSensor sparging_sensor;
 #endif // SPARGING_SENSOR_PIN
 #define TEMPERATURE_MESSAGE " +ds18b20"
-#else
+#else // WITH_DS18B20
 MockTemperatureSensor brew_sensor;
 MockTemperatureSensor sparging_sensor;
 #define TEMPERATURE_MESSAGE " +mock_sensor"
@@ -69,11 +70,18 @@ MockGasBurner gbc{};
 #define GBC_MESSAGE " +mock_gbc"
 #endif
 
+#if defined(HOTPLATE_PIN)
+#include <HotplateController.h>
+HotplateController hotplate(HOTPLATE_PIN);
+#else
+MockHotplate hotplate{};
+#endif
+
 #if defined(WITH_MOCK_CONTROLLER)
 MockController controller{};
 #define CONTROLLER_MESSAGE " +mock_controller"
 #else
-MainController controller{brew_sensor, gbc};
+MainController controller{brew_sensor, sparging_sensor, gbc, hotplate};
 #define CONTROLLER_MESSAGE " +real_controller"
 #endif
 
@@ -131,23 +139,23 @@ public:
 
         m_controller.update(elapsed);
 
-        auto target_temperature{m_controller.target_temperature()};
+        auto brew_target_temperature{m_controller.brew_target_temperature()};
 
         if (m_encoder.pressed()) {
             switch (m_state) {
                 case State::SetTarget:
                     m_state = State::Main;
-                    target_temperature = static_cast<float>(m_set_target_temperature);
-                    m_controller.set_temperature(target_temperature);
+                    brew_target_temperature = static_cast<float>(m_set_brew_target_temperature);
+                    m_controller.set_brew_temperature(brew_target_temperature);
                     break;
                 case State::Main:
-                    m_set_target_temperature = static_cast<uint8_t>(round(target_temperature));
+                    m_set_brew_target_temperature = static_cast<uint8_t>(round(brew_target_temperature));
                     m_state = State::SetTarget;
                     break;
             }
         }
 
-        const auto current_temperature{m_controller.temperature()};
+        const auto current_temperature{m_controller.brew_temperature()};
         const auto delta{current_temperature - m_last_temperature};
         m_last_temperature = current_temperature;
 
@@ -156,26 +164,26 @@ public:
         switch (m_state) {
             case State::Main:
                 m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallDownArrow | Ui::State::SmallEq);
-                m_ui.set_small_number(static_cast<uint8_t>(round(target_temperature)));
+                m_ui.set_small_number(static_cast<uint8_t>(round(brew_target_temperature)));
                 break;
 
             case State::SetTarget: {
                 const auto direction{m_encoder.direction()};
 
-                if (direction == ButtonEncoder::Direction::Clockwise && m_set_target_temperature < 100) {
-                    m_set_target_temperature++;
+                if (direction == ButtonEncoder::Direction::Clockwise && m_set_brew_target_temperature < 100) {
+                    m_set_brew_target_temperature++;
                 }
-                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 0) {
-                    m_set_target_temperature--;
+                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_brew_target_temperature > 0) {
+                    m_set_brew_target_temperature--;
                 }
 
-                const auto current_target{static_cast<uint8_t>(round(target_temperature))};
+                const auto current_target{static_cast<uint8_t>(round(brew_target_temperature))};
 
-                if (m_set_target_temperature > current_target) {
+                if (m_set_brew_target_temperature > current_target) {
                     m_ui_state &= ~(Ui::State::SmallDownArrow | Ui::State::SmallEq);
                     m_ui_state |= Ui::State::SmallUpArrow;
                 }
-                else if (m_set_target_temperature < current_target) {
+                else if (m_set_brew_target_temperature < current_target) {
                     m_ui_state &= ~(Ui::State::SmallUpArrow | Ui::State::SmallEq);
                     m_ui_state |= Ui::State::SmallDownArrow;
                 }
@@ -184,7 +192,7 @@ public:
                     m_ui_state |= Ui::State::SmallEq;
                 }
 
-                m_ui.set_small_number(m_set_target_temperature);
+                m_ui.set_small_number(m_set_brew_target_temperature);
             } break;
         }
 
@@ -216,16 +224,15 @@ public:
 
         brew_button.update();
         if (brew_button.pressed()) {
-            controller.set_temperature(0.0f); // deactivates controller
+            controller.set_brew_temperature(0.0f); // deactivates controller
             (gbc.state() == GasBurner::State::idle) ? gbc.start() : gbc.stop();
         }
 
-#if defined(SPARGING_CONTROLLER_PIN)
         sparging_button.update();
         if (sparging_button.pressed()) {
-            digitalWrite(SPARGING_CONTROLLER_PIN, digitalRead(SPARGING_CONTROLLER_PIN) ? LOW : HIGH);
+            controller.set_sparging_temperature(0.0f); // deactivate controller
+            hotplate.state() ? hotplate.stop() : hotplate.start();
         }
-#endif
 
         m_ui.set_state(m_ui_state);
         m_ui.update();
@@ -244,7 +251,7 @@ private:
     ButtonEncoder& m_encoder;
     State m_state{State::Main};
     float m_last_temperature{20.0f};
-    uint8_t m_set_target_temperature{0};
+    uint8_t m_set_brew_target_temperature{0};
     unsigned long m_last_update{0};
 };
 
@@ -265,16 +272,12 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(SPARGING_BUTTON_PIN), sparging_button_trigger, RISING);
 #endif
 
-#if defined(SPARGING_CONTROLLER_PIN)
-    digitalWrite(SPARGING_CONTROLLER_PIN, HIGH); // ensure that relay is off at start
-    pinMode(SPARGING_CONTROLLER_PIN, OUTPUT);
-#endif
-
     brew_sensor.begin();
     sparging_sensor.begin();
 
     display.begin();
     gbc.begin();
+    hotplate.begin(); // ensure that relay is off at start
 }
 
 void serialEvent()

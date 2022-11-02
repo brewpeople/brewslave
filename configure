@@ -108,8 +108,8 @@ class Config:
             self.gbc_valve = config["gbc"].get("valve") if self.with_gbc else None
             self.gbc_ignition = config["gbc"].get("ignition") if self.with_gbc else None
 
-            self.with_sparging_controller = config.has_section("sparging-controller")
-            self.sparging_controller_pin = config["sparging-controller"].get("pin") if self.with_sparging_controller else None
+            self.with_hotplate = config.has_section("hotplate")
+            self.hotplate_pin = config["hotplate"].get("pin") if self.with_hotplate else None
 
         except KeyError as e:
             raise ValueError(f"Could not find configuration entry: {e}")
@@ -213,8 +213,9 @@ if __name__ == "__main__":
         CONFIG.append(f"#define GBC_VALVE_PIN {config.gbc_valve}")
         CONFIG.append(f"#define GBC_IGNITION_PIN {config.gbc_ignition}")
 
-    if config.with_sparging_controller:
-        CONFIG.append(f"#define SPARGING_CONTROLLER_PIN {config.sparging_controller_pin}")
+    if config.with_hotplate:
+        ARDUINO_LIBS.append("HotplateController")
+        CONFIG.append(f"#define HOTPLATE_PIN {config.hotplate_pin}")
 
     with Path("Makefile").open("w") as f:
         template = string.Template(open("Makefile.in").read())

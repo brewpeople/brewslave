@@ -50,7 +50,7 @@ PushButton brew_button{BREW_BUTTON_PIN};
 MockButton brew_button{};
 #endif // BREW_BUTTON_PIN
 #if defined(SPARGING_BUTTON_PIN)
-PushButton sparging_button{BREW_BUTTON_PIN};
+PushButton sparging_button{SPARGING_BUTTON_PIN};
 #else
 MockButton sparging_button{};
 #endif // SPARGING_BUTTON_PIN
@@ -165,7 +165,7 @@ public:
                 if (direction == ButtonEncoder::Direction::Clockwise && m_set_target_temperature < 100) {
                     m_set_target_temperature++;
                 }
-                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 1) {
+                else if (direction == ButtonEncoder::Direction::CounterClockwise && m_set_target_temperature > 0) {
                     m_set_target_temperature--;
                 }
 
@@ -214,6 +214,19 @@ public:
             m_ui_state &= ~Ui::State::UpArrow;
         }
 
+        brew_button.update();
+        if (brew_button.pressed()) {
+            controller.set_temperature(0.0f); // deactivates controller
+            (gbc.state() == GasBurner::State::idle) ? gbc.start() : gbc.stop();
+        }
+
+#if defined(SPARGING_CONTROLLER_PIN)
+        sparging_button.update();
+        if (sparging_button.pressed()) {
+            digitalWrite(SPARGING_CONTROLLER_PIN, digitalRead(SPARGING_CONTROLLER_PIN) ? LOW : HIGH);
+        }
+#endif
+
         m_ui.set_state(m_ui_state);
         m_ui.update();
     }
@@ -248,8 +261,13 @@ void setup()
 #if defined(BREW_BUTTON_PIN)
     attachInterrupt(digitalPinToInterrupt(BREW_BUTTON_PIN), brew_button_trigger, RISING);
 #endif
-#if defined(SPAGING_BUTTON_PIN)
+#if defined(SPARGING_BUTTON_PIN)
     attachInterrupt(digitalPinToInterrupt(SPARGING_BUTTON_PIN), sparging_button_trigger, RISING);
+#endif
+
+#if defined(SPARGING_CONTROLLER_PIN)
+    digitalWrite(SPARGING_CONTROLLER_PIN, HIGH); // ensure that relay is off at start
+    pinMode(SPARGING_CONTROLLER_PIN, OUTPUT);
 #endif
 
     brew_sensor.begin();

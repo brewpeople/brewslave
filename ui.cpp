@@ -84,8 +84,14 @@ void Ui::update()
             m_display.draw_bitmap(m_display.width - 1 - 2 * 18 - 8, 14, Bitmap{6, 5, ICON_SMALL_ARROW_EQ_6_5});
         }
 
-        m_display.draw_bitmap(m_display.width - 1 - 2 * 18, 0, Bitmap{18, 32, DIGITS_18_32[m_small_number / 10]});
-        m_display.draw_bitmap(m_display.width - 1 - 1 * 18, 0, Bitmap{18, 32, DIGITS_18_32[m_small_number % 10]});
+        if (m_small_number != 0) {
+            m_display.draw_bitmap(m_display.width - 1 - 2 * 18, 0, Bitmap{18, 32, DIGITS_18_32[m_small_number / 10]});
+            m_display.draw_bitmap(m_display.width - 1 - 1 * 18, 0, Bitmap{18, 32, DIGITS_18_32[m_small_number % 10]});
+        }
+        else {
+            m_display.draw_bitmap(m_display.width - 1 - 2 * 18, 15, Bitmap{18, 2, DASH_18_2});
+            m_display.draw_bitmap(m_display.width - 1 - 1 * 18, 15, Bitmap{18, 2, DASH_18_2});
+        }
 
         m_display.flush();
     } while (m_display.next_segment());

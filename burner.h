@@ -12,22 +12,28 @@ public:
         // matze: should we really expose starting and ignition to the user of
         // the class? AFAICS at that layer we are only interested in if it's
         // running or not and then start/stop it if its not or is.
-        starting = 1,
-        ignition = 2,
-        running = 3,
-        any_dejam = 4,
-        dejam_start = 5,
-        dejam_pre_delay = 6,
-        dejam_button_pressed = 7,
-        dejam_post_delay = 8,
-        any_error = 9,
-        error_start = 10,
-        error_ignition = 11,
-        error_dejam = 12,
-        error_other = 13,
+        starting = 1,             // burner recently powered on, about to transition to next state
+        ignition = 2,             // ignition in progress
+        running = 3,              // burner running flawlessly
+        any_dejam = 4,            // placeholder for any dejamming state e.g. if (state > any_dejam && state < any_error)
+        dejam_start = 5,          // burner recently started dejamming, about to transition to next state
+        dejam_pre_delay = 6,      // burner waits until initial dejam attempt
+        dejam_button_pressed = 7, // dejamming button currently pressed
+        dejam_post_delay = 8,     // wait for dejamming button press to take effect
+        any_error = 9,            // placeholder for any error state e.g. if (state > any_error)
+        error_start = 10,         // exceeded max. dejamming at burner start -> wiring or power supply issue, gbc defect?
+        error_ignition = 11,      // exceeded max. ignition attempts -> gas supply off or flame watcher misplaced?
+        error_dejam = 12,         // unknown error midway during dejamming -> internal wiring, coding or power issue?
+        error_other = 13,         // internal wiring, coding or power issue?
         // XXX: we use six bits for the state in order to encode dejam and
         // ignition counts in the remaining ten bits, so never add a state
         // larger than 63.
+    };
+
+    struct decoded_state {
+        State state;
+        uint8_t dejam_counter;
+        uint8_t ignition_counter;
     };
 
     /**
@@ -38,6 +44,11 @@ public:
      * @param ignition_counter Counter encoded in the middle five bits.
      */
     static uint16_t encode_state(State state, uint8_t dejam_counter, uint8_t ignition_counter);
+
+    /**
+     * Decode full state.
+     */
+    static decoded_state decode_full_state(uint16_t full_state);
 
     /**
      * One-time initialization to be called in setup().

@@ -30,6 +30,12 @@ public:
         // larger than 63.
     };
 
+    struct decoded_state {
+        State state;
+        uint8_t dejam_counter;
+        uint8_t ignition_counter;
+    };
+
     /**
      * Encode state and counter in a 16 bit value.
      *
@@ -38,6 +44,11 @@ public:
      * @param ignition_counter Counter encoded in the middle five bits.
      */
     static uint16_t encode_state(State state, uint8_t dejam_counter, uint8_t ignition_counter);
+
+    /**
+     * Decode full state.
+     */
+    static decoded_state decode_full_state(uint16_t full_state);
 
     /**
      * One-time initialization to be called in setup().
